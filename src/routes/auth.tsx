@@ -47,21 +47,54 @@ function AuthPage() {
   const handleSignup = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
+    const email = String(fd.get("email"));
+    const password = String(fd.get("password"));
+    const fullName = String(fd.get("full_name"));
+    const role = String(fd.get("role"));
     setLoading(true);
-    const { error } = await supabase.auth.signUp({
-      email: String(fd.get("email")),
-      password: String(fd.get("password")),
+    const { data, error } = await supabase.auth.signUp({
+      email,
+      password,
       options: {
         emailRedirectTo: window.location.origin,
         data: {
-          full_name: String(fd.get("full_name")),
-          role: String(fd.get("role")),
+          full_name: fullName,
+          role,
         },
       },
     });
+
+    if (error) {
+      setLoading(false);
+      return toast.error(error.message);
+    }
+
+    if (data.session) {
+      setLoading(false);
+      toast.success("Compte créé avec succès. Vous êtes maintenant connecté.");
+      router.navigate({ to: "/", replace: true });
+      return;
+    }
+
+    const { error: signInError } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
     setLoading(false);
-    if (error) return toast.error(error.message);
-    toast.success("Compte créé avec succès. Vous pouvez maintenant vous connecter.");
+
+    if (signInError) {
+      if (signInError.message.toLowerCase().includes("email not confirmed")) {
+        return toast.error(
+          "Compte créé. Vérifiez votre email pour confirmer votre adresse avant de vous connecter.",
+        );
+      }
+
+      return toast.error(signInError.message);
+    }
+
+    toast.success("Compte créé avec succès. Vous êtes maintenant connecté.");
+    router.navigate({ to: "/", replace: true });
   };
 
   return (
