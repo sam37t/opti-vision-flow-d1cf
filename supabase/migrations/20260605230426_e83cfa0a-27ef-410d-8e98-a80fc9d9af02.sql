@@ -1,0 +1,1 @@
+ALTER TABLE public.dossiers ALTER COLUMN status SET DEFAULT 'a_traiter'::public.dossier_status;
