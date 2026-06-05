@@ -1,6 +1,6 @@
 import { Link, useRouter } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { Glasses, LayoutDashboard, FolderKanban, LogOut, Plus } from "lucide-react";
+import { Glasses, LayoutDashboard, FolderKanban, LogOut, Plus, Settings } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
