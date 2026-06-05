@@ -40,7 +40,7 @@ function DossierDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("dossier_history")
-        .select("*, profiles:changed_by(full_name)")
+        .select("*, profiles!dossier_history_changed_by_profile_fkey(full_name)")
         .eq("dossier_id", id)
         .order("changed_at", { ascending: false });
       if (error) throw error;
@@ -53,7 +53,7 @@ function DossierDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("dossier_notes")
-        .select("*, profiles:author_id(full_name)")
+        .select("*, profiles!dossier_notes_author_profile_fkey(full_name)")
         .eq("dossier_id", id)
         .order("created_at", { ascending: false });
       if (error) throw error;
