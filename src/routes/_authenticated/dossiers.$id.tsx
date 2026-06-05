@@ -1,7 +1,7 @@
 import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
-import { ArrowLeft, Phone, History, MessageSquare, Trash2 } from "lucide-react";
+import { ArrowLeft, Phone, History, MessageSquare, Trash2, AlertOctagon } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -24,7 +24,7 @@ function DossierDetail() {
   const { id } = Route.useParams();
   const router = useRouter();
   const qc = useQueryClient();
-  const { user, role } = useAuth();
+  const { user } = useAuth();
 
   const { data: dossier, isLoading } = useQuery({
     queryKey: ["dossier", id],
@@ -61,7 +61,6 @@ function DossierDetail() {
     },
   });
 
-  // Realtime
   useEffect(() => {
     const channel = supabase
       .channel(`dossier-${id}`)
@@ -78,16 +77,19 @@ function DossierDetail() {
   const [saving, setSaving] = useState(false);
   const [pec, setPec] = useState("");
   const [rac, setRac] = useState("");
+  const [remb, setRemb] = useState("");
   const [noteContent, setNoteContent] = useState("");
 
   useEffect(() => {
     if (dossier) {
       setPec(dossier.montant_pec?.toString() ?? "");
       setRac(dossier.reste_a_charge?.toString() ?? "");
+      setRemb((dossier as any).remboursement_attendu?.toString() ?? "");
     }
   }, [dossier]);
 
   if (isLoading || !dossier) return <p className="text-sm text-muted-foreground">Chargement...</p>;
+  const d = dossier as any;
 
   const changeStatus = async (newStatus: DossierStatus) => {
     const { error } = await supabase.from("dossiers").update({ status: newStatus }).eq("id", id);
@@ -95,13 +97,21 @@ function DossierDetail() {
     else toast.success("Statut mis à jour");
   };
 
+  const toggleProbleme = async () => {
+    const { error } = await supabase.from("dossiers").update({ probleme: !d.probleme }).eq("id", id);
+    if (error) toast.error(error.message);
+    else toast.success(d.probleme ? "Problème retiré" : "Dossier marqué comme problématique");
+  };
+
   const saveMontants = async () => {
     setSaving(true);
+    const parse = (v: string) => v.trim() === "" ? null : Number(v.replace(",", "."));
     const { error } = await supabase
       .from("dossiers")
       .update({
-        montant_pec: pec === "" ? null : Number(pec),
-        reste_a_charge: rac === "" ? null : Number(rac),
+        montant_pec: parse(pec),
+        reste_a_charge: parse(rac),
+        remboursement_attendu: parse(remb),
       })
       .eq("id", id);
     setSaving(false);
@@ -140,22 +150,38 @@ function DossierDetail() {
         <ArrowLeft className="h-4 w-4" /> Retour à la liste
       </Link>
 
+      {d.probleme && (
+        <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
+          <AlertOctagon className="h-4 w-4" />
+          <span className="font-medium">Dossier signalé comme problématique</span>
+        </div>
+      )}
+
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">
-            {dossier.client_nom.toUpperCase()} {dossier.client_prenom}
+            {d.client_nom.toUpperCase()} {d.client_prenom}
           </h1>
           <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
-            {dossier.telephone && (
+            {d.telephone && (
               <span className="inline-flex items-center gap-1">
-                <Phone className="h-3.5 w-3.5" /> {dossier.telephone}
+                <Phone className="h-3.5 w-3.5" /> {d.telephone}
               </span>
             )}
-            <span>Créé le {new Date(dossier.created_at).toLocaleDateString("fr-FR")}</span>
+            <span>Créé le {new Date(d.created_at).toLocaleDateString("fr-FR")}</span>
           </div>
         </div>
         <div className="flex items-center gap-2">
-          <StatusBadge status={dossier.status} />
+          <StatusBadge status={d.status} />
+          <Button
+            variant={d.probleme ? "destructive" : "outline"}
+            size="sm"
+            onClick={toggleProbleme}
+            className="gap-1.5"
+          >
+            <AlertOctagon className="h-4 w-4" />
+            {d.probleme ? "Retirer le problème" : "Signaler un problème"}
+          </Button>
           <Button variant="ghost" size="icon" onClick={deleteDossier} title="Supprimer">
             <Trash2 className="h-4 w-4 text-destructive" />
           </Button>
@@ -166,17 +192,20 @@ function DossierDetail() {
         <div className="space-y-5 lg:col-span-2">
           <Card title="Informations">
             <Grid>
-              <Info label="Mutuelle" value={dossier.mutuelle || "—"} />
-              <Info label="Monture" value={dossier.monture || "—"} />
-              <Info label="Type de verres" value={dossier.type_verres || "—"} />
-              <Info label="Montant devis" value={`${Number(dossier.montant_devis).toFixed(2)} €`} />
+              <Info label="Mutuelle" value={d.mutuelle || "—"} />
+              <Info label="Type de verres" value={d.type_verres || "—"} />
+              <Info label="Montant devis" value={`${Number(d.montant_devis).toFixed(2)} €`} />
+              <Info
+                label="Remboursement attendu"
+                value={d.remboursement_attendu != null ? `${Number(d.remboursement_attendu).toFixed(2)} €` : "—"}
+              />
             </Grid>
           </Card>
 
           <Card title="Statut">
             <div className="space-y-2">
               <Label>Changer le statut</Label>
-              <Select value={dossier.status} onValueChange={(v) => changeStatus(v as DossierStatus)}>
+              <Select value={d.status} onValueChange={(v) => changeStatus(v as DossierStatus)}>
                 <SelectTrigger className="max-w-xs"><SelectValue /></SelectTrigger>
                 <SelectContent>
                   {DOSSIER_STATUSES.map((s) => (
@@ -187,8 +216,12 @@ function DossierDetail() {
             </div>
           </Card>
 
-          <Card title="Prise en charge mutuelle">
-            <div className="grid gap-3 sm:grid-cols-2">
+          <Card title="Montants">
+            <div className="grid gap-3 sm:grid-cols-3">
+              <div className="space-y-2">
+                <Label>Remboursement attendu (€)</Label>
+                <Input type="number" step="0.01" value={remb} onChange={(e) => setRemb(e.target.value)} placeholder="Optionnel" />
+              </div>
               <div className="space-y-2">
                 <Label>Montant PEC (€)</Label>
                 <Input type="number" step="0.01" value={pec} onChange={(e) => setPec(e.target.value)} />
