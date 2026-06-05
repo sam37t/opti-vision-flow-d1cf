@@ -188,28 +188,19 @@ function DossierDetail() {
           </Card>
 
           <Card title="Prise en charge mutuelle">
-            {role === "gerante" ? (
-              <>
-                <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="space-y-2">
-                    <Label>Montant PEC (€)</Label>
-                    <Input type="number" step="0.01" value={pec} onChange={(e) => setPec(e.target.value)} />
-                  </div>
-                  <div className="space-y-2">
-                    <Label>Reste à charge (€)</Label>
-                    <Input type="number" step="0.01" value={rac} onChange={(e) => setRac(e.target.value)} />
-                  </div>
-                </div>
-                <Button onClick={saveMontants} disabled={saving} className="mt-4">
-                  {saving ? "Enregistrement..." : "Enregistrer"}
-                </Button>
-              </>
-            ) : (
-              <div className="grid gap-3 sm:grid-cols-2">
-                <Info label="Montant PEC" value={dossier.montant_pec != null ? `${Number(dossier.montant_pec).toFixed(2)} €` : "—"} />
-                <Info label="Reste à charge" value={dossier.reste_a_charge != null ? `${Number(dossier.reste_a_charge).toFixed(2)} €` : "—"} />
+            <div className="grid gap-3 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label>Montant PEC (€)</Label>
+                <Input type="number" step="0.01" value={pec} onChange={(e) => setPec(e.target.value)} />
               </div>
-            )}
+              <div className="space-y-2">
+                <Label>Reste à charge (€)</Label>
+                <Input type="number" step="0.01" value={rac} onChange={(e) => setRac(e.target.value)} />
+              </div>
+            </div>
+            <Button onClick={saveMontants} disabled={saving} className="mt-4">
+              {saving ? "Enregistrement..." : "Enregistrer"}
+            </Button>
           </Card>
 
           <Card title="Notes internes" icon={<MessageSquare className="h-4 w-4" />}>
