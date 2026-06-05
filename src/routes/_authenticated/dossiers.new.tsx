@@ -53,6 +53,7 @@ function NewDossierPage() {
         remboursement_attendu: fd.get("remboursement_attendu")
           ? Number(String(fd.get("remboursement_attendu")).replace(",", ".")) || null
           : null,
+        status,
         created_by: userData.user?.id,
       })
       .select("id")
