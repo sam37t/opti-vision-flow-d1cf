@@ -1,10 +1,10 @@
 import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
 import { useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -17,21 +17,39 @@ function NewDossierPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
 
+  const { data: mutuelles = [] } = useQuery({
+    queryKey: ["mutuelles"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("mutuelles").select("name").order("name");
+      if (error) throw error;
+      return data.map((m) => m.name);
+    },
+  });
+
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     setLoading(true);
     const { data: userData } = await supabase.auth.getUser();
+
+    const mutuelle = String(fd.get("mutuelle") || "").trim();
+    // Ajoute la mutuelle si nouvelle
+    if (mutuelle && !mutuelles.includes(mutuelle)) {
+      await supabase.from("mutuelles").insert({ name: mutuelle });
+    }
+
     const { data, error } = await supabase
       .from("dossiers")
       .insert({
         client_nom: String(fd.get("client_nom")),
         client_prenom: String(fd.get("client_prenom")),
-        telephone: String(fd.get("telephone")),
-        mutuelle: String(fd.get("mutuelle")),
-        monture: String(fd.get("monture")),
-        type_verres: String(fd.get("type_verres")),
-        montant_devis: Number(fd.get("montant_devis") || 0),
+        telephone: String(fd.get("telephone") || ""),
+        mutuelle,
+        type_verres: String(fd.get("type_verres") || ""),
+        montant_devis: Number(String(fd.get("montant_devis") || "0").replace(",", ".")) || 0,
+        remboursement_attendu: fd.get("remboursement_attendu")
+          ? Number(String(fd.get("remboursement_attendu")).replace(",", ".")) || null
+          : null,
         created_by: userData.user?.id,
       })
       .select("id")
@@ -56,10 +74,16 @@ function NewDossierPage() {
           <Fld name="client_nom" label="Nom" required />
           <Fld name="client_prenom" label="Prénom" required />
           <Fld name="telephone" label="Téléphone" type="tel" />
-          <Fld name="mutuelle" label="Mutuelle" />
-          <Fld name="monture" label="Monture choisie" />
+          <div className="space-y-2">
+            <Label htmlFor="mutuelle">Mutuelle</Label>
+            <Input id="mutuelle" name="mutuelle" list="mutuelles-list" placeholder="Tapez ou choisissez" />
+            <datalist id="mutuelles-list">
+              {mutuelles.map((m) => <option key={m} value={m} />)}
+            </datalist>
+          </div>
           <Fld name="type_verres" label="Type de verres" />
           <Fld name="montant_devis" label="Montant devis (€)" type="number" step="0.01" />
+          <Fld name="remboursement_attendu" label="Remboursement attendu (€)" type="number" step="0.01" />
         </div>
         <div className="flex justify-end gap-2">
           <Link to="/dossiers"><Button type="button" variant="ghost">Annuler</Button></Link>

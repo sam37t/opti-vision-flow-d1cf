@@ -1,8 +1,8 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { AlertTriangle, Clock, FolderKanban, TrendingUp } from "lucide-react";
+import { AlertOctagon, AlertTriangle, Clock, FolderKanban, TrendingUp } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { DOSSIER_STATUSES, STATUS_LABELS, type DossierStatus } from "@/lib/dossier-status";
+import { DOSSIER_STATUSES, STATUS_LABELS, TERMINAL_STATUSES, type DossierStatus } from "@/lib/dossier-status";
 import { StatusBadge } from "@/components/StatusBadge";
 
 export const Route = createFileRoute("/_authenticated/")({
@@ -16,7 +16,7 @@ function Dashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("dossiers")
-        .select("id, client_nom, client_prenom, mutuelle, status, montant_devis, last_status_change_at, created_at")
+        .select("id, client_nom, client_prenom, mutuelle, status, montant_devis, remboursement_attendu, probleme, last_status_change_at, created_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -29,16 +29,21 @@ function Dashboard() {
   }, {} as Record<DossierStatus, number>);
 
   const now = Date.now();
-  const TERMINAL: DossierStatus[] = ["livre_facture", "refuse"];
   const stale = dossiers.filter(
     (d) =>
-      !TERMINAL.includes(d.status as DossierStatus) &&
+      !TERMINAL_STATUSES.includes(d.status as DossierStatus) &&
       now - new Date(d.last_status_change_at).getTime() > 48 * 3600 * 1000,
   );
 
+  const problemes = dossiers.filter((d) => d.probleme);
+
   const totalActifs = dossiers.filter(
-    (d) => d.status !== "livre_facture" && d.status !== "refuse",
+    (d) => !TERMINAL_STATUSES.includes(d.status as DossierStatus),
   ).length;
+
+  const totalRembAttendu = dossiers
+    .filter((d) => !TERMINAL_STATUSES.includes(d.status as DossierStatus))
+    .reduce((sum, d) => sum + (Number(d.remboursement_attendu) || 0), 0);
 
   return (
     <div className="space-y-6">
@@ -49,19 +54,28 @@ function Dashboard() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard icon={<FolderKanban className="h-5 w-5" />} label="Dossiers actifs" value={totalActifs} />
-        <StatCard icon={<Clock className="h-5 w-5" />} label="En attente mutuelle" value={counts.en_attente} />
+        <StatCard
+          icon={<TrendingUp className="h-5 w-5" />}
+          label="CA attendu (€)"
+          value={Math.round(totalRembAttendu)}
+        />
         <StatCard
           icon={<AlertTriangle className="h-5 w-5" />}
           label="En retard (>48h)"
           value={stale.length}
           tone={stale.length > 0 ? "warning" : "default"}
         />
-        <StatCard icon={<TrendingUp className="h-5 w-5" />} label="Total" value={dossiers.length} />
+        <StatCard
+          icon={<AlertOctagon className="h-5 w-5" />}
+          label="Problèmes signalés"
+          value={problemes.length}
+          tone={problemes.length > 0 ? "danger" : "default"}
+        />
       </div>
 
       <section className="rounded-xl border bg-card p-5">
         <h2 className="mb-4 text-base font-semibold">Répartition par statut</h2>
-        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-4">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
           {DOSSIER_STATUSES.map((s) => (
             <Link
               key={s}
@@ -76,6 +90,25 @@ function Dashboard() {
         </div>
       </section>
 
+      {problemes.length > 0 && (
+        <section className="rounded-xl border border-destructive/30 bg-destructive/5 p-5">
+          <div className="mb-3 flex items-center gap-2 text-destructive">
+            <AlertOctagon className="h-5 w-5" />
+            <h2 className="font-semibold">Dossiers signalés comme problématiques</h2>
+          </div>
+          <ul className="divide-y divide-destructive/20">
+            {problemes.map((d) => (
+              <li key={d.id} className="py-2">
+                <Link to="/dossiers/$id" params={{ id: d.id }} className="flex items-center justify-between text-sm hover:underline">
+                  <span className="font-medium">{d.client_nom.toUpperCase()} {d.client_prenom}</span>
+                  <span className="text-muted-foreground">{d.mutuelle || "—"}</span>
+                </Link>
+              </li>
+            ))}
+          </ul>
+        </section>
+      )}
+
       {stale.length > 0 && (
         <section className="rounded-xl border border-amber-200 bg-amber-50 p-5">
           <div className="mb-3 flex items-center gap-2 text-amber-900">
@@ -85,17 +118,9 @@ function Dashboard() {
           <ul className="divide-y divide-amber-200">
             {stale.map((d) => (
               <li key={d.id} className="py-2">
-                <Link
-                  to="/dossiers/$id"
-                  params={{ id: d.id }}
-                  className="flex items-center justify-between text-sm hover:underline"
-                >
-                  <span className="font-medium">
-                    {d.client_nom.toUpperCase()} {d.client_prenom}
-                  </span>
-                  <span className="text-muted-foreground">
-                    {d.mutuelle} · {hoursAgo(d.last_status_change_at)}h
-                  </span>
+                <Link to="/dossiers/$id" params={{ id: d.id }} className="flex items-center justify-between text-sm hover:underline">
+                  <span className="font-medium">{d.client_nom.toUpperCase()} {d.client_prenom}</span>
+                  <span className="text-muted-foreground">{d.mutuelle} · {hoursAgo(d.last_status_change_at)}h</span>
                 </Link>
               </li>
             ))}
@@ -110,15 +135,13 @@ function Dashboard() {
 
 function StatCard({
   icon, label, value, tone = "default",
-}: { icon: React.ReactNode; label: string; value: number; tone?: "default" | "warning" }) {
+}: { icon: React.ReactNode; label: string; value: number; tone?: "default" | "warning" | "danger" }) {
+  const toneClass =
+    tone === "warning" && value > 0 ? "border-amber-300 bg-amber-50" :
+    tone === "danger" && value > 0 ? "border-destructive/30 bg-destructive/5" :
+    "bg-card";
   return (
-    <div
-      className={`rounded-xl border p-5 ${
-        tone === "warning" && value > 0
-          ? "border-amber-300 bg-amber-50"
-          : "bg-card"
-      }`}
-    >
+    <div className={`rounded-xl border p-5 ${toneClass}`}>
       <div className="mb-2 flex items-center gap-2 text-muted-foreground">
         {icon}
         <span className="text-sm">{label}</span>

@@ -6,6 +6,7 @@ export const DOSSIER_STATUSES = [
   "a_modifier",
   "verres_commandes",
   "livre_facture",
+  "pas_de_tp",
   "refuse",
 ] as const;
 
@@ -19,6 +20,7 @@ export const STATUS_LABELS: Record<DossierStatus, string> = {
   a_modifier: "À modifier",
   verres_commandes: "Verres commandés",
   livre_facture: "Livré / Facturé",
+  pas_de_tp: "Pas de Tiers Payant",
   refuse: "Refusé",
 };
 
@@ -30,5 +32,9 @@ export const STATUS_COLORS: Record<DossierStatus, string> = {
   a_modifier: "bg-orange-100 text-orange-800 border-orange-200",
   verres_commandes: "bg-indigo-100 text-indigo-800 border-indigo-200",
   livre_facture: "bg-teal-100 text-teal-800 border-teal-200",
+  pas_de_tp: "bg-slate-100 text-slate-800 border-slate-200",
   refuse: "bg-rose-100 text-rose-800 border-rose-200",
 };
+
+// Statuts considérés "terminés" (n'apparaissent plus dans les alertes 48h)
+export const TERMINAL_STATUSES: DossierStatus[] = ["livre_facture", "refuse", "pas_de_tp"];

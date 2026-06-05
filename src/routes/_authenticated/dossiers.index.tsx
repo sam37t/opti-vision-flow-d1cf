@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useState } from "react";
-import { LayoutGrid, List, Search, X } from "lucide-react";
+import { AlertOctagon, LayoutGrid, List, Search, X } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -10,7 +10,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { StatusBadge } from "@/components/StatusBadge";
-import { DOSSIER_STATUSES, STATUS_LABELS, type DossierStatus } from "@/lib/dossier-status";
+import { DOSSIER_STATUSES, STATUS_LABELS, TERMINAL_STATUSES, type DossierStatus } from "@/lib/dossier-status";
 
 const searchSchema = z.object({
   status: z.string().optional(),
@@ -18,6 +18,7 @@ const searchSchema = z.object({
   from: z.string().optional(),
   to: z.string().optional(),
   q: z.string().optional(),
+  probleme: z.string().optional(),
 });
 
 export const Route = createFileRoute("/_authenticated/dossiers/")({
@@ -26,19 +27,8 @@ export const Route = createFileRoute("/_authenticated/dossiers/")({
   component: DossiersPage,
 });
 
-// Convertit une date locale (Europe/Paris) en bornes UTC ISO
 function parisDayBounds(date: string, end: boolean): string {
-  // date au format YYYY-MM-DD. Paris est UTC+1 (hiver) ou UTC+2 (été).
-  // On laisse JS interpréter "YYYY-MM-DDTHH:MM:SS" comme local au navigateur,
-  // mais pour rester stable côté serveur on construit explicitement avec un offset.
   const [y, m, d] = date.split("-").map(Number);
-  // Heure locale Paris : 00:00 ou 23:59:59.999
-  const local = new Date(Date.UTC(y, m - 1, d, end ? 23 : 0, end ? 59 : 0, end ? 59 : 0, end ? 999 : 0));
-  // Offset Paris (DST): on calcule via Intl
-  const tzOffsetMinutes = -new Date(local).getTimezoneOffset(); // offset du navigateur, approximation
-  // Approche plus robuste: utiliser une date "Paris" en passant par toLocaleString
-  const parisDate = new Date(`${date}T${end ? "23:59:59.999" : "00:00:00.000"}+02:00`);
-  // En hiver, +01:00 ; on détecte:
   const isDST = (() => {
     const jan = new Date(y, 0, 1).getTimezoneOffset();
     const jul = new Date(y, 6, 1).getTimezoneOffset();
@@ -48,6 +38,22 @@ function parisDayBounds(date: string, end: boolean): string {
   const offset = isDST ? "+02:00" : "+01:00";
   return new Date(`${date}T${end ? "23:59:59.999" : "00:00:00.000"}${offset}`).toISOString();
 }
+
+type Dossier = {
+  id: string;
+  client_nom: string;
+  client_prenom: string;
+  telephone: string;
+  mutuelle: string;
+  status: DossierStatus;
+  montant_devis: number;
+  montant_pec: number | null;
+  reste_a_charge: number | null;
+  remboursement_attendu: number | null;
+  probleme: boolean;
+  created_at: string;
+  last_status_change_at: string;
+};
 
 function DossiersPage() {
   const search = Route.useSearch();
@@ -60,6 +66,7 @@ function DossiersPage() {
       let q = supabase.from("dossiers").select("*").order("created_at", { ascending: false });
       if (search.status) q = q.eq("status", search.status as DossierStatus);
       if (search.mutuelle) q = q.eq("mutuelle", search.mutuelle);
+      if (search.probleme === "1") q = q.eq("probleme", true);
       if (search.from) q = q.gte("created_at", parisDayBounds(search.from, false));
       if (search.to) q = q.lte("created_at", parisDayBounds(search.to, true));
       if (search.q) {
@@ -69,31 +76,25 @@ function DossiersPage() {
       }
       const { data, error } = await q;
       if (error) throw error;
-      return data;
+      return data as unknown as Dossier[];
     },
   });
 
-  // Liste de mutuelles distinctes, indépendante des filtres actifs
   const { data: mutuelles = [] } = useQuery({
-    queryKey: ["mutuelles-distinct"],
+    queryKey: ["mutuelles"],
     queryFn: async () => {
-      const { data, error } = await supabase
-        .from("dossiers")
-        .select("mutuelle")
-        .not("mutuelle", "is", null)
-        .neq("mutuelle", "");
+      const { data, error } = await supabase.from("mutuelles").select("name").order("name");
       if (error) throw error;
-      return Array.from(new Set((data ?? []).map((d) => d.mutuelle))).sort();
+      return data.map((m) => m.name);
     },
   });
 
   const update = (key: string, value: string | undefined) =>
     navigate({ search: { ...search, [key]: value || undefined } });
 
-  const clearFilters = () =>
-    navigate({ search: {} });
+  const clearFilters = () => navigate({ search: {} });
 
-  const hasFilters = !!(search.status || search.mutuelle || search.from || search.to || search.q);
+  const hasFilters = !!(search.status || search.mutuelle || search.from || search.to || search.q || search.probleme);
 
   return (
     <div className="space-y-5">
@@ -105,20 +106,10 @@ function DossiersPage() {
           </p>
         </div>
         <div className="flex items-center gap-1 rounded-md border bg-card p-1">
-          <Button
-            variant={view === "list" ? "secondary" : "ghost"}
-            size="sm"
-            onClick={() => setView("list")}
-            className="gap-1.5"
-          >
+          <Button variant={view === "list" ? "secondary" : "ghost"} size="sm" onClick={() => setView("list")} className="gap-1.5">
             <List className="h-4 w-4" /> Liste
           </Button>
-          <Button
-            variant={view === "kanban" ? "secondary" : "ghost"}
-            size="sm"
-            onClick={() => setView("kanban")}
-            className="gap-1.5"
-          >
+          <Button variant={view === "kanban" ? "secondary" : "ghost"} size="sm" onClick={() => setView("kanban")} className="gap-1.5">
             <LayoutGrid className="h-4 w-4" /> Kanban
           </Button>
         </div>
@@ -154,6 +145,14 @@ function DossiersPage() {
             </SelectContent>
           </Select>
           <div className="flex items-center gap-2">
+            <Button
+              variant={search.probleme === "1" ? "destructive" : "outline"}
+              size="sm"
+              onClick={() => update("probleme", search.probleme === "1" ? undefined : "1")}
+              className="gap-1"
+            >
+              <AlertOctagon className="h-4 w-4" /> Problèmes
+            </Button>
             {hasFilters && (
               <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1">
                 <X className="h-4 w-4" /> Effacer
@@ -164,19 +163,11 @@ function DossiersPage() {
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <div className="space-y-1 lg:col-span-2">
             <label className="text-xs text-muted-foreground">Du</label>
-            <Input
-              type="date"
-              value={search.from ?? ""}
-              onChange={(e) => update("from", e.target.value)}
-            />
+            <Input type="date" value={search.from ?? ""} onChange={(e) => update("from", e.target.value)} />
           </div>
           <div className="space-y-1 lg:col-span-2">
             <label className="text-xs text-muted-foreground">Au</label>
-            <Input
-              type="date"
-              value={search.to ?? ""}
-              onChange={(e) => update("to", e.target.value)}
-            />
+            <Input type="date" value={search.to ?? ""} onChange={(e) => update("to", e.target.value)} />
           </div>
         </div>
       </div>
@@ -192,48 +183,34 @@ function DossiersPage() {
   );
 }
 
-type Dossier = {
-  id: string;
-  client_nom: string;
-  client_prenom: string;
-  telephone: string;
-  mutuelle: string;
-  monture: string;
-  status: DossierStatus;
-  montant_devis: number;
-  montant_pec: number | null;
-  reste_a_charge: number | null;
-  created_at: string;
-  last_status_change_at: string;
-};
-
 function ListView({ dossiers }: { dossiers: Dossier[] }) {
-  if (dossiers.length === 0)
-    return <EmptyState />;
+  if (dossiers.length === 0) return <EmptyState />;
   return (
     <div className="overflow-hidden rounded-xl border bg-card">
       <table className="w-full text-sm">
         <thead className="bg-muted/50 text-left text-muted-foreground">
           <tr>
-            <Th>Client</Th><Th>Mutuelle</Th><Th>Devis</Th><Th>Statut</Th><Th>Créé le</Th>
+            <Th>Client</Th><Th>Mutuelle</Th><Th>Remb. attendu</Th><Th>Statut</Th><Th>Créé le</Th>
           </tr>
         </thead>
         <tbody>
           {dossiers.map((d) => {
             const stale =
-              d.status !== "livre_facture" &&
-              d.status !== "refuse" &&
+              !TERMINAL_STATUSES.includes(d.status) &&
               Date.now() - new Date(d.last_status_change_at).getTime() > 48 * 3600 * 1000;
             return (
-              <tr key={d.id} className="border-t hover:bg-accent/50">
+              <tr key={d.id} className={`border-t hover:bg-accent/50 ${d.probleme ? "bg-destructive/5" : ""}`}>
                 <td className="px-4 py-3">
-                  <Link to="/dossiers/$id" params={{ id: d.id }} className="font-medium hover:underline">
-                    {d.client_nom.toUpperCase()} {d.client_prenom}
+                  <Link to="/dossiers/$id" params={{ id: d.id }} className="flex items-center gap-2 font-medium hover:underline">
+                    {d.probleme && <AlertOctagon className="h-4 w-4 text-destructive" />}
+                    <span>{d.client_nom.toUpperCase()} {d.client_prenom}</span>
                   </Link>
                   <div className="text-xs text-muted-foreground">{d.telephone}</div>
                 </td>
                 <td className="px-4 py-3">{d.mutuelle || "—"}</td>
-                <td className="px-4 py-3 tabular-nums">{Number(d.montant_devis).toFixed(2)} €</td>
+                <td className="px-4 py-3 tabular-nums">
+                  {d.remboursement_attendu != null ? `${Number(d.remboursement_attendu).toFixed(2)} €` : "—"}
+                </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
                     <StatusBadge status={d.status} />
@@ -273,15 +250,20 @@ function KanbanView({ dossiers }: { dossiers: Dossier[] }) {
                   key={d.id}
                   to="/dossiers/$id"
                   params={{ id: d.id }}
-                  className="block rounded-md border bg-background p-3 transition-colors hover:bg-accent"
+                  className={`block rounded-md border p-3 transition-colors hover:bg-accent ${
+                    d.probleme ? "border-destructive/40 bg-destructive/5" : "bg-background"
+                  }`}
                 >
-                  <div className="text-sm font-medium">
+                  <div className="flex items-center gap-1.5 text-sm font-medium">
+                    {d.probleme && <AlertOctagon className="h-3.5 w-3.5 text-destructive" />}
                     {d.client_nom.toUpperCase()} {d.client_prenom}
                   </div>
                   <div className="text-xs text-muted-foreground">{d.mutuelle || "—"}</div>
-                  <div className="mt-1 text-xs tabular-nums">
-                    {Number(d.montant_devis).toFixed(2)} €
-                  </div>
+                  {d.remboursement_attendu != null && (
+                    <div className="mt-1 text-xs tabular-nums">
+                      {Number(d.remboursement_attendu).toFixed(2)} €
+                    </div>
+                  )}
                 </Link>
               ))}
               {items.length === 0 && (
