@@ -14,16 +14,187 @@ export type Database = {
   }
   public: {
     Tables: {
-      [_ in never]: never
+      dossier_history: {
+        Row: {
+          changed_at: string
+          changed_by: string | null
+          dossier_id: string
+          id: string
+          new_status: Database["public"]["Enums"]["dossier_status"]
+          old_status: Database["public"]["Enums"]["dossier_status"] | null
+        }
+        Insert: {
+          changed_at?: string
+          changed_by?: string | null
+          dossier_id: string
+          id?: string
+          new_status: Database["public"]["Enums"]["dossier_status"]
+          old_status?: Database["public"]["Enums"]["dossier_status"] | null
+        }
+        Update: {
+          changed_at?: string
+          changed_by?: string | null
+          dossier_id?: string
+          id?: string
+          new_status?: Database["public"]["Enums"]["dossier_status"]
+          old_status?: Database["public"]["Enums"]["dossier_status"] | null
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dossier_history_dossier_id_fkey"
+            columns: ["dossier_id"]
+            isOneToOne: false
+            referencedRelation: "dossiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dossier_notes: {
+        Row: {
+          author_id: string | null
+          content: string
+          created_at: string
+          dossier_id: string
+          id: string
+        }
+        Insert: {
+          author_id?: string | null
+          content: string
+          created_at?: string
+          dossier_id: string
+          id?: string
+        }
+        Update: {
+          author_id?: string | null
+          content?: string
+          created_at?: string
+          dossier_id?: string
+          id?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dossier_notes_dossier_id_fkey"
+            columns: ["dossier_id"]
+            isOneToOne: false
+            referencedRelation: "dossiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
+      dossiers: {
+        Row: {
+          client_nom: string
+          client_prenom: string
+          created_at: string
+          created_by: string | null
+          id: string
+          last_status_change_at: string
+          montant_devis: number
+          montant_pec: number | null
+          monture: string
+          mutuelle: string
+          reste_a_charge: number | null
+          status: Database["public"]["Enums"]["dossier_status"]
+          telephone: string
+          type_verres: string
+          updated_at: string
+        }
+        Insert: {
+          client_nom: string
+          client_prenom: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          last_status_change_at?: string
+          montant_devis?: number
+          montant_pec?: number | null
+          monture?: string
+          mutuelle?: string
+          reste_a_charge?: number | null
+          status?: Database["public"]["Enums"]["dossier_status"]
+          telephone?: string
+          type_verres?: string
+          updated_at?: string
+        }
+        Update: {
+          client_nom?: string
+          client_prenom?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          last_status_change_at?: string
+          montant_devis?: number
+          montant_pec?: number | null
+          monture?: string
+          mutuelle?: string
+          reste_a_charge?: number | null
+          status?: Database["public"]["Enums"]["dossier_status"]
+          telephone?: string
+          type_verres?: string
+          updated_at?: string
+        }
+        Relationships: []
+      }
+      profiles: {
+        Row: {
+          created_at: string
+          full_name: string
+          id: string
+        }
+        Insert: {
+          created_at?: string
+          full_name?: string
+          id: string
+        }
+        Update: {
+          created_at?: string
+          full_name?: string
+          id?: string
+        }
+        Relationships: []
+      }
+      user_roles: {
+        Row: {
+          id: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Insert: {
+          id?: string
+          role: Database["public"]["Enums"]["app_role"]
+          user_id: string
+        }
+        Update: {
+          id?: string
+          role?: Database["public"]["Enums"]["app_role"]
+          user_id?: string
+        }
+        Relationships: []
+      }
     }
     Views: {
       [_ in never]: never
     }
     Functions: {
-      [_ in never]: never
+      has_role: {
+        Args: {
+          _role: Database["public"]["Enums"]["app_role"]
+          _user_id: string
+        }
+        Returns: boolean
+      }
     }
     Enums: {
-      [_ in never]: never
+      app_role: "gerante" | "employe"
+      dossier_status:
+        | "devis_envoye"
+        | "en_attente"
+        | "cotation_recue"
+        | "accord_recu"
+        | "a_modifier"
+        | "verres_commandes"
+        | "livre_facture"
+        | "refuse"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -150,6 +321,18 @@ export type CompositeTypes<
 
 export const Constants = {
   public: {
-    Enums: {},
+    Enums: {
+      app_role: ["gerante", "employe"],
+      dossier_status: [
+        "devis_envoye",
+        "en_attente",
+        "cotation_recue",
+        "accord_recu",
+        "a_modifier",
+        "verres_commandes",
+        "livre_facture",
+        "refuse",
+      ],
+    },
   },
 } as const
