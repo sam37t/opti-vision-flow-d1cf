@@ -1,4 +1,5 @@
 export const DOSSIER_STATUSES = [
+  "a_traiter",
   "devis_envoye",
   "en_attente",
   "cotation_recue",
@@ -13,6 +14,7 @@ export const DOSSIER_STATUSES = [
 export type DossierStatus = (typeof DOSSIER_STATUSES)[number];
 
 export const STATUS_LABELS: Record<DossierStatus, string> = {
+  a_traiter: "À traiter",
   devis_envoye: "Devis envoyé",
   en_attente: "En attente",
   cotation_recue: "Cotation reçue",
@@ -25,6 +27,7 @@ export const STATUS_LABELS: Record<DossierStatus, string> = {
 };
 
 export const STATUS_COLORS: Record<DossierStatus, string> = {
+  a_traiter: "bg-zinc-100 text-zinc-800 border-zinc-200",
   devis_envoye: "bg-blue-100 text-blue-800 border-blue-200",
   en_attente: "bg-amber-100 text-amber-800 border-amber-200",
   cotation_recue: "bg-violet-100 text-violet-800 border-violet-200",
