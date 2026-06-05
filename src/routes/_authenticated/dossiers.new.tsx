@@ -5,8 +5,10 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
+import { DOSSIER_STATUSES, STATUS_LABELS, type DossierStatus } from "@/lib/dossier-status";
 
 export const Route = createFileRoute("/_authenticated/dossiers/new")({
   head: () => ({ meta: [{ title: "Nouveau dossier — Optique Suivi" }] }),
@@ -16,6 +18,7 @@ export const Route = createFileRoute("/_authenticated/dossiers/new")({
 function NewDossierPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [status, setStatus] = useState<DossierStatus>("devis_envoye");
 
   const { data: mutuelles = [] } = useQuery({
     queryKey: ["mutuelles"],
@@ -50,6 +53,7 @@ function NewDossierPage() {
         remboursement_attendu: fd.get("remboursement_attendu")
           ? Number(String(fd.get("remboursement_attendu")).replace(",", ".")) || null
           : null,
+        status,
         created_by: userData.user?.id,
       })
       .select("id")
@@ -84,6 +88,17 @@ function NewDossierPage() {
           <Fld name="type_verres" label="Type de verres" />
           <Fld name="montant_devis" label="Montant devis (€)" type="number" step="0.01" />
           <Fld name="remboursement_attendu" label="Remboursement attendu (€)" type="number" step="0.01" />
+          <div className="space-y-2">
+            <Label>Statut initial</Label>
+            <Select value={status} onValueChange={(v) => setStatus(v as DossierStatus)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                {DOSSIER_STATUSES.map((s) => (
+                  <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
+                ))}
+              </SelectContent>
+            </Select>
+          </div>
         </div>
         <div className="flex justify-end gap-2">
           <Link to="/dossiers"><Button type="button" variant="ghost">Annuler</Button></Link>

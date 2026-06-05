@@ -122,7 +122,7 @@ function DossiersPage() {
             <Input
               placeholder="Nom, prénom, téléphone..."
               className="pl-8"
-              defaultValue={search.q ?? ""}
+              value={search.q ?? ""}
               onChange={(e) => update("q", e.target.value)}
             />
           </div>

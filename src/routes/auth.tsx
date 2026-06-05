@@ -127,6 +127,14 @@ function AuthPage() {
                 <Button className="w-full" disabled={loading}>
                   {loading ? "Connexion..." : "Se connecter"}
                 </Button>
+                <div className="text-center">
+                  <a
+                    href="/reset-password"
+                    className="text-sm text-muted-foreground hover:text-foreground hover:underline"
+                  >
+                    Mot de passe oublié ?
+                  </a>
+                </div>
               </form>
             </TabsContent>
             <TabsContent value="signup" className="mt-4">
