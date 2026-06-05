@@ -18,7 +18,7 @@ export const Route = createFileRoute("/_authenticated/dossiers/new")({
 function NewDossierPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState<DossierStatus>("devis_envoye");
+  const [status, setStatus] = useState<DossierStatus>("a_traiter");
 
   const { data: mutuelles = [] } = useQuery({
     queryKey: ["mutuelles"],
