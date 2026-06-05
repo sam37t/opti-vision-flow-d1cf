@@ -1,0 +1,1 @@
+DROP FUNCTION IF EXISTS public.log_dossier_status_change() CASCADE;

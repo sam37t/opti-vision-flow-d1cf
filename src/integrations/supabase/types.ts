@@ -99,6 +99,7 @@ export type Database = {
         Row: {
           client_nom: string
           client_prenom: string
+          code_cosium: string
           created_at: string
           created_by: string | null
           id: string
@@ -117,6 +118,7 @@ export type Database = {
         Insert: {
           client_nom: string
           client_prenom: string
+          code_cosium?: string
           created_at?: string
           created_by?: string | null
           id?: string
@@ -135,6 +137,7 @@ export type Database = {
         Update: {
           client_nom?: string
           client_prenom?: string
+          code_cosium?: string
           created_at?: string
           created_by?: string | null
           id?: string

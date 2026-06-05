@@ -1,0 +1,1 @@
+ALTER TABLE public.dossiers ADD COLUMN IF NOT EXISTS code_cosium text NOT NULL DEFAULT '';
