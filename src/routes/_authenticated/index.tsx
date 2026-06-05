@@ -29,9 +29,10 @@ function Dashboard() {
   }, {} as Record<DossierStatus, number>);
 
   const now = Date.now();
+  const TERMINAL: DossierStatus[] = ["livre_facture", "refuse"];
   const stale = dossiers.filter(
     (d) =>
-      d.status === "en_attente" &&
+      !TERMINAL.includes(d.status as DossierStatus) &&
       now - new Date(d.last_status_change_at).getTime() > 48 * 3600 * 1000,
   );
 
