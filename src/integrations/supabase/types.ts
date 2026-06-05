@@ -105,8 +105,9 @@ export type Database = {
           last_status_change_at: string
           montant_devis: number
           montant_pec: number | null
-          monture: string
           mutuelle: string
+          probleme: boolean
+          remboursement_attendu: number | null
           reste_a_charge: number | null
           status: Database["public"]["Enums"]["dossier_status"]
           telephone: string
@@ -122,8 +123,9 @@ export type Database = {
           last_status_change_at?: string
           montant_devis?: number
           montant_pec?: number | null
-          monture?: string
           mutuelle?: string
+          probleme?: boolean
+          remboursement_attendu?: number | null
           reste_a_charge?: number | null
           status?: Database["public"]["Enums"]["dossier_status"]
           telephone?: string
@@ -139,13 +141,32 @@ export type Database = {
           last_status_change_at?: string
           montant_devis?: number
           montant_pec?: number | null
-          monture?: string
           mutuelle?: string
+          probleme?: boolean
+          remboursement_attendu?: number | null
           reste_a_charge?: number | null
           status?: Database["public"]["Enums"]["dossier_status"]
           telephone?: string
           type_verres?: string
           updated_at?: string
+        }
+        Relationships: []
+      }
+      mutuelles: {
+        Row: {
+          created_at: string
+          id: string
+          name: string
+        }
+        Insert: {
+          created_at?: string
+          id?: string
+          name: string
+        }
+        Update: {
+          created_at?: string
+          id?: string
+          name?: string
         }
         Relationships: []
       }
@@ -209,6 +230,7 @@ export type Database = {
         | "verres_commandes"
         | "livre_facture"
         | "refuse"
+        | "pas_de_tp"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -346,6 +368,7 @@ export const Constants = {
         "verres_commandes",
         "livre_facture",
         "refuse",
+        "pas_de_tp",
       ],
     },
   },
