@@ -84,7 +84,10 @@ function AuthPage() {
               <TabsTrigger value="login">Connexion</TabsTrigger>
               <TabsTrigger value="signup">Créer un compte</TabsTrigger>
             </TabsList>
-            <TabsContent value="login" className="mt-4">
+            <TabsContent value="login" className="mt-4 space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Pas encore de compte ? Utilisez l'onglet <strong>Créer un compte</strong> ci-dessus.
+              </p>
               <form onSubmit={handleLogin} className="space-y-4">
                 <Field name="email" label="Email" type="email" required />
                 <Field name="password" label="Mot de passe" type="password" required />
