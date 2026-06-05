@@ -61,7 +61,7 @@ function AuthPage() {
     });
     setLoading(false);
     if (error) return toast.error(error.message);
-    toast.success("Compte créé. Vous pouvez vous connecter.");
+    toast.success("Compte créé avec succès. Vous pouvez maintenant vous connecter.");
   };
 
   return (
