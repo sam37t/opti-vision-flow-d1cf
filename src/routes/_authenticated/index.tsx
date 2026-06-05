@@ -80,7 +80,7 @@ function Dashboard() {
         <section className="rounded-xl border border-amber-200 bg-amber-50 p-5">
           <div className="mb-3 flex items-center gap-2 text-amber-900">
             <AlertTriangle className="h-5 w-5" />
-            <h2 className="font-semibold">Dossiers en attente depuis plus de 48h</h2>
+            <h2 className="font-semibold">Dossiers sans changement depuis plus de 48h</h2>
           </div>
           <ul className="divide-y divide-amber-200">
             {stale.map((d) => (
