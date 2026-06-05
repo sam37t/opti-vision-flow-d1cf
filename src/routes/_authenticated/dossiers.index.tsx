@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
-import { LayoutGrid, List, Search } from "lucide-react";
+import { useState } from "react";
+import { LayoutGrid, List, Search, X } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,7 @@ const searchSchema = z.object({
   status: z.string().optional(),
   mutuelle: z.string().optional(),
   from: z.string().optional(),
+  to: z.string().optional(),
   q: z.string().optional(),
 });
 
@@ -24,6 +25,29 @@ export const Route = createFileRoute("/_authenticated/dossiers/")({
   validateSearch: (s) => searchSchema.parse(s),
   component: DossiersPage,
 });
+
+// Convertit une date locale (Europe/Paris) en bornes UTC ISO
+function parisDayBounds(date: string, end: boolean): string {
+  // date au format YYYY-MM-DD. Paris est UTC+1 (hiver) ou UTC+2 (été).
+  // On laisse JS interpréter "YYYY-MM-DDTHH:MM:SS" comme local au navigateur,
+  // mais pour rester stable côté serveur on construit explicitement avec un offset.
+  const [y, m, d] = date.split("-").map(Number);
+  // Heure locale Paris : 00:00 ou 23:59:59.999
+  const local = new Date(Date.UTC(y, m - 1, d, end ? 23 : 0, end ? 59 : 0, end ? 59 : 0, end ? 999 : 0));
+  // Offset Paris (DST): on calcule via Intl
+  const tzOffsetMinutes = -new Date(local).getTimezoneOffset(); // offset du navigateur, approximation
+  // Approche plus robuste: utiliser une date "Paris" en passant par toLocaleString
+  const parisDate = new Date(`${date}T${end ? "23:59:59.999" : "00:00:00.000"}+02:00`);
+  // En hiver, +01:00 ; on détecte:
+  const isDST = (() => {
+    const jan = new Date(y, 0, 1).getTimezoneOffset();
+    const jul = new Date(y, 6, 1).getTimezoneOffset();
+    const cur = new Date(y, m - 1, d).getTimezoneOffset();
+    return cur < Math.max(jan, jul);
+  })();
+  const offset = isDST ? "+02:00" : "+01:00";
+  return new Date(`${date}T${end ? "23:59:59.999" : "00:00:00.000"}${offset}`).toISOString();
+}
 
 function DossiersPage() {
   const search = Route.useSearch();
@@ -35,8 +59,9 @@ function DossiersPage() {
     queryFn: async () => {
       let q = supabase.from("dossiers").select("*").order("created_at", { ascending: false });
       if (search.status) q = q.eq("status", search.status as DossierStatus);
-      if (search.mutuelle) q = q.ilike("mutuelle", `%${search.mutuelle}%`);
-      if (search.from) q = q.gte("created_at", search.from);
+      if (search.mutuelle) q = q.eq("mutuelle", search.mutuelle);
+      if (search.from) q = q.gte("created_at", parisDayBounds(search.from, false));
+      if (search.to) q = q.lte("created_at", parisDayBounds(search.to, true));
       if (search.q) {
         q = q.or(
           `client_nom.ilike.%${search.q}%,client_prenom.ilike.%${search.q}%,telephone.ilike.%${search.q}%`,
@@ -48,13 +73,27 @@ function DossiersPage() {
     },
   });
 
-  const mutuelles = useMemo(
-    () => Array.from(new Set(dossiers.map((d) => d.mutuelle).filter(Boolean))),
-    [dossiers],
-  );
+  // Liste de mutuelles distinctes, indépendante des filtres actifs
+  const { data: mutuelles = [] } = useQuery({
+    queryKey: ["mutuelles-distinct"],
+    queryFn: async () => {
+      const { data, error } = await supabase
+        .from("dossiers")
+        .select("mutuelle")
+        .not("mutuelle", "is", null)
+        .neq("mutuelle", "");
+      if (error) throw error;
+      return Array.from(new Set((data ?? []).map((d) => d.mutuelle))).sort();
+    },
+  });
 
   const update = (key: string, value: string | undefined) =>
     navigate({ search: { ...search, [key]: value || undefined } });
+
+  const clearFilters = () =>
+    navigate({ search: {} });
+
+  const hasFilters = !!(search.status || search.mutuelle || search.from || search.to || search.q);
 
   return (
     <div className="space-y-5">
@@ -85,39 +124,61 @@ function DossiersPage() {
         </div>
       </div>
 
-      <div className="grid gap-3 rounded-xl border bg-card p-4 sm:grid-cols-2 lg:grid-cols-4">
-        <div className="relative">
-          <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-          <Input
-            placeholder="Nom, prénom, téléphone..."
-            className="pl-8"
-            defaultValue={search.q ?? ""}
-            onChange={(e) => update("q", e.target.value)}
-          />
+      <div className="space-y-3 rounded-xl border bg-card p-4">
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="relative lg:col-span-2">
+            <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+            <Input
+              placeholder="Nom, prénom, téléphone..."
+              className="pl-8"
+              defaultValue={search.q ?? ""}
+              onChange={(e) => update("q", e.target.value)}
+            />
+          </div>
+          <Select value={search.status ?? "all"} onValueChange={(v) => update("status", v === "all" ? undefined : v)}>
+            <SelectTrigger><SelectValue placeholder="Statut" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Tous les statuts</SelectItem>
+              {DOSSIER_STATUSES.map((s) => (
+                <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <Select value={search.mutuelle ?? "all"} onValueChange={(v) => update("mutuelle", v === "all" ? undefined : v)}>
+            <SelectTrigger><SelectValue placeholder="Mutuelle" /></SelectTrigger>
+            <SelectContent>
+              <SelectItem value="all">Toutes mutuelles</SelectItem>
+              {mutuelles.map((m) => (
+                <SelectItem key={m} value={m}>{m}</SelectItem>
+              ))}
+            </SelectContent>
+          </Select>
+          <div className="flex items-center gap-2">
+            {hasFilters && (
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="gap-1">
+                <X className="h-4 w-4" /> Effacer
+              </Button>
+            )}
+          </div>
         </div>
-        <Select value={search.status ?? "all"} onValueChange={(v) => update("status", v === "all" ? undefined : v)}>
-          <SelectTrigger><SelectValue placeholder="Statut" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Tous les statuts</SelectItem>
-            {DOSSIER_STATUSES.map((s) => (
-              <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Select value={search.mutuelle ?? "all"} onValueChange={(v) => update("mutuelle", v === "all" ? undefined : v)}>
-          <SelectTrigger><SelectValue placeholder="Mutuelle" /></SelectTrigger>
-          <SelectContent>
-            <SelectItem value="all">Toutes mutuelles</SelectItem>
-            {mutuelles.map((m) => (
-              <SelectItem key={m} value={m}>{m}</SelectItem>
-            ))}
-          </SelectContent>
-        </Select>
-        <Input
-          type="date"
-          value={search.from ?? ""}
-          onChange={(e) => update("from", e.target.value)}
-        />
+        <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
+          <div className="space-y-1 lg:col-span-2">
+            <label className="text-xs text-muted-foreground">Du</label>
+            <Input
+              type="date"
+              value={search.from ?? ""}
+              onChange={(e) => update("from", e.target.value)}
+            />
+          </div>
+          <div className="space-y-1 lg:col-span-2">
+            <label className="text-xs text-muted-foreground">Au</label>
+            <Input
+              type="date"
+              value={search.to ?? ""}
+              onChange={(e) => update("to", e.target.value)}
+            />
+          </div>
+        </div>
       </div>
 
       {isLoading ? (
@@ -160,7 +221,8 @@ function ListView({ dossiers }: { dossiers: Dossier[] }) {
         <tbody>
           {dossiers.map((d) => {
             const stale =
-              d.status === "en_attente" &&
+              d.status !== "livre_facture" &&
+              d.status !== "refuse" &&
               Date.now() - new Date(d.last_status_change_at).getTime() > 48 * 3600 * 1000;
             return (
               <tr key={d.id} className="border-t hover:bg-accent/50">
