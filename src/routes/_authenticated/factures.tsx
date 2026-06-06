@@ -58,7 +58,7 @@ function FacturesPage() {
         .select(
           "id, client_nom, client_prenom, mutuelle, montant_pec, transmis_mutuelle, transmis_mutuelle_at, facture_cosium, facture_cosium_at",
         )
-        .or("facture_cosium.eq.true,transmis_mutuelle.eq.true")
+        .or("facture_cosium.eq.true,transmis_mutuelle.eq.true,transmis_mutuelle_at.not.is.null")
         .eq("paiement_recu", false)
         .order("transmis_mutuelle_at", { ascending: true, nullsFirst: false });
 
