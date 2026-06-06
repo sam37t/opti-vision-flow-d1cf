@@ -586,6 +586,24 @@ function DossierDetail() {
   );
 }
 
+function TpLink({ mutuelle }: { mutuelle: string }) {
+  const platform = getTpPlatform(mutuelle);
+  if (!platform) return null;
+  const showVia = isDifferentPlatform(mutuelle, platform);
+  return (
+    <a
+      href={platform.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center gap-1.5 rounded-md border bg-primary/5 px-2.5 py-1 text-xs font-medium text-primary hover:bg-primary/10"
+      title={`Ouvrir la plateforme TP ${platform.name}`}
+    >
+      <ExternalLink className="h-3.5 w-3.5" />
+      Plateforme TP{showVia ? ` (via ${platform.name})` : ` ${platform.name}`}
+    </a>
+  );
+}
+
 function Card({ title, icon, children }: { title: string; icon?: React.ReactNode; children: React.ReactNode }) {
   return (
     <section className="rounded-xl border bg-card p-5">
