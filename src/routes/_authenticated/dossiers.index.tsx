@@ -301,6 +301,7 @@ function ListView({ dossiers }: { dossiers: Dossier[] }) {
                   <div className="mt-0.5 flex items-center gap-2">
                     <span className="text-xs text-muted-foreground">{d.telephone}</span>
                     <BillingBadges d={d} compact />
+                    <AlertBadges d={d} compact />
                   </div>
                 </td>
                 <td className="px-4 py-3">{d.mutuelle || "—"}</td>
