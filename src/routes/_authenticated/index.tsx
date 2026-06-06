@@ -150,11 +150,12 @@ function Dashboard() {
 }
 
 function StatCard({
-  icon, label, value, tone = "default",
-}: { icon: React.ReactNode; label: string; value: number; tone?: "default" | "warning" | "danger" }) {
+  icon, label, valueText, tone = "default",
+}: { icon: React.ReactNode; label: string; valueText: string; tone?: "default" | "warning" | "danger" }) {
+  const hasValue = valueText !== "0" && valueText !== "0,00 €";
   const toneClass =
-    tone === "warning" && value > 0 ? "border-amber-300 bg-amber-50" :
-    tone === "danger" && value > 0 ? "border-destructive/30 bg-destructive/5" :
+    tone === "warning" && hasValue ? "border-amber-300 bg-amber-50" :
+    tone === "danger" && hasValue ? "border-destructive/30 bg-destructive/5" :
     "bg-card";
   return (
     <div className={`rounded-xl border p-5 ${toneClass}`}>
@@ -162,7 +163,7 @@ function StatCard({
         {icon}
         <span className="text-sm">{label}</span>
       </div>
-      <div className="text-3xl font-semibold tabular-nums">{value}</div>
+      <div className="text-2xl font-semibold tabular-nums">{valueText}</div>
     </div>
   );
 }
