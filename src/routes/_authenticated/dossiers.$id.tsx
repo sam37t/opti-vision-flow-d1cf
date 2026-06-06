@@ -204,13 +204,26 @@ function DossierDetail() {
           <Card title="Informations">
             <Grid>
               <Info label="Mutuelle" value={d.mutuelle || "—"} />
-              <Info label="Type de verres" value={d.type_verres || "—"} />
               <Info label="Montant devis" value={`${Number(d.montant_devis).toFixed(2)} €`} />
               <Info
                 label="Remboursement attendu"
                 value={d.remboursement_attendu != null ? `${Number(d.remboursement_attendu).toFixed(2)} €` : "—"}
               />
             </Grid>
+            <div className="mt-4 space-y-2">
+              <Label htmlFor="type_verres">Type de verres</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="type_verres"
+                  value={typeVerres}
+                  onChange={(e) => setTypeVerres(e.target.value)}
+                  placeholder="Ex: Progressifs, Unifocaux..."
+                />
+                <Button onClick={saveTypeVerres} disabled={savingTypeVerres || typeVerres === (d.type_verres ?? "")}>
+                  {savingTypeVerres ? "..." : "Enregistrer"}
+                </Button>
+              </div>
+            </div>
           </Card>
 
           <Card title="Statut">
