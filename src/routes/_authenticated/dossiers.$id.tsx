@@ -78,6 +78,8 @@ function DossierDetail() {
   const [pec, setPec] = useState("");
   const [rac, setRac] = useState("");
   const [remb, setRemb] = useState("");
+  const [typeVerres, setTypeVerres] = useState("");
+  const [savingTypeVerres, setSavingTypeVerres] = useState(false);
   const [noteContent, setNoteContent] = useState("");
 
   useEffect(() => {
@@ -85,8 +87,17 @@ function DossierDetail() {
       setPec(dossier.montant_pec?.toString() ?? "");
       setRac(dossier.reste_a_charge?.toString() ?? "");
       setRemb((dossier as any).remboursement_attendu?.toString() ?? "");
+      setTypeVerres((dossier as any).type_verres ?? "");
     }
   }, [dossier]);
+
+  const saveTypeVerres = async () => {
+    setSavingTypeVerres(true);
+    const { error } = await supabase.from("dossiers").update({ type_verres: typeVerres }).eq("id", id);
+    setSavingTypeVerres(false);
+    if (error) toast.error(error.message);
+    else toast.success("Type de verres mis à jour");
+  };
 
   if (isLoading || !dossier) return <p className="text-sm text-muted-foreground">Chargement...</p>;
   const d = dossier as any;
