@@ -128,6 +128,15 @@ function DossiersPage() {
     },
   });
 
+  const sortedDossiers = useMemo(() => {
+    return [...dossiers].sort((a, b) => {
+      const ra = dossierRank(a);
+      const rb = dossierRank(b);
+      if (ra !== rb) return ra - rb;
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+  }, [dossiers]);
+
   const { data: mutuelles = [] } = useQuery({
     queryKey: ["mutuelles"],
     queryFn: async () => {
