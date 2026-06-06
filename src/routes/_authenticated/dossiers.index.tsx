@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useState } from "react";
-import { AlertOctagon, LayoutGrid, List, Search, X } from "lucide-react";
+import { AlertOctagon, CheckCircle2, LayoutGrid, List, Receipt, Search, Send, X } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -51,9 +51,35 @@ type Dossier = {
   reste_a_charge: number | null;
   remboursement_attendu: number | null;
   probleme: boolean;
+  facture_cosium: boolean;
+  transmis_mutuelle: boolean;
+  paiement_recu: boolean;
   created_at: string;
   last_status_change_at: string;
 };
+
+function BillingBadges({ d, compact }: { d: Dossier; compact?: boolean }) {
+  if (!d.facture_cosium && !d.transmis_mutuelle && !d.paiement_recu) return null;
+  const size = compact ? "h-3 w-3" : "h-3.5 w-3.5";
+  const cls = compact ? "text-[10px] px-1.5 py-0.5" : "text-xs px-2 py-0.5";
+  return (
+    <div className="flex flex-wrap items-center gap-1">
+      {d.paiement_recu ? (
+        <span className={`inline-flex items-center gap-1 rounded-full bg-green-100 font-medium text-green-800 ${cls}`}>
+          <CheckCircle2 className={size} /> Réglé
+        </span>
+      ) : d.transmis_mutuelle ? (
+        <span className={`inline-flex items-center gap-1 rounded-full bg-blue-100 font-medium text-blue-800 ${cls}`}>
+          <Send className={size} /> Transmis
+        </span>
+      ) : d.facture_cosium ? (
+        <span className={`inline-flex items-center gap-1 rounded-full bg-purple-100 font-medium text-purple-800 ${cls}`}>
+          <Receipt className={size} /> Facturé
+        </span>
+      ) : null}
+    </div>
+  );
+}
 
 function DossiersPage() {
   const search = Route.useSearch();
@@ -216,7 +242,10 @@ function ListView({ dossiers }: { dossiers: Dossier[] }) {
                     {d.probleme && <AlertOctagon className="h-4 w-4 text-destructive" />}
                     <span>{d.client_nom.toUpperCase()} {d.client_prenom}</span>
                   </Link>
-                  <div className="text-xs text-muted-foreground">{d.telephone}</div>
+                  <div className="mt-0.5 flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">{d.telephone}</span>
+                    <BillingBadges d={d} compact />
+                  </div>
                 </td>
                 <td className="px-4 py-3">{d.mutuelle || "—"}</td>
                 <td className="px-4 py-3 tabular-nums">{Number(d.montant_devis ?? 0).toFixed(2)} €</td>
@@ -274,6 +303,7 @@ function KanbanView({ dossiers }: { dossiers: Dossier[] }) {
                     {d.client_nom.toUpperCase()} {d.client_prenom}
                   </div>
                   <div className="text-xs text-muted-foreground">{d.mutuelle || "—"}</div>
+                  <div className="mt-1"><BillingBadges d={d} compact /></div>
                   <div className="mt-1 space-y-0.5 text-xs tabular-nums">
                     <div>Devis : <span className="font-medium">{Number(d.montant_devis ?? 0).toFixed(2)} €</span></div>
                     {d.montant_pec != null && <div>Accordé : <span className="font-medium">{Number(d.montant_pec).toFixed(2)} €</span></div>}
