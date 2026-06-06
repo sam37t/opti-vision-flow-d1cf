@@ -40,11 +40,17 @@ function DossierDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("dossier_history")
-        .select("*, profiles!dossier_history_changed_by_profile_fkey(full_name)")
+        .select("*")
         .eq("dossier_id", id)
         .order("changed_at", { ascending: false });
       if (error) throw error;
-      return data as any[];
+      const ids = Array.from(new Set((data ?? []).map((h: any) => h.changed_by).filter(Boolean)));
+      let profilesMap: Record<string, string> = {};
+      if (ids.length) {
+        const { data: profs } = await supabase.from("profiles").select("id, full_name").in("id", ids);
+        profilesMap = Object.fromEntries((profs ?? []).map((p: any) => [p.id, p.full_name]));
+      }
+      return (data ?? []).map((h: any) => ({ ...h, profiles: { full_name: profilesMap[h.changed_by] } }));
     },
   });
 
@@ -53,13 +59,20 @@ function DossierDetail() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("dossier_notes")
-        .select("*, profiles!dossier_notes_author_profile_fkey(full_name)")
+        .select("*")
         .eq("dossier_id", id)
         .order("created_at", { ascending: false });
       if (error) throw error;
-      return data as any[];
+      const ids = Array.from(new Set((data ?? []).map((n: any) => n.author_id).filter(Boolean)));
+      let profilesMap: Record<string, string> = {};
+      if (ids.length) {
+        const { data: profs } = await supabase.from("profiles").select("id, full_name").in("id", ids);
+        profilesMap = Object.fromEntries((profs ?? []).map((p: any) => [p.id, p.full_name]));
+      }
+      return (data ?? []).map((n: any) => ({ ...n, profiles: { full_name: profilesMap[n.author_id] } }));
     },
   });
+
 
   const { data: typesVerres = [] } = useQuery({
     queryKey: ["types_verres"],
