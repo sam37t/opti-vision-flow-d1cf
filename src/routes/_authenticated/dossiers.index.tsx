@@ -58,6 +58,17 @@ type Dossier = {
   last_status_change_at: string;
 };
 
+function dossierRank(d: Dossier): number {
+  if (d.probleme || d.status === "refuse") return 0;
+  if (d.status === "a_traiter") return 1;
+  if (["devis_envoye", "en_attente", "cotation_recue", "a_modifier", "verres_commandes"].includes(d.status)) return 2;
+  if (d.status === "accord_recu") return 3;
+  if (d.facture_cosium) return 4;
+  if (d.transmis_mutuelle) return 5;
+  if (d.paiement_recu || d.status === "livre_facture" || d.status === "pas_de_tp") return 6;
+  return 7;
+}
+
 function BillingBadges({ d, compact }: { d: Dossier; compact?: boolean }) {
   if (!d.facture_cosium && !d.transmis_mutuelle && !d.paiement_recu) return null;
   const size = compact ? "h-3 w-3" : "h-3.5 w-3.5";
