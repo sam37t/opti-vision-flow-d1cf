@@ -78,6 +78,8 @@ function DossierDetail() {
   const [pec, setPec] = useState("");
   const [rac, setRac] = useState("");
   const [remb, setRemb] = useState("");
+  const [typeVerres, setTypeVerres] = useState("");
+  const [savingTypeVerres, setSavingTypeVerres] = useState(false);
   const [noteContent, setNoteContent] = useState("");
 
   useEffect(() => {
@@ -85,8 +87,17 @@ function DossierDetail() {
       setPec(dossier.montant_pec?.toString() ?? "");
       setRac(dossier.reste_a_charge?.toString() ?? "");
       setRemb((dossier as any).remboursement_attendu?.toString() ?? "");
+      setTypeVerres((dossier as any).type_verres ?? "");
     }
   }, [dossier]);
+
+  const saveTypeVerres = async () => {
+    setSavingTypeVerres(true);
+    const { error } = await supabase.from("dossiers").update({ type_verres: typeVerres }).eq("id", id);
+    setSavingTypeVerres(false);
+    if (error) toast.error(error.message);
+    else toast.success("Type de verres mis à jour");
+  };
 
   if (isLoading || !dossier) return <p className="text-sm text-muted-foreground">Chargement...</p>;
   const d = dossier as any;
@@ -193,13 +204,26 @@ function DossierDetail() {
           <Card title="Informations">
             <Grid>
               <Info label="Mutuelle" value={d.mutuelle || "—"} />
-              <Info label="Type de verres" value={d.type_verres || "—"} />
               <Info label="Montant devis" value={`${Number(d.montant_devis).toFixed(2)} €`} />
               <Info
                 label="Remboursement attendu"
                 value={d.remboursement_attendu != null ? `${Number(d.remboursement_attendu).toFixed(2)} €` : "—"}
               />
             </Grid>
+            <div className="mt-4 space-y-2">
+              <Label htmlFor="type_verres">Type de verres</Label>
+              <div className="flex gap-2">
+                <Input
+                  id="type_verres"
+                  value={typeVerres}
+                  onChange={(e) => setTypeVerres(e.target.value)}
+                  placeholder="Ex: Progressifs, Unifocaux..."
+                />
+                <Button onClick={saveTypeVerres} disabled={savingTypeVerres || typeVerres === (d.type_verres ?? "")}>
+                  {savingTypeVerres ? "..." : "Enregistrer"}
+                </Button>
+              </div>
+            </div>
           </Card>
 
           <Card title="Statut">
