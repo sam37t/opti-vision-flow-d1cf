@@ -61,6 +61,15 @@ function DossierDetail() {
     },
   });
 
+  const { data: typesVerres = [] } = useQuery({
+    queryKey: ["types_verres"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("types_verres").select("name").order("name");
+      if (error) throw error;
+      return data.map((t) => t.name);
+    },
+  });
+
   useEffect(() => {
     const channel = supabase
       .channel(`dossier-${id}`)
