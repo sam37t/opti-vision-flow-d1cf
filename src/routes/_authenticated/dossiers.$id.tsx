@@ -258,6 +258,7 @@ function DossierDetail() {
               </span>
             )}
             <span>Créé le {new Date(d.created_at).toLocaleDateString("fr-FR")}</span>
+            <TpLink mutuelle={d.mutuelle} />
           </div>
         </div>
         <div className="flex items-center gap-2">
