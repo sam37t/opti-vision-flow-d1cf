@@ -54,7 +54,9 @@ function Dashboard() {
   );
 
   const totalActifs = actifs.length;
-  const totalDevis = actifs.reduce((s, d) => s + (Number(d.montant_devis) || 0), 0);
+  const actifsAvecDevis = actifs.filter((d) => Number(d.montant_devis) > 0);
+  const sansMontant = actifs.length - actifsAvecDevis.length;
+  const totalDevis = actifsAvecDevis.reduce((s, d) => s + Number(d.montant_devis), 0);
   const totalAccorde = actifs.reduce((s, d) => s + (Number(d.montant_pec) || 0), 0);
   const totalRAC = actifs.reduce((s, d) => s + (Number(d.reste_a_charge) || 0), 0);
   const fmt = (n: number) => `${n.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
@@ -68,7 +70,7 @@ function Dashboard() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard icon={<FolderKanban className="h-5 w-5" />} label="Dossiers actifs" valueText={String(totalActifs)} />
-        <StatCard icon={<Receipt className="h-5 w-5" />} label="Total devis" valueText={fmt(totalDevis)} />
+        <StatCard icon={<Receipt className="h-5 w-5" />} label="Total devis" valueText={fmt(totalDevis)} hint={sansMontant > 0 ? `${sansMontant} dossier${sansMontant > 1 ? "s" : ""} sans montant exclu${sansMontant > 1 ? "s" : ""}` : undefined} />
         <StatCard icon={<TrendingUp className="h-5 w-5" />} label="Total accordé (PEC)" valueText={fmt(totalAccorde)} />
         <StatCard icon={<Wallet className="h-5 w-5" />} label="Total reste à charge" valueText={fmt(totalRAC)} />
       </div>
@@ -150,8 +152,8 @@ function Dashboard() {
 }
 
 function StatCard({
-  icon, label, valueText, tone = "default",
-}: { icon: React.ReactNode; label: string; valueText: string; tone?: "default" | "warning" | "danger" }) {
+  icon, label, valueText, tone = "default", hint,
+}: { icon: React.ReactNode; label: string; valueText: string; tone?: "default" | "warning" | "danger"; hint?: string }) {
   const hasValue = valueText !== "0" && valueText !== "0,00 €";
   const toneClass =
     tone === "warning" && hasValue ? "border-amber-300 bg-amber-50" :
@@ -164,6 +166,7 @@ function StatCard({
         <span className="text-sm">{label}</span>
       </div>
       <div className="text-2xl font-semibold tabular-nums">{valueText}</div>
+      {hint && <div className="mt-1 text-xs text-muted-foreground">{hint}</div>}
     </div>
   );
 }
