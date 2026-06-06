@@ -133,13 +133,11 @@ function DossierDetail() {
 
   const saveMontants = async () => {
     setSaving(true);
-    const parse = (v: string) => v.trim() === "" ? null : Number(v.replace(",", "."));
     const { error } = await supabase
       .from("dossiers")
       .update({
-        montant_pec: parse(pec),
-        reste_a_charge: parse(rac),
-        remboursement_attendu: parse(remb),
+        montant_devis: parseAmount(devis) ?? 0,
+        montant_pec: parseAmount(pec),
       })
       .eq("id", id);
     setSaving(false);
@@ -221,11 +219,9 @@ function DossierDetail() {
           <Card title="Informations">
             <Grid>
               <Info label="Mutuelle" value={d.mutuelle || "—"} />
-              <Info label="Montant devis" value={`${Number(d.montant_devis).toFixed(2)} €`} />
-              <Info
-                label="Remboursement attendu"
-                value={d.remboursement_attendu != null ? `${Number(d.remboursement_attendu).toFixed(2)} €` : "—"}
-              />
+              <Info label="Montant du devis" value={`${devisNum.toFixed(2)} €`} />
+              <Info label="Montant accordé (PEC)" value={`${pecNum.toFixed(2)} €`} />
+              <Info label="Reste à charge" value={`${racLive.toFixed(2)} €`} />
             </Grid>
             <div className="mt-4 space-y-2">
               <Label htmlFor="type_verres">Type de verres</Label>
@@ -264,18 +260,21 @@ function DossierDetail() {
           <Card title="Montants">
             <div className="grid gap-3 sm:grid-cols-3">
               <div className="space-y-2">
-                <Label>Remboursement attendu (€)</Label>
-                <Input type="number" step="0.01" value={remb} onChange={(e) => setRemb(e.target.value)} placeholder="Optionnel" />
+                <Label>Montant du devis (€)</Label>
+                <Input type="number" step="0.01" value={devis} onChange={(e) => setDevis(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label>Montant PEC (€)</Label>
-                <Input type="number" step="0.01" value={pec} onChange={(e) => setPec(e.target.value)} />
+                <Label>Montant accordé / PEC (€)</Label>
+                <Input type="number" step="0.01" value={pec} onChange={(e) => setPec(e.target.value)} placeholder="Optionnel" />
               </div>
               <div className="space-y-2">
-                <Label>Reste à charge (€)</Label>
-                <Input type="number" step="0.01" value={rac} onChange={(e) => setRac(e.target.value)} />
+                <Label>Reste à charge (€) <span className="text-xs text-muted-foreground">(auto)</span></Label>
+                <Input type="number" step="0.01" value={racLive.toFixed(2)} readOnly disabled className="bg-muted/40" />
               </div>
             </div>
+            <p className="mt-2 text-xs text-muted-foreground">
+              Le reste à charge = Montant du devis − Montant accordé. Calcul automatique.
+            </p>
             <Button onClick={saveMontants} disabled={saving} className="mt-4">
               {saving ? "Enregistrement..." : "Enregistrer"}
             </Button>
