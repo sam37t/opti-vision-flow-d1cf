@@ -129,6 +129,7 @@ function DossierDetail() {
       setTelephone(dd.telephone ?? "");
       setMutuelle(dd.mutuelle ?? "");
       setTypeVerres(dd.type_verres ?? "");
+      setTypeDossier((dd.type_dossier as any) ?? "lunettes");
       setDevis(dd.montant_devis?.toString() ?? "");
       setPec(dd.montant_pec?.toString() ?? "");
       setSs(dd.montant_ss?.toString() ?? "");
