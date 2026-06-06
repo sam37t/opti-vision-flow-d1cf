@@ -45,9 +45,13 @@ function NewDossierPage() {
     const { data: userData } = await supabase.auth.getUser();
 
     const mutuelle = String(fd.get("mutuelle") || "").trim();
-    // Ajoute la mutuelle si nouvelle
     if (mutuelle && !mutuelles.includes(mutuelle)) {
       await supabase.from("mutuelles").insert({ name: mutuelle });
+    }
+
+    const typeVerres = String(fd.get("type_verres") || "").trim();
+    if (typeVerres && !typesVerres.includes(typeVerres)) {
+      await supabase.from("types_verres").insert({ name: typeVerres });
     }
 
     const { data, error } = await supabase
