@@ -393,7 +393,17 @@ function DossierDetail() {
                 <label className="flex items-center gap-2 text-sm">
                   <Checkbox
                     checked={!!d.facture_cosium}
-                    onCheckedChange={(v) => updateDossier({ facture_cosium: !!v }, "Facturation Cosium mise à jour")}
+                    onCheckedChange={(v) => {
+                      const checked = !!v;
+                      const patch: Record<string, unknown> = { facture_cosium: checked };
+                      if (!checked) {
+                        patch.transmis_mutuelle = false;
+                        patch.transmis_mutuelle_at = null;
+                        patch.paiement_recu = false;
+                        patch.paiement_recu_at = null;
+                      }
+                      updateDossier(patch, "Facturation Cosium mise à jour");
+                    }}
                   />
                   Facturé sur Cosium
                 </label>
@@ -415,8 +425,16 @@ function DossierDetail() {
               <label className="flex items-center gap-2 text-sm">
                 <Checkbox
                   checked={!!d.transmis_mutuelle}
-                  onCheckedChange={(v) => updateDossier({ transmis_mutuelle: !!v }, "Transmission mutuelle mise à jour")}
+                  onCheckedChange={(v) => {
+                    const checked = !!v;
+                    const patch: Record<string, unknown> = { transmis_mutuelle: checked };
+                    if (checked && !d.facture_cosium) {
+                      patch.facture_cosium = true;
+                    }
+                    updateDossier(patch, "Transmission mutuelle mise à jour");
+                  }}
                 />
+
                 Transmis à la mutuelle
                 {d.transmis_mutuelle_at && (
                   <span className="text-xs text-muted-foreground">
