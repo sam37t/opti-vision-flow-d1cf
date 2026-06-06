@@ -70,7 +70,7 @@ function Dashboard() {
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard icon={<FolderKanban className="h-5 w-5" />} label="Dossiers actifs" valueText={String(totalActifs)} />
-        <StatCard icon={<Receipt className="h-5 w-5" />} label="Total devis" valueText={fmt(totalDevis)} />
+        <StatCard icon={<Receipt className="h-5 w-5" />} label="Total devis" valueText={fmt(totalDevis)} hint={sansMontant > 0 ? `${sansMontant} dossier${sansMontant > 1 ? "s" : ""} sans montant exclu${sansMontant > 1 ? "s" : ""}` : undefined} />
         <StatCard icon={<TrendingUp className="h-5 w-5" />} label="Total accordé (PEC)" valueText={fmt(totalAccorde)} />
         <StatCard icon={<Wallet className="h-5 w-5" />} label="Total reste à charge" valueText={fmt(totalRAC)} />
       </div>
