@@ -1,6 +1,6 @@
 import { Link, useRouter } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { Glasses, LayoutDashboard, FolderKanban, LogOut, Plus, Settings } from "lucide-react";
+import { Glasses, LayoutDashboard, FolderKanban, LogOut, Plus, Settings, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -27,6 +27,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
           <nav className="hidden items-center gap-1 md:flex">
             <NavLink to="/" icon={<LayoutDashboard className="h-4 w-4" />}>Tableau de bord</NavLink>
             <NavLink to="/dossiers" icon={<FolderKanban className="h-4 w-4" />}>Dossiers</NavLink>
+            <NavLink to="/factures" icon={<Receipt className="h-4 w-4" />}>Factures en attente</NavLink>
             <NavLink to="/parametres" icon={<Settings className="h-4 w-4" />}>Paramètres</NavLink>
           </nav>
           <div className="flex items-center gap-3">
@@ -44,9 +45,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
             </Button>
           </div>
         </div>
-        <nav className="flex gap-1 border-t px-4 py-2 md:hidden">
+        <nav className="flex gap-1 overflow-x-auto border-t px-4 py-2 md:hidden">
           <NavLink to="/" icon={<LayoutDashboard className="h-4 w-4" />}>Accueil</NavLink>
           <NavLink to="/dossiers" icon={<FolderKanban className="h-4 w-4" />}>Dossiers</NavLink>
+          <NavLink to="/factures" icon={<Receipt className="h-4 w-4" />}>Factures</NavLink>
           <NavLink to="/parametres" icon={<Settings className="h-4 w-4" />}>Paramètres</NavLink>
         </nav>
       </header>
