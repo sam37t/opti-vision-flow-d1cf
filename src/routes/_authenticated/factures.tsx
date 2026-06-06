@@ -18,10 +18,11 @@ function FacturesPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("dossiers")
-        .select("id, client_nom, client_prenom, mutuelle, montant_pec, transmis_mutuelle_at")
-        .eq("transmis_mutuelle", true)
+        .select("id, client_nom, client_prenom, mutuelle, montant_pec, transmis_mutuelle, transmis_mutuelle_at, facture_cosium")
+        .or("facture_cosium.eq.true,transmis_mutuelle.eq.true")
         .eq("paiement_recu", false)
-        .order("transmis_mutuelle_at", { ascending: true });
+        .order("transmis_mutuelle_at", { ascending: true, nullsFirst: false });
+
       if (error) throw error;
       return data as any[];
     },
@@ -70,7 +71,7 @@ function FacturesPage() {
             <tr>
               <th className="px-4 py-3">Client</th>
               <th className="px-4 py-3">Mutuelle</th>
-              <th className="px-4 py-3">Transmis le</th>
+              <th className="px-4 py-3">Statut</th>
               <th className="px-4 py-3 text-right">Montant accordé</th>
               <th className="px-4 py-3"></th>
             </tr>
@@ -91,10 +92,13 @@ function FacturesPage() {
                 </td>
                 <td className="px-4 py-3">{d.mutuelle || "—"}</td>
                 <td className="px-4 py-3 text-muted-foreground">
-                  {d.transmis_mutuelle_at
-                    ? new Date(d.transmis_mutuelle_at).toLocaleDateString("fr-FR")
-                    : "—"}
+                  {d.transmis_mutuelle && d.transmis_mutuelle_at
+                    ? `Transmis le ${new Date(d.transmis_mutuelle_at).toLocaleDateString("fr-FR")}`
+                    : d.facture_cosium
+                      ? "Facturé sur Cosium"
+                      : "—"}
                 </td>
+
                 <td className="px-4 py-3 text-right font-medium">
                   {Number(d.montant_pec || 0).toLocaleString("fr-FR", {
                     minimumFractionDigits: 2,
