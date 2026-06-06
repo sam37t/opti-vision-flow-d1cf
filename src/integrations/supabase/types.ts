@@ -120,6 +120,7 @@ export type Database = {
           telephone: string
           transmis_mutuelle: boolean
           transmis_mutuelle_at: string | null
+          type_dossier: string
           type_verres: string
           updated_at: string
         }
@@ -147,6 +148,7 @@ export type Database = {
           telephone?: string
           transmis_mutuelle?: boolean
           transmis_mutuelle_at?: string | null
+          type_dossier?: string
           type_verres?: string
           updated_at?: string
         }
@@ -174,6 +176,7 @@ export type Database = {
           telephone?: string
           transmis_mutuelle?: boolean
           transmis_mutuelle_at?: string | null
+          type_dossier?: string
           type_verres?: string
           updated_at?: string
         }
