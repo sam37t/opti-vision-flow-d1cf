@@ -242,7 +242,10 @@ function ListView({ dossiers }: { dossiers: Dossier[] }) {
                     {d.probleme && <AlertOctagon className="h-4 w-4 text-destructive" />}
                     <span>{d.client_nom.toUpperCase()} {d.client_prenom}</span>
                   </Link>
-                  <div className="text-xs text-muted-foreground">{d.telephone}</div>
+                  <div className="mt-0.5 flex items-center gap-2">
+                    <span className="text-xs text-muted-foreground">{d.telephone}</span>
+                    <BillingBadges d={d} compact />
+                  </div>
                 </td>
                 <td className="px-4 py-3">{d.mutuelle || "—"}</td>
                 <td className="px-4 py-3 tabular-nums">{Number(d.montant_devis ?? 0).toFixed(2)} €</td>
