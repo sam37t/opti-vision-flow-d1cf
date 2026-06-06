@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { AlertOctagon, CheckCircle2, LayoutGrid, List, Receipt, Search, Send, X } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
@@ -57,6 +57,17 @@ type Dossier = {
   created_at: string;
   last_status_change_at: string;
 };
+
+function dossierRank(d: Dossier): number {
+  if (d.probleme || d.status === "refuse") return 0;
+  if (d.status === "a_traiter") return 1;
+  if (["devis_envoye", "en_attente", "cotation_recue", "a_modifier", "verres_commandes"].includes(d.status)) return 2;
+  if (d.status === "accord_recu") return 3;
+  if (d.facture_cosium) return 4;
+  if (d.transmis_mutuelle) return 5;
+  if (d.paiement_recu || d.status === "livre_facture" || d.status === "pas_de_tp") return 6;
+  return 7;
+}
 
 function BillingBadges({ d, compact }: { d: Dossier; compact?: boolean }) {
   if (!d.facture_cosium && !d.transmis_mutuelle && !d.paiement_recu) return null;
@@ -116,6 +127,15 @@ function DossiersPage() {
       return data as unknown as Dossier[];
     },
   });
+
+  const sortedDossiers = useMemo(() => {
+    return [...dossiers].sort((a, b) => {
+      const ra = dossierRank(a);
+      const rb = dossierRank(b);
+      if (ra !== rb) return ra - rb;
+      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+    });
+  }, [dossiers]);
 
   const { data: mutuelles = [] } = useQuery({
     queryKey: ["mutuelles"],
@@ -212,10 +232,11 @@ function DossiersPage() {
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Chargement...</p>
       ) : view === "list" ? (
-        <ListView dossiers={dossiers} />
+        <ListView dossiers={sortedDossiers} />
       ) : (
         <KanbanView dossiers={dossiers} />
       )}
+
     </div>
   );
 }
