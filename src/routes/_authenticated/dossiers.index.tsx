@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { AlertOctagon, CheckCircle2, LayoutGrid, List, Receipt, Search, Send, X } from "lucide-react";
+import { AlertOctagon, CheckCircle2, Clock, LayoutGrid, List, Receipt, Search, Send, X } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -56,8 +56,32 @@ type Dossier = {
   paiement_recu: boolean;
   pec_demande_at: string | null;
   created_at: string;
+  updated_at: string;
   last_status_change_at: string;
 };
+
+function isRecentlyUpdated(d: Dossier): boolean {
+  if (!d.updated_at) return false;
+  const updated = new Date(d.updated_at).getTime();
+  const created = new Date(d.created_at).getTime();
+  // Évite d'afficher le badge sur les dossiers tout juste créés (création ≈ update)
+  if (Math.abs(updated - created) < 60 * 1000) return false;
+  return Date.now() - updated < 24 * 3600 * 1000;
+}
+
+function RecentBadge({ d, compact }: { d: Dossier; compact?: boolean }) {
+  if (!isRecentlyUpdated(d)) return null;
+  const cls = compact ? "text-[10px] px-1.5 py-0.5" : "text-xs px-2 py-0.5";
+  const size = compact ? "h-3 w-3" : "h-3.5 w-3.5";
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-full bg-amber-50 font-medium text-amber-700 border border-amber-200 ${cls}`}
+      title={`Modifié le ${new Date(d.updated_at).toLocaleString("fr-FR")}`}
+    >
+      <Clock className={size} /> Modifié récemment
+    </span>
+  );
+}
 
 function alertFactureNonTransmise(d: Dossier): boolean {
   return d.facture_cosium && !d.transmis_mutuelle;
@@ -302,6 +326,7 @@ function ListView({ dossiers }: { dossiers: Dossier[] }) {
                     <span className="text-xs text-muted-foreground">{d.telephone}</span>
                     <BillingBadges d={d} compact />
                     <AlertBadges d={d} compact />
+                    <RecentBadge d={d} compact />
                   </div>
                 </td>
                 <td className="px-4 py-3">{d.mutuelle || "—"}</td>
@@ -360,7 +385,7 @@ function KanbanView({ dossiers }: { dossiers: Dossier[] }) {
                     {d.client_nom.toUpperCase()} {d.client_prenom}
                   </div>
                   <div className="text-xs text-muted-foreground">{d.mutuelle || "—"}</div>
-                  <div className="mt-1 space-y-1"><BillingBadges d={d} compact /><AlertBadges d={d} compact /></div>
+                  <div className="mt-1 space-y-1"><BillingBadges d={d} compact /><AlertBadges d={d} compact /><RecentBadge d={d} compact /></div>
                   <div className="mt-1 space-y-0.5 text-xs tabular-nums">
                     <div>Devis : <span className="font-medium">{Number(d.montant_devis ?? 0).toFixed(2)} €</span></div>
                     {d.montant_pec != null && <div>Accordé : <span className="font-medium">{Number(d.montant_pec).toFixed(2)} €</span></div>}

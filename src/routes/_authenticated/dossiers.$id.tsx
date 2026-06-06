@@ -1,7 +1,7 @@
 import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
-import { ArrowLeft, Phone, History, MessageSquare, Trash2, AlertOctagon, Receipt, CheckCircle2 } from "lucide-react";
+import { ArrowLeft, ExternalLink, Phone, History, MessageSquare, Trash2, AlertOctagon, Receipt, CheckCircle2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DOSSIER_STATUSES, STATUS_LABELS, type DossierStatus } from "@/lib/dossier-status";
+import { getTpPlatform, isDifferentPlatform } from "@/lib/tp-platforms";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dossiers/$id")({
@@ -257,6 +258,7 @@ function DossierDetail() {
               </span>
             )}
             <span>Créé le {new Date(d.created_at).toLocaleDateString("fr-FR")}</span>
+            <TpLink mutuelle={d.mutuelle} />
           </div>
         </div>
         <div className="flex items-center gap-2">
@@ -581,6 +583,24 @@ function DossierDetail() {
 
       </div>
     </div>
+  );
+}
+
+function TpLink({ mutuelle }: { mutuelle: string }) {
+  const platform = getTpPlatform(mutuelle);
+  if (!platform) return null;
+  const showVia = isDifferentPlatform(mutuelle, platform);
+  return (
+    <a
+      href={platform.url}
+      target="_blank"
+      rel="noopener noreferrer"
+      className="inline-flex items-center gap-1.5 rounded-md border bg-primary/5 px-2.5 py-1 text-xs font-medium text-primary hover:bg-primary/10"
+      title={`Ouvrir la plateforme TP ${platform.name}`}
+    >
+      <ExternalLink className="h-3.5 w-3.5" />
+      Plateforme TP{showVia ? ` (via ${platform.name})` : ` ${platform.name}`}
+    </a>
   );
 }
 
