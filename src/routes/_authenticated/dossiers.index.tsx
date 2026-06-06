@@ -59,6 +59,7 @@ type Dossier = {
 };
 
 function dossierRank(d: Dossier): number {
+  if (d.status === "sans_suite_client") return 8;
   if (d.probleme || d.status === "refuse") return 0;
   if (d.status === "a_traiter") return 1;
   if (["devis_envoye", "en_attente", "cotation_recue", "a_modifier", "verres_commandes"].includes(d.status)) return 2;
