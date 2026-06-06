@@ -83,18 +83,36 @@ function DossierDetail() {
     return () => { supabase.removeChannel(channel); };
   }, [id, qc]);
 
+  const { data: mutuelles = [] } = useQuery({
+    queryKey: ["mutuelles"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("mutuelles").select("name").order("name");
+      if (error) throw error;
+      return data.map((m) => m.name);
+    },
+  });
+
   const [saving, setSaving] = useState(false);
+  const [savingInfo, setSavingInfo] = useState(false);
+  const [clientNom, setClientNom] = useState("");
+  const [clientPrenom, setClientPrenom] = useState("");
+  const [telephone, setTelephone] = useState("");
+  const [mutuelle, setMutuelle] = useState("");
+  const [typeVerres, setTypeVerres] = useState("");
   const [devis, setDevis] = useState("");
   const [pec, setPec] = useState("");
-  const [typeVerres, setTypeVerres] = useState("");
-  const [savingTypeVerres, setSavingTypeVerres] = useState(false);
   const [noteContent, setNoteContent] = useState("");
 
   useEffect(() => {
     if (dossier) {
-      setDevis(dossier.montant_devis?.toString() ?? "");
-      setPec(dossier.montant_pec?.toString() ?? "");
-      setTypeVerres((dossier as any).type_verres ?? "");
+      const dd = dossier as any;
+      setClientNom(dd.client_nom ?? "");
+      setClientPrenom(dd.client_prenom ?? "");
+      setTelephone(dd.telephone ?? "");
+      setMutuelle(dd.mutuelle ?? "");
+      setTypeVerres(dd.type_verres ?? "");
+      setDevis(dd.montant_devis?.toString() ?? "");
+      setPec(dd.montant_pec?.toString() ?? "");
     }
   }, [dossier]);
 
@@ -103,17 +121,32 @@ function DossierDetail() {
   const pecNum = parseAmount(pec) ?? 0;
   const racLive = Math.max(0, devisNum - pecNum);
 
-  const saveTypeVerres = async () => {
-    setSavingTypeVerres(true);
-    const trimmed = typeVerres.trim();
-    if (trimmed && !typesVerres.includes(trimmed)) {
-      await supabase.from("types_verres").insert({ name: trimmed });
+  const saveInfos = async () => {
+    if (!clientNom.trim() || !clientPrenom.trim()) {
+      toast.error("Nom et prénom sont obligatoires");
+      return;
+    }
+    setSavingInfo(true);
+    const mut = mutuelle.trim();
+    const tv = typeVerres.trim();
+    if (mut && !mutuelles.includes(mut)) {
+      await supabase.from("mutuelles").insert({ name: mut });
+      qc.invalidateQueries({ queryKey: ["mutuelles"] });
+    }
+    if (tv && !typesVerres.includes(tv)) {
+      await supabase.from("types_verres").insert({ name: tv });
       qc.invalidateQueries({ queryKey: ["types_verres"] });
     }
-    const { error } = await supabase.from("dossiers").update({ type_verres: trimmed }).eq("id", id);
-    setSavingTypeVerres(false);
+    const { error } = await supabase.from("dossiers").update({
+      client_nom: clientNom.trim(),
+      client_prenom: clientPrenom.trim(),
+      telephone: telephone.trim(),
+      mutuelle: mut,
+      type_verres: tv,
+    }).eq("id", id);
+    setSavingInfo(false);
     if (error) toast.error(error.message);
-    else toast.success("Type de verres mis à jour");
+    else toast.success("Informations mises à jour");
   };
 
   if (isLoading || !dossier) return <p className="text-sm text-muted-foreground">Chargement...</p>;
@@ -216,16 +249,35 @@ function DossierDetail() {
 
       <div className="grid gap-5 lg:grid-cols-3">
         <div className="space-y-5 lg:col-span-2">
-          <Card title="Informations">
-            <Grid>
-              <Info label="Mutuelle" value={d.mutuelle || "—"} />
-              <Info label="Montant du devis" value={`${devisNum.toFixed(2)} €`} />
-              <Info label="Montant accordé (PEC)" value={`${pecNum.toFixed(2)} €`} />
-              <Info label="Reste à charge" value={`${racLive.toFixed(2)} €`} />
-            </Grid>
-            <div className="mt-4 space-y-2">
-              <Label htmlFor="type_verres">Type de verres</Label>
-              <div className="flex gap-2">
+          <Card title="Informations client">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="client_nom">Nom <span className="text-destructive">*</span></Label>
+                <Input id="client_nom" value={clientNom} onChange={(e) => setClientNom(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="client_prenom">Prénom <span className="text-destructive">*</span></Label>
+                <Input id="client_prenom" value={clientPrenom} onChange={(e) => setClientPrenom(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="telephone">Téléphone</Label>
+                <Input id="telephone" type="tel" value={telephone} onChange={(e) => setTelephone(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="mutuelle">Mutuelle</Label>
+                <Input
+                  id="mutuelle"
+                  value={mutuelle}
+                  onChange={(e) => setMutuelle(e.target.value)}
+                  list="mutuelles-list-detail"
+                  placeholder="Tapez ou choisissez"
+                />
+                <datalist id="mutuelles-list-detail">
+                  {mutuelles.map((m) => <option key={m} value={m} />)}
+                </datalist>
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="type_verres">Type de verres</Label>
                 <Input
                   id="type_verres"
                   value={typeVerres}
@@ -236,12 +288,13 @@ function DossierDetail() {
                 <datalist id="types-verres-list-detail">
                   {typesVerres.map((t) => <option key={t} value={t} />)}
                 </datalist>
-                <Button onClick={saveTypeVerres} disabled={savingTypeVerres || typeVerres === (d.type_verres ?? "")}>
-                  {savingTypeVerres ? "..." : "Enregistrer"}
-                </Button>
               </div>
             </div>
+            <Button onClick={saveInfos} disabled={savingInfo} className="mt-4">
+              {savingInfo ? "Enregistrement..." : "Enregistrer les informations"}
+            </Button>
           </Card>
+
 
           <Card title="Statut">
             <div className="space-y-2">
