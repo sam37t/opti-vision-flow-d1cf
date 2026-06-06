@@ -18,7 +18,7 @@ function norm(s: string): string {
 // Plateformes connues
 const VIAMEDIS: TpPlatform = { name: "Viamedis", url: "https://viamedis.net/ViamedisNet/page/ps/pec/dossier/consult/p_histo_dossiers?init=1&typeDossier=PEC" };
 const APGIS: TpPlatform = { name: "APGIS", url: "https://espaceprofessionnel.apgis.com/" };
-const SPSANTE: TpPlatform = { name: "SP Santé", url: "https://www.spsante.fr/" };
+const SPSANTE: TpPlatform = { name: "SP Santé", url: "https://spsante.fr/login#/" };
 const HARMONIE: TpPlatform = { name: "Oxantis", url: "https://www.oxantis.net/HmNet/page/ps/pec/dossier/consult/p_histo_dossiers?init=1" };
 const MERCER: TpPlatform = { name: "Mercer", url: "https://prosante.mercernet.fr/" };
 const FILHET: TpPlatform = { name: "Filhet-Allard", url: "https://extranet.filhetallard.com/" };
