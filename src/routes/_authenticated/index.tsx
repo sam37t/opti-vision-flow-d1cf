@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
-import { AlertOctagon, AlertTriangle, Clock, FolderKanban, TrendingUp, Wallet, Receipt } from "lucide-react";
+import { AlertOctagon, AlertTriangle, FolderKanban, TrendingUp, Wallet, Receipt } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { DOSSIER_STATUSES, STATUS_LABELS, TERMINAL_STATUSES, type DossierStatus } from "@/lib/dossier-status";
 import { StatusBadge } from "@/components/StatusBadge";
