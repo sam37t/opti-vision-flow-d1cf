@@ -9,6 +9,7 @@ export const DOSSIER_STATUSES = [
   "livre_facture",
   "pas_de_tp",
   "refuse",
+  "sans_suite_client",
 ] as const;
 
 export type DossierStatus = (typeof DOSSIER_STATUSES)[number];
@@ -24,6 +25,7 @@ export const STATUS_LABELS: Record<DossierStatus, string> = {
   livre_facture: "Livré / Facturé",
   pas_de_tp: "Pas de Tiers Payant",
   refuse: "Refusé",
+  sans_suite_client: "Sans suite client",
 };
 
 export const STATUS_COLORS: Record<DossierStatus, string> = {
@@ -37,7 +39,8 @@ export const STATUS_COLORS: Record<DossierStatus, string> = {
   livre_facture: "bg-teal-100 text-teal-800 border-teal-200",
   pas_de_tp: "bg-slate-100 text-slate-800 border-slate-200",
   refuse: "bg-rose-100 text-rose-800 border-rose-200",
+  sans_suite_client: "bg-gray-100 text-gray-700 border-gray-300",
 };
 
 // Statuts considérés "terminés" (n'apparaissent plus dans les alertes 48h)
-export const TERMINAL_STATUSES: DossierStatus[] = ["livre_facture", "refuse", "pas_de_tp"];
+export const TERMINAL_STATUSES: DossierStatus[] = ["livre_facture", "refuse", "pas_de_tp", "sans_suite_client"];
