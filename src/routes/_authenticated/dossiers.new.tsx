@@ -111,6 +111,17 @@ function NewDossierPage() {
           <Fld name="montant_devis" label="Montant du devis (€)" type="number" step="0.01" />
           <Fld name="montant_pec" label="Montant accordé / PEC (€)" type="number" step="0.01" />
           <div className="space-y-2">
+            <Label>Type de dossier</Label>
+            <Select value={typeDossier} onValueChange={(v) => setTypeDossier(v as any)}>
+              <SelectTrigger><SelectValue /></SelectTrigger>
+              <SelectContent>
+                <SelectItem value="lunettes">Lunettes</SelectItem>
+                <SelectItem value="lentilles">Lentilles</SelectItem>
+                <SelectItem value="autre">Autre</SelectItem>
+              </SelectContent>
+            </Select>
+          </div>
+          <div className="space-y-2">
             <Label>Statut initial</Label>
             <Select value={status} onValueChange={(v) => setStatus(v as DossierStatus)}>
               <SelectTrigger><SelectValue /></SelectTrigger>
