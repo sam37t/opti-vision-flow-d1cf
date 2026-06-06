@@ -51,9 +51,35 @@ type Dossier = {
   reste_a_charge: number | null;
   remboursement_attendu: number | null;
   probleme: boolean;
+  facture_cosium: boolean;
+  transmis_mutuelle: boolean;
+  paiement_recu: boolean;
   created_at: string;
   last_status_change_at: string;
 };
+
+function BillingBadges({ d, compact }: { d: Dossier; compact?: boolean }) {
+  if (!d.facture_cosium && !d.transmis_mutuelle && !d.paiement_recu) return null;
+  const size = compact ? "h-3 w-3" : "h-3.5 w-3.5";
+  const cls = compact ? "text-[10px] px-1.5 py-0.5" : "text-xs px-2 py-0.5";
+  return (
+    <div className="flex flex-wrap items-center gap-1">
+      {d.paiement_recu ? (
+        <span className={`inline-flex items-center gap-1 rounded-full bg-green-100 font-medium text-green-800 ${cls}`}>
+          <CheckCircle2 className={size} /> Réglé
+        </span>
+      ) : d.transmis_mutuelle ? (
+        <span className={`inline-flex items-center gap-1 rounded-full bg-blue-100 font-medium text-blue-800 ${cls}`}>
+          <Send className={size} /> Transmis
+        </span>
+      ) : d.facture_cosium ? (
+        <span className={`inline-flex items-center gap-1 rounded-full bg-purple-100 font-medium text-purple-800 ${cls}`}>
+          <Receipt className={size} /> Facturé
+        </span>
+      ) : null}
+    </div>
+  );
+}
 
 function DossiersPage() {
   const search = Route.useSearch();
