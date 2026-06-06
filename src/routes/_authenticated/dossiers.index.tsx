@@ -232,7 +232,7 @@ function DossiersPage() {
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Chargement...</p>
       ) : view === "list" ? (
-        <ListView dossiers={dossiers} />
+        <ListView dossiers={sortedDossiers} />
       ) : (
         <KanbanView dossiers={dossiers} />
       )}
