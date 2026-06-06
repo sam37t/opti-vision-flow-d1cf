@@ -231,8 +231,12 @@ function DossierDetail() {
                   id="type_verres"
                   value={typeVerres}
                   onChange={(e) => setTypeVerres(e.target.value)}
-                  placeholder="Ex: Progressifs, Unifocaux..."
+                  list="types-verres-list-detail"
+                  placeholder="Tapez ou choisissez"
                 />
+                <datalist id="types-verres-list-detail">
+                  {typesVerres.map((t) => <option key={t} value={t} />)}
+                </datalist>
                 <Button onClick={saveTypeVerres} disabled={savingTypeVerres || typeVerres === (d.type_verres ?? "")}>
                   {savingTypeVerres ? "..." : "Enregistrer"}
                 </Button>
