@@ -191,7 +191,7 @@ function DossierDetail() {
     if (error) toast.error(error.message);
     else toast.success("Montants enregistrés");
   };
-  const updateDossier = async (patch: Record<string, any>, successMsg = "Dossier mis à jour") => {
+  const updateDossier = async (patch: any, successMsg = "Dossier mis à jour") => {
     const { error } = await supabase.from("dossiers").update(patch).eq("id", id);
     if (error) toast.error(error.message);
     else toast.success(successMsg);
