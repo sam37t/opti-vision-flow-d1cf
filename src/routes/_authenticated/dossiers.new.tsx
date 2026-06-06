@@ -61,7 +61,7 @@ function NewDossierPage() {
         client_prenom: String(fd.get("client_prenom")),
         telephone: String(fd.get("telephone") || ""),
         mutuelle,
-        type_verres: String(fd.get("type_verres") || ""),
+        type_verres: typeVerres,
         montant_devis: Number(String(fd.get("montant_devis") || "0").replace(",", ".")) || 0,
         remboursement_attendu: fd.get("remboursement_attendu")
           ? Number(String(fd.get("remboursement_attendu")).replace(",", ".")) || null
