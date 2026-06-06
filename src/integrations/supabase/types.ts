@@ -107,6 +107,7 @@ export type Database = {
           last_status_change_at: string
           montant_devis: number
           montant_pec: number | null
+          montant_ss: number | null
           mutuelle: string
           paiement_recu: boolean
           paiement_recu_at: string | null
@@ -132,6 +133,7 @@ export type Database = {
           last_status_change_at?: string
           montant_devis?: number
           montant_pec?: number | null
+          montant_ss?: number | null
           mutuelle?: string
           paiement_recu?: boolean
           paiement_recu_at?: string | null
@@ -157,6 +159,7 @@ export type Database = {
           last_status_change_at?: string
           montant_devis?: number
           montant_pec?: number | null
+          montant_ss?: number | null
           mutuelle?: string
           paiement_recu?: boolean
           paiement_recu_at?: string | null
