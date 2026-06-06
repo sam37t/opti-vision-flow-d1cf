@@ -54,7 +54,9 @@ function Dashboard() {
   );
 
   const totalActifs = actifs.length;
-  const totalDevis = actifs.reduce((s, d) => s + (Number(d.montant_devis) || 0), 0);
+  const actifsAvecDevis = actifs.filter((d) => Number(d.montant_devis) > 0);
+  const sansMontant = actifs.length - actifsAvecDevis.length;
+  const totalDevis = actifsAvecDevis.reduce((s, d) => s + Number(d.montant_devis), 0);
   const totalAccorde = actifs.reduce((s, d) => s + (Number(d.montant_pec) || 0), 0);
   const totalRAC = actifs.reduce((s, d) => s + (Number(d.reste_a_charge) || 0), 0);
   const fmt = (n: number) => `${n.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
