@@ -165,7 +165,8 @@ function DossierDetail() {
       telephone: telephone.trim(),
       mutuelle: mut,
       type_verres: tv,
-    }).eq("id", id);
+      type_dossier: typeDossier,
+    } as any).eq("id", id);
     setSavingInfo(false);
     if (error) toast.error(error.message);
     else toast.success("Informations mises à jour");
