@@ -98,7 +98,13 @@ function NewDossierPage() {
               {mutuelles.map((m) => <option key={m} value={m} />)}
             </datalist>
           </div>
-          <Fld name="type_verres" label="Type de verres" />
+          <div className="space-y-2">
+            <Label htmlFor="type_verres">Type de verres</Label>
+            <Input id="type_verres" name="type_verres" list="types-verres-list" placeholder="Tapez ou choisissez" />
+            <datalist id="types-verres-list">
+              {typesVerres.map((t) => <option key={t} value={t} />)}
+            </datalist>
+          </div>
           <Fld name="montant_devis" label="Montant devis (€)" type="number" step="0.01" />
           <Fld name="remboursement_attendu" label="Remboursement attendu (€)" type="number" step="0.01" />
           <div className="space-y-2">
