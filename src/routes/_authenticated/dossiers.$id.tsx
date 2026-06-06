@@ -399,6 +399,82 @@ function DossierDetail() {
             </Button>
           </Card>
 
+          <Card title="Facturation" icon={<Receipt className="h-4 w-4" />}>
+            <div className="space-y-3">
+              <label className="flex items-center gap-2 text-sm">
+                <Checkbox
+                  checked={!!d.facture_cosium}
+                  onCheckedChange={(v) => updateDossier({ facture_cosium: !!v }, "Facturation Cosium mise à jour")}
+                />
+                Facturé sur Cosium
+              </label>
+              <label className="flex items-center gap-2 text-sm">
+                <Checkbox
+                  checked={!!d.transmis_mutuelle}
+                  onCheckedChange={(v) => updateDossier({ transmis_mutuelle: !!v }, "Transmission mutuelle mise à jour")}
+                />
+                Transmis à la mutuelle
+                {d.transmis_mutuelle_at && (
+                  <span className="text-xs text-muted-foreground">
+                    · le {new Date(d.transmis_mutuelle_at).toLocaleDateString("fr-FR")}
+                  </span>
+                )}
+              </label>
+
+              {d.transmis_mutuelle && (
+                <div className="rounded-md border bg-muted/30 p-3">
+                  {d.paiement_recu ? (
+                    <div className="flex items-center justify-between gap-2">
+                      <div className="flex items-center gap-2 text-sm">
+                        <CheckCircle2 className="h-4 w-4 text-green-600" />
+                        <span>
+                          Règlement reçu le{" "}
+                          {d.paiement_recu_at
+                            ? new Date(d.paiement_recu_at).toLocaleDateString("fr-FR")
+                            : "—"}
+                        </span>
+                      </div>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() =>
+                          updateDossier(
+                            { paiement_recu: false, paiement_recu_at: null },
+                            "Règlement annulé",
+                          )
+                        }
+                      >
+                        Annuler
+                      </Button>
+                    </div>
+                  ) : (
+                    <div className="flex flex-wrap items-center gap-2">
+                      <Label htmlFor="paiement_date" className="text-sm">Date de règlement</Label>
+                      <Input
+                        id="paiement_date"
+                        type="date"
+                        defaultValue={today}
+                        className="max-w-[170px]"
+                        onChange={(e) => setPaiementDate(e.target.value)}
+                      />
+                      <Button
+                        size="sm"
+                        onClick={() =>
+                          updateDossier(
+                            { paiement_recu: true, paiement_recu_at: paiementDate || today },
+                            "Règlement confirmé",
+                          )
+                        }
+                      >
+                        Confirmer le règlement
+                      </Button>
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          </Card>
+
         </div>
 
         <div className="space-y-5">
