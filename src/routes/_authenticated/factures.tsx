@@ -92,10 +92,13 @@ function FacturesPage() {
                 </td>
                 <td className="px-4 py-3">{d.mutuelle || "—"}</td>
                 <td className="px-4 py-3 text-muted-foreground">
-                  {d.transmis_mutuelle_at
-                    ? new Date(d.transmis_mutuelle_at).toLocaleDateString("fr-FR")
-                    : "—"}
+                  {d.transmis_mutuelle && d.transmis_mutuelle_at
+                    ? `Transmis le ${new Date(d.transmis_mutuelle_at).toLocaleDateString("fr-FR")}`
+                    : d.facture_cosium
+                      ? "Facturé sur Cosium"
+                      : "—"}
                 </td>
+
                 <td className="px-4 py-3 text-right font-medium">
                   {Number(d.montant_pec || 0).toLocaleString("fr-FR", {
                     minimumFractionDigits: 2,
