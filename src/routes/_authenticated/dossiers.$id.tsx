@@ -249,16 +249,35 @@ function DossierDetail() {
 
       <div className="grid gap-5 lg:grid-cols-3">
         <div className="space-y-5 lg:col-span-2">
-          <Card title="Informations">
-            <Grid>
-              <Info label="Mutuelle" value={d.mutuelle || "—"} />
-              <Info label="Montant du devis" value={`${devisNum.toFixed(2)} €`} />
-              <Info label="Montant accordé (PEC)" value={`${pecNum.toFixed(2)} €`} />
-              <Info label="Reste à charge" value={`${racLive.toFixed(2)} €`} />
-            </Grid>
-            <div className="mt-4 space-y-2">
-              <Label htmlFor="type_verres">Type de verres</Label>
-              <div className="flex gap-2">
+          <Card title="Informations client">
+            <div className="grid gap-4 sm:grid-cols-2">
+              <div className="space-y-2">
+                <Label htmlFor="client_nom">Nom <span className="text-destructive">*</span></Label>
+                <Input id="client_nom" value={clientNom} onChange={(e) => setClientNom(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="client_prenom">Prénom <span className="text-destructive">*</span></Label>
+                <Input id="client_prenom" value={clientPrenom} onChange={(e) => setClientPrenom(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="telephone">Téléphone</Label>
+                <Input id="telephone" type="tel" value={telephone} onChange={(e) => setTelephone(e.target.value)} />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="mutuelle">Mutuelle</Label>
+                <Input
+                  id="mutuelle"
+                  value={mutuelle}
+                  onChange={(e) => setMutuelle(e.target.value)}
+                  list="mutuelles-list-detail"
+                  placeholder="Tapez ou choisissez"
+                />
+                <datalist id="mutuelles-list-detail">
+                  {mutuelles.map((m) => <option key={m} value={m} />)}
+                </datalist>
+              </div>
+              <div className="space-y-2 sm:col-span-2">
+                <Label htmlFor="type_verres">Type de verres</Label>
                 <Input
                   id="type_verres"
                   value={typeVerres}
@@ -269,12 +288,13 @@ function DossierDetail() {
                 <datalist id="types-verres-list-detail">
                   {typesVerres.map((t) => <option key={t} value={t} />)}
                 </datalist>
-                <Button onClick={saveTypeVerres} disabled={savingTypeVerres || typeVerres === (d.type_verres ?? "")}>
-                  {savingTypeVerres ? "..." : "Enregistrer"}
-                </Button>
               </div>
             </div>
+            <Button onClick={saveInfos} disabled={savingInfo} className="mt-4">
+              {savingInfo ? "Enregistrement..." : "Enregistrer les informations"}
+            </Button>
           </Card>
+
 
           <Card title="Statut">
             <div className="space-y-2">
