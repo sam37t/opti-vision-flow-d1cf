@@ -117,15 +117,20 @@ function AlertBadges({ d, compact }: { d: Dossier; compact?: boolean }) {
 }
 
 function dossierRank(d: Dossier): number {
-  if (d.status === "sans_suite_client") return 8;
-  if (d.probleme || d.status === "refuse") return 0;
-  if (d.status === "a_traiter") return 1;
-  if (["devis_envoye", "en_attente", "cotation_recue", "a_modifier", "verres_commandes"].includes(d.status)) return 2;
-  if (d.status === "accord_recu") return 3;
-  if (d.facture_cosium) return 4;
-  if (d.transmis_mutuelle) return 5;
-  if (d.paiement_recu || d.status === "livre_facture" || d.status === "pas_de_tp") return 6;
-  return 7;
+  if (d.probleme) return 0;                           // Problème
+  if (d.status === "refuse") return 1;                // Refusé
+  if (d.status === "a_traiter") return 2;           // À traiter
+  if (d.status === "devis_envoye") return 3;        // Devis envoyé
+  if (d.status === "en_attente") return 4;          // En attente
+  if (d.status === "cotation_recue") return 5;      // Cotation
+  if (d.status === "a_modifier") return 6;          // À modifier
+  if (d.status === "accord_recu") return 7;           // Accordé
+  if (d.status === "verres_commandes") return 8;    // Verres commandés
+  if (d.facture_cosium) return 9;                     // Facturé
+  if (d.transmis_mutuelle) return 10;                // Transmis
+  if (d.status === "sans_suite_client") return 11;   // Sans suite client
+  if (d.paiement_recu || d.status === "livre_facture" || d.status === "pas_de_tp") return 12; // Réglé
+  return 13;
 }
 
 function BillingBadges({ d, compact }: { d: Dossier; compact?: boolean }) {
