@@ -116,6 +116,7 @@ function DossierDetail() {
   const [devis, setDevis] = useState("");
   const [pec, setPec] = useState("");
   const [noteContent, setNoteContent] = useState("");
+  const [paiementDate, setPaiementDate] = useState(new Date().toISOString().slice(0, 10));
 
   useEffect(() => {
     if (dossier) {
