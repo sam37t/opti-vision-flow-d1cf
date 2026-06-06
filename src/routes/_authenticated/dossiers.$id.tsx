@@ -490,7 +490,22 @@ function DossierDetail() {
               )}
             </ol>
           </Card>
+
+          <Card title="Ajouter une note" icon={<MessageSquare className="h-4 w-4" />}>
+            <div className="space-y-2">
+              <Textarea
+                placeholder="Laissez un message à votre collègue..."
+                value={noteContent}
+                onChange={(e) => setNoteContent(e.target.value)}
+                rows={3}
+              />
+              <Button onClick={addNote} disabled={!noteContent.trim()} size="sm">
+                Publier
+              </Button>
+            </div>
+          </Card>
         </div>
+
       </div>
     </div>
   );
