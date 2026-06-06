@@ -56,8 +56,32 @@ type Dossier = {
   paiement_recu: boolean;
   pec_demande_at: string | null;
   created_at: string;
+  updated_at: string;
   last_status_change_at: string;
 };
+
+function isRecentlyUpdated(d: Dossier): boolean {
+  if (!d.updated_at) return false;
+  const updated = new Date(d.updated_at).getTime();
+  const created = new Date(d.created_at).getTime();
+  // Évite d'afficher le badge sur les dossiers tout juste créés (création ≈ update)
+  if (Math.abs(updated - created) < 60 * 1000) return false;
+  return Date.now() - updated < 24 * 3600 * 1000;
+}
+
+function RecentBadge({ d, compact }: { d: Dossier; compact?: boolean }) {
+  if (!isRecentlyUpdated(d)) return null;
+  const cls = compact ? "text-[10px] px-1.5 py-0.5" : "text-xs px-2 py-0.5";
+  const size = compact ? "h-3 w-3" : "h-3.5 w-3.5";
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-full bg-amber-50 font-medium text-amber-700 border border-amber-200 ${cls}`}
+      title={`Modifié le ${new Date(d.updated_at).toLocaleString("fr-FR")}`}
+    >
+      <Clock className={size} /> Modifié récemment
+    </span>
+  );
+}
 
 function alertFactureNonTransmise(d: Dossier): boolean {
   return d.facture_cosium && !d.transmis_mutuelle;
