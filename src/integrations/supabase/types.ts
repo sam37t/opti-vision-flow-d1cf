@@ -102,6 +102,7 @@ export type Database = {
           created_at: string
           created_by: string | null
           facture_cosium: boolean
+          facture_cosium_at: string | null
           id: string
           last_status_change_at: string
           montant_devis: number
@@ -125,6 +126,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           facture_cosium?: boolean
+          facture_cosium_at?: string | null
           id?: string
           last_status_change_at?: string
           montant_devis?: number
@@ -148,6 +150,7 @@ export type Database = {
           created_at?: string
           created_by?: string | null
           facture_cosium?: boolean
+          facture_cosium_at?: string | null
           id?: string
           last_status_change_at?: string
           montant_devis?: number
