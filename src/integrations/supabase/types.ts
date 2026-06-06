@@ -110,6 +110,7 @@ export type Database = {
           mutuelle: string
           paiement_recu: boolean
           paiement_recu_at: string | null
+          pec_demande_at: string | null
           probleme: boolean
           remboursement_attendu: number | null
           reste_a_charge: number | null
@@ -134,6 +135,7 @@ export type Database = {
           mutuelle?: string
           paiement_recu?: boolean
           paiement_recu_at?: string | null
+          pec_demande_at?: string | null
           probleme?: boolean
           remboursement_attendu?: number | null
           reste_a_charge?: number | null
@@ -158,6 +160,7 @@ export type Database = {
           mutuelle?: string
           paiement_recu?: boolean
           paiement_recu_at?: string | null
+          pec_demande_at?: string | null
           probleme?: boolean
           remboursement_attendu?: number | null
           reste_a_charge?: number | null
