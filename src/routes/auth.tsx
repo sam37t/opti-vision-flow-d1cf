@@ -147,7 +147,7 @@ function AuthPage() {
                   <Select name="role" defaultValue="employe">
                     <SelectTrigger><SelectValue /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="gerante">Gérante</SelectItem>
+                      <SelectItem value="gerante">Co pilote</SelectItem>
                       <SelectItem value="employe">Employé</SelectItem>
                     </SelectContent>
                   </Select>
