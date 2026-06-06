@@ -1,6 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { AlertOctagon, AlertTriangle, Clock, FolderKanban, TrendingUp } from "lucide-react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect } from "react";
+import { AlertOctagon, AlertTriangle, Clock, FolderKanban, TrendingUp, Wallet, Receipt } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { DOSSIER_STATUSES, STATUS_LABELS, TERMINAL_STATUSES, type DossierStatus } from "@/lib/dossier-status";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -11,17 +12,28 @@ export const Route = createFileRoute("/_authenticated/")({
 });
 
 function Dashboard() {
+  const qc = useQueryClient();
+
   const { data: dossiers = [], isLoading } = useQuery({
     queryKey: ["dossiers-dashboard"],
     queryFn: async () => {
       const { data, error } = await supabase
         .from("dossiers")
-        .select("id, client_nom, client_prenom, mutuelle, status, montant_devis, remboursement_attendu, probleme, last_status_change_at, created_at")
+        .select("id, client_nom, client_prenom, mutuelle, status, montant_devis, montant_pec, reste_a_charge, probleme, last_status_change_at, created_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
     },
   });
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("dossiers-dashboard-rt")
+      .on("postgres_changes", { event: "*", schema: "public", table: "dossiers" },
+        () => qc.invalidateQueries({ queryKey: ["dossiers-dashboard"] }))
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [qc]);
 
   const counts = DOSSIER_STATUSES.reduce<Record<DossierStatus, number>>((acc, s) => {
     acc[s] = dossiers.filter((d) => d.status === s).length;
@@ -37,41 +49,45 @@ function Dashboard() {
 
   const problemes = dossiers.filter((d) => d.probleme);
 
-  const totalActifs = dossiers.filter(
+  const actifs = dossiers.filter(
     (d) => !TERMINAL_STATUSES.includes(d.status as DossierStatus),
-  ).length;
+  );
 
-  const totalRembAttendu = dossiers
-    .filter((d) => !TERMINAL_STATUSES.includes(d.status as DossierStatus))
-    .reduce((sum, d) => sum + (Number(d.remboursement_attendu) || 0), 0);
+  const totalActifs = actifs.length;
+  const totalDevis = actifs.reduce((s, d) => s + (Number(d.montant_devis) || 0), 0);
+  const totalAccorde = actifs.reduce((s, d) => s + (Number(d.montant_pec) || 0), 0);
+  const totalRAC = actifs.reduce((s, d) => s + (Number(d.reste_a_charge) || 0), 0);
+  const fmt = (n: number) => `${n.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
 
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Tableau de bord</h1>
-        <p className="text-sm text-muted-foreground">Vue d'ensemble de l'activité du magasin</p>
+        <p className="text-sm text-muted-foreground">Vue d'ensemble de l'activité du magasin (dossiers en cours)</p>
       </div>
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard icon={<FolderKanban className="h-5 w-5" />} label="Dossiers actifs" value={totalActifs} />
-        <StatCard
-          icon={<TrendingUp className="h-5 w-5" />}
-          label="CA attendu (€)"
-          value={Math.round(totalRembAttendu)}
-        />
+        <StatCard icon={<FolderKanban className="h-5 w-5" />} label="Dossiers actifs" valueText={String(totalActifs)} />
+        <StatCard icon={<Receipt className="h-5 w-5" />} label="Total devis" valueText={fmt(totalDevis)} />
+        <StatCard icon={<TrendingUp className="h-5 w-5" />} label="Total accordé (PEC)" valueText={fmt(totalAccorde)} />
+        <StatCard icon={<Wallet className="h-5 w-5" />} label="Total reste à charge" valueText={fmt(totalRAC)} />
+      </div>
+
+      <div className="grid gap-4 sm:grid-cols-2">
         <StatCard
           icon={<AlertTriangle className="h-5 w-5" />}
           label="En retard (>48h)"
-          value={stale.length}
+          valueText={String(stale.length)}
           tone={stale.length > 0 ? "warning" : "default"}
         />
         <StatCard
           icon={<AlertOctagon className="h-5 w-5" />}
           label="Problèmes signalés"
-          value={problemes.length}
+          valueText={String(problemes.length)}
           tone={problemes.length > 0 ? "danger" : "default"}
         />
       </div>
+
 
       <section className="rounded-xl border bg-card p-5">
         <h2 className="mb-4 text-base font-semibold">Répartition par statut</h2>
