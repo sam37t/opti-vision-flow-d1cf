@@ -114,6 +114,7 @@ function DossierDetail() {
   const [telephone, setTelephone] = useState("");
   const [mutuelle, setMutuelle] = useState("");
   const [typeVerres, setTypeVerres] = useState("");
+  const [typeDossier, setTypeDossier] = useState<"lunettes" | "lentilles" | "autre">("lunettes");
   const [devis, setDevis] = useState("");
   const [pec, setPec] = useState("");
   const [ss, setSs] = useState("");
@@ -128,6 +129,7 @@ function DossierDetail() {
       setTelephone(dd.telephone ?? "");
       setMutuelle(dd.mutuelle ?? "");
       setTypeVerres(dd.type_verres ?? "");
+      setTypeDossier((dd.type_dossier as any) ?? "lunettes");
       setDevis(dd.montant_devis?.toString() ?? "");
       setPec(dd.montant_pec?.toString() ?? "");
       setSs(dd.montant_ss?.toString() ?? "");
@@ -163,7 +165,8 @@ function DossierDetail() {
       telephone: telephone.trim(),
       mutuelle: mut,
       type_verres: tv,
-    }).eq("id", id);
+      type_dossier: typeDossier,
+    } as any).eq("id", id);
     setSavingInfo(false);
     if (error) toast.error(error.message);
     else toast.success("Informations mises à jour");
@@ -337,6 +340,17 @@ function DossierDetail() {
                 <datalist id="mutuelles-list-detail">
                   {mutuelles.map((m) => <option key={m} value={m} />)}
                 </datalist>
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="type_dossier">Type de dossier</Label>
+                <Select value={typeDossier} onValueChange={(v) => setTypeDossier(v as any)}>
+                  <SelectTrigger id="type_dossier"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="lunettes">Lunettes</SelectItem>
+                    <SelectItem value="lentilles">Lentilles</SelectItem>
+                    <SelectItem value="autre">Autre</SelectItem>
+                  </SelectContent>
+                </Select>
               </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="type_verres">Type de verres</Label>

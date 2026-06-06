@@ -1,0 +1,1 @@
+ALTER TABLE public.dossiers ADD COLUMN IF NOT EXISTS type_dossier text NOT NULL DEFAULT 'lunettes' CHECK (type_dossier IN ('lunettes','lentilles','autre'));
