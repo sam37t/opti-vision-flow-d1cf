@@ -84,21 +84,24 @@ function DossierDetail() {
   }, [id, qc]);
 
   const [saving, setSaving] = useState(false);
+  const [devis, setDevis] = useState("");
   const [pec, setPec] = useState("");
-  const [rac, setRac] = useState("");
-  const [remb, setRemb] = useState("");
   const [typeVerres, setTypeVerres] = useState("");
   const [savingTypeVerres, setSavingTypeVerres] = useState(false);
   const [noteContent, setNoteContent] = useState("");
 
   useEffect(() => {
     if (dossier) {
+      setDevis(dossier.montant_devis?.toString() ?? "");
       setPec(dossier.montant_pec?.toString() ?? "");
-      setRac(dossier.reste_a_charge?.toString() ?? "");
-      setRemb((dossier as any).remboursement_attendu?.toString() ?? "");
       setTypeVerres((dossier as any).type_verres ?? "");
     }
   }, [dossier]);
+
+  const parseAmount = (v: string) => v.trim() === "" ? null : Number(v.replace(",", ".")) || 0;
+  const devisNum = parseAmount(devis) ?? 0;
+  const pecNum = parseAmount(pec) ?? 0;
+  const racLive = devisNum - pecNum;
 
   const saveTypeVerres = async () => {
     setSavingTypeVerres(true);
