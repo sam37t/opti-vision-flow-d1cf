@@ -270,22 +270,11 @@ function DossierDetail() {
         </div>
       </div>
 
-      <Card title="Notes internes" icon={<MessageSquare className="h-4 w-4" />}>
-        <div className="space-y-3">
-          <div className="space-y-2">
-            <Textarea
-              placeholder="Laissez un message à votre collègue..."
-              value={noteContent}
-              onChange={(e) => setNoteContent(e.target.value)}
-              rows={3}
-            />
-            <Button onClick={addNote} disabled={!noteContent.trim()} size="sm">
-              Publier
-            </Button>
-          </div>
+      {notes.length > 0 && (
+        <Card title="Notes internes" icon={<MessageSquare className="h-4 w-4" />}>
           <ul className="divide-y">
             {notes.map((n) => (
-              <li key={n.id} className="group flex items-start justify-between gap-3 py-3">
+              <li key={n.id} className="group flex items-start justify-between gap-3 py-3 first:pt-0 last:pb-0">
                 <div>
                   <div className="text-xs text-muted-foreground">
                     <span className="font-medium text-foreground">
@@ -307,12 +296,10 @@ function DossierDetail() {
                 )}
               </li>
             ))}
-            {notes.length === 0 && (
-              <li className="py-3 text-sm text-muted-foreground">Aucune note pour le moment.</li>
-            )}
           </ul>
-        </div>
-      </Card>
+        </Card>
+      )}
+
 
       <div className="grid gap-5 lg:grid-cols-3">
         <div className="space-y-5 lg:col-span-2">
