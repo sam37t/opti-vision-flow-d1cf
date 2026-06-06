@@ -71,7 +71,7 @@ function FacturesPage() {
             <tr>
               <th className="px-4 py-3">Client</th>
               <th className="px-4 py-3">Mutuelle</th>
-              <th className="px-4 py-3">Transmis le</th>
+              <th className="px-4 py-3">Statut</th>
               <th className="px-4 py-3 text-right">Montant accordé</th>
               <th className="px-4 py-3"></th>
             </tr>
