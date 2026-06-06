@@ -1,0 +1,1 @@
+UPDATE public.dossiers SET status = 'devis_envoye' WHERE status = 'a_traiter' AND montant_pec IS NOT NULL;
