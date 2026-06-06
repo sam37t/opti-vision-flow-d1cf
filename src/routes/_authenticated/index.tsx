@@ -152,8 +152,8 @@ function Dashboard() {
 }
 
 function StatCard({
-  icon, label, valueText, tone = "default",
-}: { icon: React.ReactNode; label: string; valueText: string; tone?: "default" | "warning" | "danger" }) {
+  icon, label, valueText, tone = "default", hint,
+}: { icon: React.ReactNode; label: string; valueText: string; tone?: "default" | "warning" | "danger"; hint?: string }) {
   const hasValue = valueText !== "0" && valueText !== "0,00 €";
   const toneClass =
     tone === "warning" && hasValue ? "border-amber-300 bg-amber-50" :
@@ -166,6 +166,7 @@ function StatCard({
         <span className="text-sm">{label}</span>
       </div>
       <div className="text-2xl font-semibold tabular-nums">{valueText}</div>
+      {hint && <div className="mt-1 text-xs text-muted-foreground">{hint}</div>}
     </div>
   );
 }
