@@ -54,6 +54,9 @@ function NewDossierPage() {
       await supabase.from("types_verres").insert({ name: typeVerres });
     }
 
+    const parseNum = (v: FormDataEntryValue | null) =>
+      v && String(v).trim() !== "" ? Number(String(v).replace(",", ".")) || null : null;
+
     const { data, error } = await supabase
       .from("dossiers")
       .insert({
@@ -62,10 +65,8 @@ function NewDossierPage() {
         telephone: String(fd.get("telephone") || ""),
         mutuelle,
         type_verres: typeVerres,
-        montant_devis: Number(String(fd.get("montant_devis") || "0").replace(",", ".")) || 0,
-        remboursement_attendu: fd.get("remboursement_attendu")
-          ? Number(String(fd.get("remboursement_attendu")).replace(",", ".")) || null
-          : null,
+        montant_devis: parseNum(fd.get("montant_devis")) ?? 0,
+        montant_pec: parseNum(fd.get("montant_pec")),
         status,
         created_by: userData.user?.id,
       })
@@ -105,8 +106,8 @@ function NewDossierPage() {
               {typesVerres.map((t) => <option key={t} value={t} />)}
             </datalist>
           </div>
-          <Fld name="montant_devis" label="Montant devis (€)" type="number" step="0.01" />
-          <Fld name="remboursement_attendu" label="Remboursement attendu (€)" type="number" step="0.01" />
+          <Fld name="montant_devis" label="Montant du devis (€)" type="number" step="0.01" />
+          <Fld name="montant_pec" label="Montant accordé / PEC (€)" type="number" step="0.01" />
           <div className="space-y-2">
             <Label>Statut initial</Label>
             <Select value={status} onValueChange={(v) => setStatus(v as DossierStatus)}>
