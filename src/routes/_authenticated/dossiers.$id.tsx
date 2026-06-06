@@ -101,7 +101,7 @@ function DossierDetail() {
   const parseAmount = (v: string) => v.trim() === "" ? null : Number(v.replace(",", ".")) || 0;
   const devisNum = parseAmount(devis) ?? 0;
   const pecNum = parseAmount(pec) ?? 0;
-  const racLive = devisNum - pecNum;
+  const racLive = Math.max(0, devisNum - pecNum);
 
   const saveTypeVerres = async () => {
     setSavingTypeVerres(true);
