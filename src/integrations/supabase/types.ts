@@ -101,6 +101,7 @@ export type Database = {
           client_prenom: string
           created_at: string
           created_by: string | null
+          date_accord: string | null
           facture_cosium: boolean
           facture_cosium_at: string | null
           id: string
@@ -127,6 +128,7 @@ export type Database = {
           client_prenom: string
           created_at?: string
           created_by?: string | null
+          date_accord?: string | null
           facture_cosium?: boolean
           facture_cosium_at?: string | null
           id?: string
@@ -153,6 +155,7 @@ export type Database = {
           client_prenom?: string
           created_at?: string
           created_by?: string | null
+          date_accord?: string | null
           facture_cosium?: boolean
           facture_cosium_at?: string | null
           id?: string
