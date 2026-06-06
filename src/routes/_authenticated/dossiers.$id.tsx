@@ -409,7 +409,7 @@ function DossierDetail() {
                 </label>
                 {d.facture_cosium && (
                   <div className="flex flex-wrap items-center gap-2 pl-6">
-                    <Label htmlFor="facture_date" className="text-xs text-muted-foreground">Date de facturation</Label>
+                    <Label htmlFor="facture_date" className="text-xs text-muted-foreground">Date de transmission à la mutuelle</Label>
                     <Input
                       id="facture_date"
                       type="date"
