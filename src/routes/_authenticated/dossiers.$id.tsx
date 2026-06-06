@@ -389,13 +389,29 @@ function DossierDetail() {
 
           <Card title="Facturation" icon={<Receipt className="h-4 w-4" />}>
             <div className="space-y-3">
-              <label className="flex items-center gap-2 text-sm">
-                <Checkbox
-                  checked={!!d.facture_cosium}
-                  onCheckedChange={(v) => updateDossier({ facture_cosium: !!v }, "Facturation Cosium mise à jour")}
-                />
-                Facturé sur Cosium
-              </label>
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm">
+                  <Checkbox
+                    checked={!!d.facture_cosium}
+                    onCheckedChange={(v) => updateDossier({ facture_cosium: !!v }, "Facturation Cosium mise à jour")}
+                  />
+                  Facturé sur Cosium
+                </label>
+                {d.facture_cosium && (
+                  <div className="flex flex-wrap items-center gap-2 pl-6">
+                    <Label htmlFor="facture_date" className="text-xs text-muted-foreground">Date de facturation</Label>
+                    <Input
+                      id="facture_date"
+                      type="date"
+                      value={d.facture_cosium_at ?? ""}
+                      className="h-8 max-w-[170px]"
+                      onChange={(e) =>
+                        updateDossier({ facture_cosium_at: e.target.value || null }, "Date de facturation mise à jour")
+                      }
+                    />
+                  </div>
+                )}
+              </div>
               <label className="flex items-center gap-2 text-sm">
                 <Checkbox
                   checked={!!d.transmis_mutuelle}
@@ -408,6 +424,7 @@ function DossierDetail() {
                   </span>
                 )}
               </label>
+
 
               {d.transmis_mutuelle && (
                 <div className="rounded-md border bg-muted/30 p-3">
