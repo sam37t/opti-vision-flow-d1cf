@@ -47,6 +47,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
         <nav className="flex gap-1 border-t px-4 py-2 md:hidden">
           <NavLink to="/" icon={<LayoutDashboard className="h-4 w-4" />}>Accueil</NavLink>
           <NavLink to="/dossiers" icon={<FolderKanban className="h-4 w-4" />}>Dossiers</NavLink>
+          <NavLink to="/parametres" icon={<Settings className="h-4 w-4" />}>Paramètres</NavLink>
         </nav>
       </header>
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6">{children}</main>
