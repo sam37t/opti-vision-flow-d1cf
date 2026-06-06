@@ -14,6 +14,7 @@ import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DOSSIER_STATUSES, STATUS_LABELS, type DossierStatus } from "@/lib/dossier-status";
+import { getTpPlatform, isDifferentPlatform } from "@/lib/tp-platforms";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dossiers/$id")({
