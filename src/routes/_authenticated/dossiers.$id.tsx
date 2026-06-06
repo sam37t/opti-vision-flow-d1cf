@@ -415,6 +415,20 @@ function DossierDetail() {
                 />
               </div>
 
+              <div className="flex flex-wrap items-center gap-2">
+                <Label htmlFor="date_accord" className="text-sm">Date d'accord</Label>
+                <Input
+                  id="date_accord"
+                  type="date"
+                  value={d.date_accord ?? ""}
+                  className="h-8 max-w-[170px]"
+                  onChange={(e) =>
+                    updateDossier({ date_accord: e.target.value || null }, "Date d'accord mise à jour")
+                  }
+                />
+              </div>
+
+
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-sm">
                   <Checkbox
