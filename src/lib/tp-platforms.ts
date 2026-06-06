@@ -33,6 +33,7 @@ const MAP: Record<string, TpPlatform> = {
   "dynalis": APGIS,
   "apgis": APGIS,
   "aon": SPSANTE,
+  "sp": SPSANTE,
   "sp sante": SPSANTE,
   "spsante": SPSANTE,
   "mercer": MERCER,
