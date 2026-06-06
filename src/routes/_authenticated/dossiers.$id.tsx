@@ -422,7 +422,7 @@ function DossierDetail() {
                 </label>
                 {d.facture_cosium && (
                   <div className="flex flex-wrap items-center gap-2 pl-6">
-                    <Label htmlFor="facture_date" className="text-xs text-muted-foreground">Date de transmission à la mutuelle</Label>
+                    <Label htmlFor="facture_date" className="text-xs text-muted-foreground">Date de facturation Cosium</Label>
                     <Input
                       id="facture_date"
                       type="date"
@@ -435,26 +435,40 @@ function DossierDetail() {
                   </div>
                 )}
               </div>
-              <label className="flex items-center gap-2 text-sm">
-                <Checkbox
-                  checked={!!d.transmis_mutuelle}
-                  onCheckedChange={(v) => {
-                    const checked = !!v;
-                    const patch: Record<string, unknown> = { transmis_mutuelle: checked };
-                    if (checked && !d.facture_cosium) {
-                      patch.facture_cosium = true;
-                    }
-                    updateDossier(patch, "Transmission mutuelle mise à jour");
-                  }}
-                />
-
-                Transmis à la mutuelle
-                {d.transmis_mutuelle_at && (
-                  <span className="text-xs text-muted-foreground">
-                    · le {new Date(d.transmis_mutuelle_at).toLocaleDateString("fr-FR")}
-                  </span>
+              <div className="space-y-2">
+                <label className="flex items-center gap-2 text-sm">
+                  <Checkbox
+                    checked={!!d.transmis_mutuelle}
+                    onCheckedChange={(v) => {
+                      const checked = !!v;
+                      const patch: Record<string, unknown> = { transmis_mutuelle: checked };
+                      if (checked && !d.facture_cosium) {
+                        patch.facture_cosium = true;
+                      }
+                      updateDossier(patch, "Transmission mutuelle mise à jour");
+                    }}
+                  />
+                  Transmis à la mutuelle
+                </label>
+                {d.transmis_mutuelle && (
+                  <div className="flex flex-wrap items-center gap-2 pl-6">
+                    <Label htmlFor="transmis_date" className="text-xs text-muted-foreground">Date de transmission à la mutuelle</Label>
+                    <Input
+                      id="transmis_date"
+                      type="date"
+                      value={d.transmis_mutuelle_at ? new Date(d.transmis_mutuelle_at).toISOString().slice(0, 10) : ""}
+                      className="h-8 max-w-[170px]"
+                      onChange={(e) =>
+                        updateDossier(
+                          { transmis_mutuelle_at: e.target.value ? new Date(e.target.value).toISOString() : null },
+                          "Date de transmission mise à jour",
+                        )
+                      }
+                    />
+                  </div>
                 )}
-              </label>
+              </div>
+
 
 
               {d.transmis_mutuelle && (
