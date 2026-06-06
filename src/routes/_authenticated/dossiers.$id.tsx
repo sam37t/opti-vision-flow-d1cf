@@ -115,6 +115,7 @@ function DossierDetail() {
   const [typeVerres, setTypeVerres] = useState("");
   const [devis, setDevis] = useState("");
   const [pec, setPec] = useState("");
+  const [ss, setSs] = useState("");
   const [noteContent, setNoteContent] = useState("");
   const [paiementDate, setPaiementDate] = useState(new Date().toISOString().slice(0, 10));
 
@@ -128,13 +129,16 @@ function DossierDetail() {
       setTypeVerres(dd.type_verres ?? "");
       setDevis(dd.montant_devis?.toString() ?? "");
       setPec(dd.montant_pec?.toString() ?? "");
+      setSs(dd.montant_ss?.toString() ?? "");
     }
   }, [dossier]);
 
   const parseAmount = (v: string) => v.trim() === "" ? null : Number(v.replace(",", ".")) || 0;
   const devisNum = parseAmount(devis) ?? 0;
   const pecNum = parseAmount(pec) ?? 0;
-  const racLive = Math.max(0, devisNum - pecNum);
+  const ssNum = parseAmount(ss) ?? 0;
+  const racLive = Math.max(0, devisNum - ssNum - pecNum);
+
 
   const saveInfos = async () => {
     if (!clientNom.trim() || !clientPrenom.trim()) {
