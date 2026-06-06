@@ -61,6 +61,15 @@ function DossierDetail() {
     },
   });
 
+  const { data: typesVerres = [] } = useQuery({
+    queryKey: ["types_verres"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("types_verres").select("name").order("name");
+      if (error) throw error;
+      return data.map((t) => t.name);
+    },
+  });
+
   useEffect(() => {
     const channel = supabase
       .channel(`dossier-${id}`)
@@ -93,7 +102,12 @@ function DossierDetail() {
 
   const saveTypeVerres = async () => {
     setSavingTypeVerres(true);
-    const { error } = await supabase.from("dossiers").update({ type_verres: typeVerres }).eq("id", id);
+    const trimmed = typeVerres.trim();
+    if (trimmed && !typesVerres.includes(trimmed)) {
+      await supabase.from("types_verres").insert({ name: trimmed });
+      qc.invalidateQueries({ queryKey: ["types_verres"] });
+    }
+    const { error } = await supabase.from("dossiers").update({ type_verres: trimmed }).eq("id", id);
     setSavingTypeVerres(false);
     if (error) toast.error(error.message);
     else toast.success("Type de verres mis à jour");
@@ -217,8 +231,12 @@ function DossierDetail() {
                   id="type_verres"
                   value={typeVerres}
                   onChange={(e) => setTypeVerres(e.target.value)}
-                  placeholder="Ex: Progressifs, Unifocaux..."
+                  list="types-verres-list-detail"
+                  placeholder="Tapez ou choisissez"
                 />
+                <datalist id="types-verres-list-detail">
+                  {typesVerres.map((t) => <option key={t} value={t} />)}
+                </datalist>
                 <Button onClick={saveTypeVerres} disabled={savingTypeVerres || typeVerres === (d.type_verres ?? "")}>
                   {savingTypeVerres ? "..." : "Enregistrer"}
                 </Button>

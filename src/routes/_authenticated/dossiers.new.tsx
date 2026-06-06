@@ -29,6 +29,15 @@ function NewDossierPage() {
     },
   });
 
+  const { data: typesVerres = [] } = useQuery({
+    queryKey: ["types_verres"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("types_verres").select("name").order("name");
+      if (error) throw error;
+      return data.map((t) => t.name);
+    },
+  });
+
   const submit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
@@ -36,9 +45,13 @@ function NewDossierPage() {
     const { data: userData } = await supabase.auth.getUser();
 
     const mutuelle = String(fd.get("mutuelle") || "").trim();
-    // Ajoute la mutuelle si nouvelle
     if (mutuelle && !mutuelles.includes(mutuelle)) {
       await supabase.from("mutuelles").insert({ name: mutuelle });
+    }
+
+    const typeVerres = String(fd.get("type_verres") || "").trim();
+    if (typeVerres && !typesVerres.includes(typeVerres)) {
+      await supabase.from("types_verres").insert({ name: typeVerres });
     }
 
     const { data, error } = await supabase
@@ -48,7 +61,7 @@ function NewDossierPage() {
         client_prenom: String(fd.get("client_prenom")),
         telephone: String(fd.get("telephone") || ""),
         mutuelle,
-        type_verres: String(fd.get("type_verres") || ""),
+        type_verres: typeVerres,
         montant_devis: Number(String(fd.get("montant_devis") || "0").replace(",", ".")) || 0,
         remboursement_attendu: fd.get("remboursement_attendu")
           ? Number(String(fd.get("remboursement_attendu")).replace(",", ".")) || null
@@ -85,7 +98,13 @@ function NewDossierPage() {
               {mutuelles.map((m) => <option key={m} value={m} />)}
             </datalist>
           </div>
-          <Fld name="type_verres" label="Type de verres" />
+          <div className="space-y-2">
+            <Label htmlFor="type_verres">Type de verres</Label>
+            <Input id="type_verres" name="type_verres" list="types-verres-list" placeholder="Tapez ou choisissez" />
+            <datalist id="types-verres-list">
+              {typesVerres.map((t) => <option key={t} value={t} />)}
+            </datalist>
+          </div>
           <Fld name="montant_devis" label="Montant devis (€)" type="number" step="0.01" />
           <Fld name="remboursement_attendu" label="Remboursement attendu (€)" type="number" step="0.01" />
           <div className="space-y-2">
