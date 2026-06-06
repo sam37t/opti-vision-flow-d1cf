@@ -54,9 +54,43 @@ type Dossier = {
   facture_cosium: boolean;
   transmis_mutuelle: boolean;
   paiement_recu: boolean;
+  pec_demande_at: string | null;
   created_at: string;
   last_status_change_at: string;
 };
+
+function alertFactureNonTransmise(d: Dossier): boolean {
+  return d.facture_cosium && !d.transmis_mutuelle;
+}
+
+function alertDevisSansRetour(d: Dossier): boolean {
+  if (d.status !== "devis_envoye") return false;
+  const ref = d.pec_demande_at ?? d.last_status_change_at;
+  if (!ref) return false;
+  return Date.now() - new Date(ref).getTime() > 5 * 24 * 3600 * 1000;
+}
+
+function AlertBadges({ d, compact }: { d: Dossier; compact?: boolean }) {
+  const a1 = alertFactureNonTransmise(d);
+  const a2 = alertDevisSansRetour(d);
+  if (!a1 && !a2) return null;
+  const cls = compact ? "text-[10px] px-1.5 py-0.5" : "text-xs px-2 py-0.5";
+  const size = compact ? "h-3 w-3" : "h-3.5 w-3.5";
+  return (
+    <div className="flex flex-wrap items-center gap-1">
+      {a1 && (
+        <span className={`inline-flex items-center gap-1 rounded-full bg-red-600 font-medium text-white ${cls}`} title="Facturé sur Cosium mais non transmis à la mutuelle">
+          <AlertOctagon className={size} /> À transmettre
+        </span>
+      )}
+      {a2 && (
+        <span className={`inline-flex items-center gap-1 rounded-full bg-red-600 font-medium text-white ${cls}`} title="Devis envoyé sans retour depuis plus de 5 jours">
+          <AlertOctagon className={size} /> &gt;5j sans retour
+        </span>
+      )}
+    </div>
+  );
+}
 
 function dossierRank(d: Dossier): number {
   if (d.status === "sans_suite_client") return 8;
@@ -267,6 +301,7 @@ function ListView({ dossiers }: { dossiers: Dossier[] }) {
                   <div className="mt-0.5 flex items-center gap-2">
                     <span className="text-xs text-muted-foreground">{d.telephone}</span>
                     <BillingBadges d={d} compact />
+                    <AlertBadges d={d} compact />
                   </div>
                 </td>
                 <td className="px-4 py-3">{d.mutuelle || "—"}</td>
@@ -325,7 +360,7 @@ function KanbanView({ dossiers }: { dossiers: Dossier[] }) {
                     {d.client_nom.toUpperCase()} {d.client_prenom}
                   </div>
                   <div className="text-xs text-muted-foreground">{d.mutuelle || "—"}</div>
-                  <div className="mt-1"><BillingBadges d={d} compact /></div>
+                  <div className="mt-1 space-y-1"><BillingBadges d={d} compact /><AlertBadges d={d} compact /></div>
                   <div className="mt-1 space-y-0.5 text-xs tabular-nums">
                     <div>Devis : <span className="font-medium">{Number(d.montant_devis ?? 0).toFixed(2)} €</span></div>
                     {d.montant_pec != null && <div>Accordé : <span className="font-medium">{Number(d.montant_pec).toFixed(2)} €</span></div>}
