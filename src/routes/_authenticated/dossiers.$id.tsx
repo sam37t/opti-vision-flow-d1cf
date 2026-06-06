@@ -102,7 +102,12 @@ function DossierDetail() {
 
   const saveTypeVerres = async () => {
     setSavingTypeVerres(true);
-    const { error } = await supabase.from("dossiers").update({ type_verres: typeVerres }).eq("id", id);
+    const trimmed = typeVerres.trim();
+    if (trimmed && !typesVerres.includes(trimmed)) {
+      await supabase.from("types_verres").insert({ name: trimmed });
+      qc.invalidateQueries({ queryKey: ["types_verres"] });
+    }
+    const { error } = await supabase.from("dossiers").update({ type_verres: trimmed }).eq("id", id);
     setSavingTypeVerres(false);
     if (error) toast.error(error.message);
     else toast.success("Type de verres mis à jour");
