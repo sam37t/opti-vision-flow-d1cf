@@ -341,6 +341,17 @@ function DossierDetail() {
                   {mutuelles.map((m) => <option key={m} value={m} />)}
                 </datalist>
               </div>
+              <div className="space-y-2">
+                <Label htmlFor="type_dossier">Type de dossier</Label>
+                <Select value={typeDossier} onValueChange={(v) => setTypeDossier(v as any)}>
+                  <SelectTrigger id="type_dossier"><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="lunettes">Lunettes</SelectItem>
+                    <SelectItem value="lentilles">Lentilles</SelectItem>
+                    <SelectItem value="autre">Autre</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
               <div className="space-y-2 sm:col-span-2">
                 <Label htmlFor="type_verres">Type de verres</Label>
                 <Input
