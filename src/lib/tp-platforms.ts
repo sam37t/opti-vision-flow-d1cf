@@ -16,7 +16,7 @@ function norm(s: string): string {
 }
 
 // Plateformes connues
-const VIAMEDIS: TpPlatform = { name: "Viamedis", url: "https://sso.viamedis.net/ViamedisNet" };
+const VIAMEDIS: TpPlatform = { name: "Viamedis", url: "https://viamedis.net/ViamedisNet/page/ps/pec/dossier/consult/p_histo_dossiers?init=1&typeDossier=PEC" };
 const APGIS: TpPlatform = { name: "APGIS", url: "https://espaceprofessionnel.apgis.com/" };
 const SPSANTE: TpPlatform = { name: "SP Santé", url: "https://www.spsante.fr/" };
 const HARMONIE: TpPlatform = { name: "Harmonie Mutuelle", url: "https://extranet.harmonie-mutuelle.fr/" };
