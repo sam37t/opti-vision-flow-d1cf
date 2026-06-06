@@ -18,10 +18,11 @@ function FacturesPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("dossiers")
-        .select("id, client_nom, client_prenom, mutuelle, montant_pec, transmis_mutuelle_at")
-        .eq("transmis_mutuelle", true)
+        .select("id, client_nom, client_prenom, mutuelle, montant_pec, transmis_mutuelle, transmis_mutuelle_at, facture_cosium")
+        .or("facture_cosium.eq.true,transmis_mutuelle.eq.true")
         .eq("paiement_recu", false)
-        .order("transmis_mutuelle_at", { ascending: true });
+        .order("transmis_mutuelle_at", { ascending: true, nullsFirst: false });
+
       if (error) throw error;
       return data as any[];
     },
