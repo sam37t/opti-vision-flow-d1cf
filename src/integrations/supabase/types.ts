@@ -101,16 +101,21 @@ export type Database = {
           client_prenom: string
           created_at: string
           created_by: string | null
+          facture_cosium: boolean
           id: string
           last_status_change_at: string
           montant_devis: number
           montant_pec: number | null
           mutuelle: string
+          paiement_recu: boolean
+          paiement_recu_at: string | null
           probleme: boolean
           remboursement_attendu: number | null
           reste_a_charge: number | null
           status: Database["public"]["Enums"]["dossier_status"]
           telephone: string
+          transmis_mutuelle: boolean
+          transmis_mutuelle_at: string | null
           type_verres: string
           updated_at: string
         }
@@ -119,16 +124,21 @@ export type Database = {
           client_prenom: string
           created_at?: string
           created_by?: string | null
+          facture_cosium?: boolean
           id?: string
           last_status_change_at?: string
           montant_devis?: number
           montant_pec?: number | null
           mutuelle?: string
+          paiement_recu?: boolean
+          paiement_recu_at?: string | null
           probleme?: boolean
           remboursement_attendu?: number | null
           reste_a_charge?: number | null
           status?: Database["public"]["Enums"]["dossier_status"]
           telephone?: string
+          transmis_mutuelle?: boolean
+          transmis_mutuelle_at?: string | null
           type_verres?: string
           updated_at?: string
         }
@@ -137,16 +147,21 @@ export type Database = {
           client_prenom?: string
           created_at?: string
           created_by?: string | null
+          facture_cosium?: boolean
           id?: string
           last_status_change_at?: string
           montant_devis?: number
           montant_pec?: number | null
           mutuelle?: string
+          paiement_recu?: boolean
+          paiement_recu_at?: string | null
           probleme?: boolean
           remboursement_attendu?: number | null
           reste_a_charge?: number | null
           status?: Database["public"]["Enums"]["dossier_status"]
           telephone?: string
+          transmis_mutuelle?: boolean
+          transmis_mutuelle_at?: string | null
           type_verres?: string
           updated_at?: string
         }
