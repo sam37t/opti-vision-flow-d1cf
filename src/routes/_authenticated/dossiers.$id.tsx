@@ -114,6 +114,7 @@ function DossierDetail() {
   const [telephone, setTelephone] = useState("");
   const [mutuelle, setMutuelle] = useState("");
   const [typeVerres, setTypeVerres] = useState("");
+  const [typeDossier, setTypeDossier] = useState<"lunettes" | "lentilles" | "autre">("lunettes");
   const [devis, setDevis] = useState("");
   const [pec, setPec] = useState("");
   const [ss, setSs] = useState("");
