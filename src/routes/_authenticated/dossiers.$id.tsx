@@ -389,6 +389,19 @@ function DossierDetail() {
 
           <Card title="Facturation" icon={<Receipt className="h-4 w-4" />}>
             <div className="space-y-3">
+              <div className="flex flex-wrap items-center gap-2">
+                <Label htmlFor="pec_demande_at" className="text-sm">Date de demande de prise en charge</Label>
+                <Input
+                  id="pec_demande_at"
+                  type="date"
+                  value={d.pec_demande_at ?? ""}
+                  className="h-8 max-w-[170px]"
+                  onChange={(e) =>
+                    updateDossier({ pec_demande_at: e.target.value || null }, "Date de demande de PEC mise à jour")
+                  }
+                />
+              </div>
+
               <div className="space-y-2">
                 <label className="flex items-center gap-2 text-sm">
                   <Checkbox
