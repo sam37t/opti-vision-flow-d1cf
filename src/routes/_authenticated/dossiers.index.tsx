@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery } from "@tanstack/react-query";
-import { useState } from "react";
+import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useEffect, useState } from "react";
 import { AlertOctagon, LayoutGrid, List, Search, X } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
@@ -58,7 +58,18 @@ type Dossier = {
 function DossiersPage() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
+  const qc = useQueryClient();
   const [view, setView] = useState<"list" | "kanban">("list");
+
+  useEffect(() => {
+    const channel = supabase
+      .channel("dossiers-list")
+      .on("postgres_changes", { event: "*", schema: "public", table: "dossiers" },
+        () => qc.invalidateQueries({ queryKey: ["dossiers"] }))
+      .subscribe();
+    return () => { supabase.removeChannel(channel); };
+  }, [qc]);
+
 
   const { data: dossiers = [], isLoading } = useQuery({
     queryKey: ["dossiers", search],
@@ -190,7 +201,7 @@ function ListView({ dossiers }: { dossiers: Dossier[] }) {
       <table className="w-full text-sm">
         <thead className="bg-muted/50 text-left text-muted-foreground">
           <tr>
-            <Th>Client</Th><Th>Mutuelle</Th><Th>Remb. attendu</Th><Th>Statut</Th><Th>Créé le</Th>
+            <Th>Client</Th><Th>Mutuelle</Th><Th>Devis</Th><Th>Accordé</Th><Th>Reste à charge</Th><Th>Statut</Th><Th>Créé le</Th>
           </tr>
         </thead>
         <tbody>
@@ -208,8 +219,12 @@ function ListView({ dossiers }: { dossiers: Dossier[] }) {
                   <div className="text-xs text-muted-foreground">{d.telephone}</div>
                 </td>
                 <td className="px-4 py-3">{d.mutuelle || "—"}</td>
+                <td className="px-4 py-3 tabular-nums">{Number(d.montant_devis ?? 0).toFixed(2)} €</td>
                 <td className="px-4 py-3 tabular-nums">
-                  {d.remboursement_attendu != null ? `${Number(d.remboursement_attendu).toFixed(2)} €` : "—"}
+                  {d.montant_pec != null ? `${Number(d.montant_pec).toFixed(2)} €` : "—"}
+                </td>
+                <td className="px-4 py-3 tabular-nums">
+                  {d.reste_a_charge != null ? `${Number(d.reste_a_charge).toFixed(2)} €` : "—"}
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
@@ -259,11 +274,11 @@ function KanbanView({ dossiers }: { dossiers: Dossier[] }) {
                     {d.client_nom.toUpperCase()} {d.client_prenom}
                   </div>
                   <div className="text-xs text-muted-foreground">{d.mutuelle || "—"}</div>
-                  {d.remboursement_attendu != null && (
-                    <div className="mt-1 text-xs tabular-nums">
-                      {Number(d.remboursement_attendu).toFixed(2)} €
-                    </div>
-                  )}
+                  <div className="mt-1 space-y-0.5 text-xs tabular-nums">
+                    <div>Devis : <span className="font-medium">{Number(d.montant_devis ?? 0).toFixed(2)} €</span></div>
+                    {d.montant_pec != null && <div>Accordé : <span className="font-medium">{Number(d.montant_pec).toFixed(2)} €</span></div>}
+                    {d.reste_a_charge != null && <div>Reste à charge : <span className="font-medium">{Number(d.reste_a_charge).toFixed(2)} €</span></div>}
+                  </div>
                 </Link>
               ))}
               {items.length === 0 && (
