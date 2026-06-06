@@ -371,27 +371,32 @@ function DossierDetail() {
           </Card>
 
           <Card title="Montants">
-            <div className="grid gap-3 sm:grid-cols-3">
+            <div className="grid gap-3 sm:grid-cols-2">
               <div className="space-y-2">
                 <Label>Montant du devis (€)</Label>
                 <Input type="number" step="0.01" value={devis} onChange={(e) => setDevis(e.target.value)} />
               </div>
               <div className="space-y-2">
-                <Label>Montant accordé / PEC (€)</Label>
+                <Label>Remboursement Sécurité Sociale (€)</Label>
+                <Input type="number" step="0.01" value={ss} onChange={(e) => setSs(e.target.value)} placeholder="Optionnel" />
+              </div>
+              <div className="space-y-2">
+                <Label>Montant accordé / PEC mutuelle (€)</Label>
                 <Input type="number" step="0.01" value={pec} onChange={(e) => setPec(e.target.value)} placeholder="Optionnel" />
               </div>
               <div className="space-y-2">
                 <Label>Reste à charge (€) <span className="text-xs text-muted-foreground">(auto)</span></Label>
-                <Input type="number" step="0.01" value={racLive.toFixed(2)} readOnly disabled className="bg-muted/40" />
+                <Input type="number" step="0.01" value={racLive.toFixed(2)} readOnly className="bg-muted/40 font-semibold" />
               </div>
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
-              Le reste à charge = Montant du devis − Montant accordé. Calcul automatique.
+              Reste à charge = Montant du devis − Remboursement SS − Montant accordé mutuelle.
             </p>
             <Button onClick={saveMontants} disabled={saving} className="mt-4">
               {saving ? "Enregistrement..." : "Enregistrer"}
             </Button>
           </Card>
+
 
           <Card title="Facturation" icon={<Receipt className="h-4 w-4" />}>
             <div className="space-y-3">
