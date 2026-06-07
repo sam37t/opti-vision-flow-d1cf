@@ -87,11 +87,13 @@ function alertFactureNonTransmise(d: Dossier): boolean {
   return d.facture_cosium && !d.transmis_mutuelle;
 }
 
-function alertDevisSansRetour(d: Dossier): boolean {
-  if (d.status !== "devis_envoye") return false;
+function daysSinceDevisSansRetour(d: Dossier): number | null {
+  if (d.status !== "devis_envoye") return null;
   const ref = d.pec_demande_at ?? d.last_status_change_at;
-  if (!ref) return false;
-  return Date.now() - new Date(ref).getTime() > 5 * 24 * 3600 * 1000;
+  if (!ref) return null;
+  const days = Math.floor((Date.now() - new Date(ref).getTime()) / (24 * 3600 * 1000));
+  if (days < 5) return null;
+  return days;
 }
 
 function AlertBadges({ d, compact }: { d: Dossier; compact?: boolean }) {
