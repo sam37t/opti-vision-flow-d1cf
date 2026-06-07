@@ -41,6 +41,7 @@ const MAP: Record<string, TpPlatform> = {
   "filhetallard": FILHET,
   "ociane": OCIANE,
   "ociane matmut": OCIANE,
+  "mnt": HARMONIE,
 };
 
 export function getTpPlatform(mutuelle: string | null | undefined): TpPlatform | null {
