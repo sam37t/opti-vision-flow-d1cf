@@ -98,8 +98,8 @@ function daysSinceDevisSansRetour(d: Dossier): number | null {
 
 function AlertBadges({ d, compact }: { d: Dossier; compact?: boolean }) {
   const a1 = alertFactureNonTransmise(d);
-  const a2 = alertDevisSansRetour(d);
-  if (!a1 && !a2) return null;
+  const daysSansRetour = daysSinceDevisSansRetour(d);
+  if (!a1 && daysSansRetour == null) return null;
   const cls = compact ? "text-[10px] px-1.5 py-0.5" : "text-xs px-2 py-0.5";
   const size = compact ? "h-3 w-3" : "h-3.5 w-3.5";
   return (
@@ -109,9 +109,9 @@ function AlertBadges({ d, compact }: { d: Dossier; compact?: boolean }) {
           <AlertOctagon className={size} /> À transmettre
         </span>
       )}
-      {a2 && (
-        <span className={`inline-flex items-center gap-1 rounded-full bg-red-600 font-medium text-white ${cls}`} title="Devis envoyé sans retour depuis plus de 5 jours">
-          <AlertOctagon className={size} /> &gt;5j sans retour
+      {daysSansRetour != null && (
+        <span className={`inline-flex items-center gap-1 rounded-full bg-red-600 font-medium text-white ${cls}`} title={`Devis envoyé sans retour depuis ${daysSansRetour} jours`}>
+          <AlertOctagon className={size} /> {daysSansRetour}j sans retour
         </span>
       )}
     </div>
