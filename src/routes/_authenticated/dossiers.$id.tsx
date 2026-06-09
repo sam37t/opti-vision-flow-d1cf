@@ -250,6 +250,12 @@ function DossierDetail() {
           <span className="font-medium">Dossier signalé comme problématique</span>
         </div>
       )}
+      {daysNonRegle != null && (
+        <div className="flex items-center gap-2 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <AlertOctagon className="h-4 w-4" />
+          <span className="font-medium">{daysNonRegle} jours non réglé — dossier transmis à la mutuelle en attente de règlement</span>
+        </div>
+      )}
 
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
