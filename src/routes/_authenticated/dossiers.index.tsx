@@ -350,6 +350,7 @@ function ListView({ dossiers }: { dossiers: Dossier[] }) {
                   </Link>
                   <div className="mt-0.5 flex items-center gap-2">
                     <span className="text-xs text-muted-foreground">{d.telephone}</span>
+                    <StatusBadge status={d.status} className="text-[10px] px-1.5 py-0" />
                     <BillingBadges d={d} compact />
                     <AlertBadges d={d} compact />
                     <RecentBadge d={d} compact />
