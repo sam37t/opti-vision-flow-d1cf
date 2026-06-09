@@ -412,7 +412,7 @@ function KanbanView({ dossiers }: { dossiers: Dossier[] }) {
                     {d.client_nom.toUpperCase()} {d.client_prenom}
                   </div>
                   <div className="text-xs text-muted-foreground">{d.mutuelle || "—"}</div>
-                  <div className="mt-1 space-y-1"><BillingBadges d={d} compact /><AlertBadges d={d} compact /><RecentBadge d={d} compact /></div>
+                  <div className="mt-1 flex flex-wrap items-center gap-1"><StatusBadge status={d.status} className="text-[10px] px-1.5 py-0" /><BillingBadges d={d} compact /><AlertBadges d={d} compact /><RecentBadge d={d} compact /></div>
                   <div className="mt-1 space-y-0.5 text-xs tabular-nums">
                     <div>Devis : <span className="font-medium">{Number(d.montant_devis ?? 0).toFixed(2)} €</span></div>
                     {d.montant_pec != null && <div>Accordé : <span className="font-medium">{Number(d.montant_pec).toFixed(2)} €</span></div>}
