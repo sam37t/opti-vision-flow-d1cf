@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { daysSinceDevisSansRetour, daysSinceTransmisNonRegle } from "@/lib/dossier-alerts";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { AlertOctagon, CheckCircle2, Clock, LayoutGrid, List, Receipt, Search, Send, X } from "lucide-react";
@@ -55,6 +56,8 @@ type Dossier = {
   transmis_mutuelle: boolean;
   paiement_recu: boolean;
   pec_demande_at: string | null;
+  transmis_mutuelle_at: string | null;
+  facture_cosium_at: string | null;
   created_at: string;
   updated_at: string;
   last_status_change_at: string;
@@ -87,19 +90,11 @@ function alertFactureNonTransmise(d: Dossier): boolean {
   return d.facture_cosium && !d.transmis_mutuelle;
 }
 
-function daysSinceDevisSansRetour(d: Dossier): number | null {
-  if (d.status !== "devis_envoye") return null;
-  const ref = d.pec_demande_at ?? d.last_status_change_at;
-  if (!ref) return null;
-  const days = Math.floor((Date.now() - new Date(ref).getTime()) / (24 * 3600 * 1000));
-  if (days < 5) return null;
-  return days;
-}
-
 function AlertBadges({ d, compact }: { d: Dossier; compact?: boolean }) {
   const a1 = alertFactureNonTransmise(d);
   const daysSansRetour = daysSinceDevisSansRetour(d);
-  if (!a1 && daysSansRetour == null) return null;
+  const daysNonRegle = daysSinceTransmisNonRegle(d);
+  if (!a1 && daysSansRetour == null && daysNonRegle == null) return null;
   const cls = compact ? "text-[10px] px-1.5 py-0.5" : "text-xs px-2 py-0.5";
   const size = compact ? "h-3 w-3" : "h-3.5 w-3.5";
   return (
@@ -112,6 +107,11 @@ function AlertBadges({ d, compact }: { d: Dossier; compact?: boolean }) {
       {daysSansRetour != null && (
         <span className={`inline-flex items-center gap-1 rounded-full bg-red-600 font-medium text-white ${cls}`} title={`Devis envoyé sans retour depuis ${daysSansRetour} jours`}>
           <AlertOctagon className={size} /> {daysSansRetour}j sans retour
+        </span>
+      )}
+      {daysNonRegle != null && (
+        <span className={`inline-flex items-center gap-1 rounded-full bg-red-600 font-medium text-white ${cls}`} title={`Transmis à la mutuelle depuis ${daysNonRegle} jours sans règlement`}>
+          <AlertOctagon className={size} /> {daysNonRegle}j non réglé
         </span>
       )}
     </div>

@@ -15,6 +15,7 @@ import { useAuth } from "@/hooks/use-auth";
 import { StatusBadge } from "@/components/StatusBadge";
 import { DOSSIER_STATUSES, STATUS_LABELS, type DossierStatus } from "@/lib/dossier-status";
 import { getTpPlatform, isDifferentPlatform } from "@/lib/tp-platforms";
+import { daysSinceTransmisNonRegle } from "@/lib/dossier-alerts";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dossiers/$id")({
@@ -174,6 +175,7 @@ function DossierDetail() {
 
   if (isLoading || !dossier) return <p className="text-sm text-muted-foreground">Chargement...</p>;
   const d = dossier as any;
+  const daysNonRegle = daysSinceTransmisNonRegle(d);
 
   const changeStatus = async (newStatus: DossierStatus) => {
     const { error } = await supabase.from("dossiers").update({ status: newStatus }).eq("id", id);
@@ -246,6 +248,12 @@ function DossierDetail() {
         <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           <AlertOctagon className="h-4 w-4" />
           <span className="font-medium">Dossier signalé comme problématique</span>
+        </div>
+      )}
+      {daysNonRegle != null && (
+        <div className="flex items-center gap-2 rounded-lg border border-red-300 bg-red-50 px-4 py-3 text-sm text-red-700">
+          <AlertOctagon className="h-4 w-4" />
+          <span className="font-medium">{daysNonRegle} jours non réglé — dossier transmis à la mutuelle en attente de règlement</span>
         </div>
       )}
 
