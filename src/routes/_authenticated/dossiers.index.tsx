@@ -56,6 +56,8 @@ type Dossier = {
   transmis_mutuelle: boolean;
   paiement_recu: boolean;
   pec_demande_at: string | null;
+  transmis_mutuelle_at: string | null;
+  facture_cosium_at: string | null;
   created_at: string;
   updated_at: string;
   last_status_change_at: string;
