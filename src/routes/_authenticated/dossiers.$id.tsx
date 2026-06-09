@@ -175,6 +175,7 @@ function DossierDetail() {
 
   if (isLoading || !dossier) return <p className="text-sm text-muted-foreground">Chargement...</p>;
   const d = dossier as any;
+  const daysNonRegle = daysSinceTransmisNonRegle(d);
 
   const changeStatus = async (newStatus: DossierStatus) => {
     const { error } = await supabase.from("dossiers").update({ status: newStatus }).eq("id", id);
