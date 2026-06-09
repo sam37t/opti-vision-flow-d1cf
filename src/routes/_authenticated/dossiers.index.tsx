@@ -109,6 +109,11 @@ function AlertBadges({ d, compact }: { d: Dossier; compact?: boolean }) {
           <AlertOctagon className={size} /> {daysSansRetour}j sans retour
         </span>
       )}
+      {daysNonRegle != null && (
+        <span className={`inline-flex items-center gap-1 rounded-full bg-red-600 font-medium text-white ${cls}`} title={`Transmis à la mutuelle depuis ${daysNonRegle} jours sans règlement`}>
+          <AlertOctagon className={size} /> {daysNonRegle}j non réglé
+        </span>
+      )}
     </div>
   );
 }
