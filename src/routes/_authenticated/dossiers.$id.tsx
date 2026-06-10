@@ -589,3 +589,27 @@ function Info({ label, value }: { label: string; value: string }) {
     </div>
   );
 }
+
+function DateField({
+  label,
+  value,
+  onChange,
+}: {
+  label: string;
+  value: string | null | undefined;
+  onChange: (v: string | null) => void;
+}) {
+  const v = value ? String(value).slice(0, 10) : "";
+  return (
+    <div className="space-y-1.5">
+      <Label className="text-xs text-muted-foreground">{label}</Label>
+      <Input
+        type="date"
+        value={v}
+        className="h-9"
+        onChange={(e) => onChange(e.target.value || null)}
+      />
+    </div>
+  );
+}
+
