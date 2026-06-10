@@ -119,17 +119,10 @@ function NewDossierPage() {
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
-            <Label>Statut initial</Label>
-            <Select value={status} onValueChange={(v) => setStatus(v as DossierStatus)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {DOSSIER_STATUSES.map((s) => (
-                  <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="space-y-2 text-xs text-muted-foreground sm:col-span-1">
+            Le statut est défini automatiquement à « À traiter » et évoluera ensuite selon les dates saisies.
           </div>
+
         </div>
         <div className="flex justify-end gap-2">
           <Link to="/dossiers"><Button type="button" variant="ghost">Annuler</Button></Link>
