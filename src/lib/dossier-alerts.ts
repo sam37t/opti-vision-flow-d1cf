@@ -19,7 +19,9 @@ export function daysSinceDevisSansRetour(d: DossierAlertData): number | null {
 }
 
 export function daysSinceTransmisNonRegle(d: DossierAlertData): number | null {
-  if (!d.facture_cosium || !d.transmis_mutuelle || d.paiement_recu) return null;
+  // S'applique aux dossiers transmis à la mutuelle mais pas encore réglés
+  if (d.status !== "transmis_mutuelle" && !(d.transmis_mutuelle && !d.paiement_recu)) return null;
+  if (d.status === "regle" || d.paiement_recu) return null;
   const ref = d.transmis_mutuelle_at ?? d.facture_cosium_at;
   if (!ref) return null;
   const days = Math.floor((Date.now() - new Date(ref).getTime()) / (24 * 3600 * 1000));
