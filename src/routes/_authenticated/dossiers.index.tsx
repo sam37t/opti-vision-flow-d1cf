@@ -272,7 +272,7 @@ function DossiersPage() {
             <SelectTrigger><SelectValue placeholder="Statut" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Tous les statuts</SelectItem>
-              {DOSSIER_STATUSES.map((s) => (
+              {SELECTABLE_STATUSES.map((s) => (
                 <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
               ))}
             </SelectContent>
@@ -389,7 +389,7 @@ function ListView({ dossiers }: { dossiers: Dossier[] }) {
 function KanbanView({ dossiers }: { dossiers: Dossier[] }) {
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-      {DOSSIER_STATUSES.map((s) => {
+      {SELECTABLE_STATUSES.map((s) => {
         const items = dossiers.filter((d) => d.status === s);
         return (
           <div key={s} className="rounded-xl border bg-card p-3">
