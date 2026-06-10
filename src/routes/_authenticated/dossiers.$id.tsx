@@ -13,7 +13,7 @@ import {
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 import { StatusBadge } from "@/components/StatusBadge";
-import { DOSSIER_STATUSES, STATUS_LABELS, type DossierStatus } from "@/lib/dossier-status";
+import { SELECTABLE_STATUSES, STATUS_LABELS, type DossierStatus } from "@/lib/dossier-status";
 import { getTpPlatform, isDifferentPlatform } from "@/lib/tp-platforms";
 import { daysSinceTransmisNonRegle } from "@/lib/dossier-alerts";
 import { toast } from "sonner";
@@ -386,7 +386,7 @@ function DossierDetail() {
               <Select value={d.status} onValueChange={(v) => changeStatus(v as DossierStatus)}>
                 <SelectTrigger className="max-w-xs"><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  {DOSSIER_STATUSES.map((s) => (
+                  {SELECTABLE_STATUSES.map((s) => (
                     <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
                   ))}
                 </SelectContent>
