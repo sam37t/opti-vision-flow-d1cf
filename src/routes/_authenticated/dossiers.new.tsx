@@ -19,7 +19,6 @@ function NewDossierPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
   const [typeDossier, setTypeDossier] = useState<"lunettes" | "lentilles" | "autre">("lunettes");
-  const [typeDossier, setTypeDossier] = useState<"lunettes" | "lentilles" | "autre">("lunettes");
 
   const { data: mutuelles = [] } = useQuery({
     queryKey: ["mutuelles"],
