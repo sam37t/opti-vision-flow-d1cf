@@ -67,7 +67,6 @@ function NewDossierPage() {
         type_verres: typeVerres,
         montant_devis: parseNum(fd.get("montant_devis")) ?? 0,
         montant_pec: parseNum(fd.get("montant_pec")),
-        status,
         type_dossier: typeDossier,
         created_by: userData.user?.id,
       } as any)
