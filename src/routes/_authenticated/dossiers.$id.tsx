@@ -422,157 +422,83 @@ function DossierDetail() {
           </Card>
 
 
-          <Card title="Facturation" icon={<Receipt className="h-4 w-4" />}>
-            <div className="space-y-3">
-              <div className="flex flex-wrap items-center gap-2">
-                <Label htmlFor="pec_demande_at" className="text-sm">Date de demande de prise en charge</Label>
-                <Input
-                  id="pec_demande_at"
-                  type="date"
-                  value={d.pec_demande_at ?? ""}
-                  className="h-8 max-w-[170px]"
-                  onChange={(e) =>
-                    updateDossier({ pec_demande_at: e.target.value || null }, "Date de demande de PEC mise à jour")
-                  }
-                />
-              </div>
-
-              <div className="flex flex-wrap items-center gap-2">
-                <Label htmlFor="date_accord" className="text-sm">Date d'accord</Label>
-                <Input
-                  id="date_accord"
-                  type="date"
-                  value={d.date_accord ?? ""}
-                  className="h-8 max-w-[170px]"
-                  onChange={(e) =>
-                    updateDossier({ date_accord: e.target.value || null }, "Date d'accord mise à jour")
-                  }
-                />
-              </div>
-
-
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm">
-                  <Checkbox
-                    checked={!!d.facture_cosium}
-                    onCheckedChange={(v) => {
-                      const checked = !!v;
-                      const patch: Record<string, unknown> = { facture_cosium: checked };
-                      if (!checked) {
-                        patch.transmis_mutuelle = false;
-                        patch.transmis_mutuelle_at = null;
-                        patch.paiement_recu = false;
-                        patch.paiement_recu_at = null;
-                      }
-                      updateDossier(patch, "Facturation Cosium mise à jour");
-                    }}
-                  />
-                  Facturé sur Cosium
-                </label>
-                {d.facture_cosium && (
-                  <div className="flex flex-wrap items-center gap-2 pl-6">
-                    <Label htmlFor="facture_date" className="text-xs text-muted-foreground">Date de facturation Cosium</Label>
-                    <Input
-                      id="facture_date"
-                      type="date"
-                      value={d.facture_cosium_at ?? ""}
-                      className="h-8 max-w-[170px]"
-                      onChange={(e) =>
-                        updateDossier({ facture_cosium_at: e.target.value || null }, "Date de facturation mise à jour")
-                      }
-                    />
-                  </div>
-                )}
-              </div>
-              <div className="space-y-2">
-                <label className="flex items-center gap-2 text-sm">
-                  <Checkbox
-                    checked={!!d.transmis_mutuelle}
-                    onCheckedChange={(v) => {
-                      const checked = !!v;
-                      const patch: Record<string, unknown> = { transmis_mutuelle: checked };
-                      if (checked && !d.facture_cosium) {
-                        patch.facture_cosium = true;
-                      }
-                      updateDossier(patch, "Transmission mutuelle mise à jour");
-                    }}
-                  />
-                  Transmis à la mutuelle
-                </label>
-                {d.transmis_mutuelle && (
-                  <div className="flex flex-wrap items-center gap-2 pl-6">
-                    <Label htmlFor="transmis_date" className="text-xs text-muted-foreground">Date de transmission à la mutuelle</Label>
-                    <Input
-                      id="transmis_date"
-                      type="date"
-                      value={d.transmis_mutuelle_at ? new Date(d.transmis_mutuelle_at).toISOString().slice(0, 10) : ""}
-                      className="h-8 max-w-[170px]"
-                      onChange={(e) =>
-                        updateDossier(
-                          { transmis_mutuelle_at: e.target.value ? new Date(e.target.value).toISOString() : null },
-                          "Date de transmission mise à jour",
-                        )
-                      }
-                    />
-                  </div>
-                )}
-              </div>
-
-
-
-              {d.transmis_mutuelle && (
-                <div className="rounded-md border bg-muted/30 p-3">
-                  {d.paiement_recu ? (
-                    <div className="flex items-center justify-between gap-2">
-                      <div className="flex items-center gap-2 text-sm">
-                        <CheckCircle2 className="h-4 w-4 text-green-600" />
-                        <span>
-                          Règlement reçu le{" "}
-                          {d.paiement_recu_at
-                            ? new Date(d.paiement_recu_at).toLocaleDateString("fr-FR")
-                            : "—"}
-                        </span>
-                      </div>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() =>
-                          updateDossier(
-                            { paiement_recu: false, paiement_recu_at: null },
-                            "Règlement annulé",
-                          )
-                        }
-                      >
-                        Annuler
-                      </Button>
-                    </div>
-                  ) : (
-                    <div className="flex flex-wrap items-center gap-2">
-                      <Label htmlFor="paiement_date" className="text-sm">Date de règlement</Label>
-                      <Input
-                        id="paiement_date"
-                        type="date"
-                        defaultValue={today}
-                        className="max-w-[170px]"
-                        onChange={(e) => setPaiementDate(e.target.value)}
-                      />
-                      <Button
-                        size="sm"
-                        onClick={() =>
-                          updateDossier(
-                            { paiement_recu: true, paiement_recu_at: paiementDate || today },
-                            "Règlement confirmé",
-                          )
-                        }
-                      >
-                        Confirmer le règlement
-                      </Button>
-                    </div>
-                  )}
-                </div>
-              )}
+          <Card title="Suivi du dossier" icon={<Receipt className="h-4 w-4" />}>
+            <p className="mb-3 text-xs text-muted-foreground">
+              Le statut du dossier évolue automatiquement à mesure que vous saisissez les dates ci-dessous. Vous pouvez forcer un statut manuellement dans la carte « Statut » : il sera respecté tant qu'aucun champ plus avancé n'est rempli.
+            </p>
+            <div className="grid gap-3 sm:grid-cols-2">
+              <DateField
+                label="Date d'envoi du devis"
+                value={d.pec_demande_at}
+                onChange={(v) => updateDossier({ pec_demande_at: v }, "Date d'envoi du devis mise à jour")}
+              />
+              <DateField
+                label="Date de réception cotation"
+                value={d.cotation_recue_at}
+                onChange={(v) => updateDossier({ cotation_recue_at: v }, "Date de cotation mise à jour")}
+              />
+              <DateField
+                label="Date d'accord mutuelle"
+                value={d.date_accord}
+                onChange={(v) => updateDossier({ date_accord: v }, "Date d'accord mise à jour")}
+              />
+              <DateField
+                label="Date de facturation Cosium"
+                value={d.facture_cosium_at}
+                onChange={(v) =>
+                  updateDossier(
+                    {
+                      facture_cosium_at: v,
+                      facture_cosium: !!v,
+                      ...(v ? {} : { transmis_mutuelle: false, transmis_mutuelle_at: null, paiement_recu: false, paiement_recu_at: null }),
+                    },
+                    "Date de facturation mise à jour",
+                  )
+                }
+              />
+              <DateField
+                label="Date de transmission à la mutuelle"
+                value={d.transmis_mutuelle_at ? new Date(d.transmis_mutuelle_at).toISOString().slice(0, 10) : null}
+                onChange={(v) =>
+                  updateDossier(
+                    {
+                      transmis_mutuelle_at: v ? new Date(v).toISOString() : null,
+                      transmis_mutuelle: !!v,
+                      ...(v && !d.facture_cosium ? { facture_cosium: true, facture_cosium_at: d.facture_cosium_at ?? today } : {}),
+                      ...(v ? {} : { paiement_recu: false, paiement_recu_at: null }),
+                    },
+                    "Date de transmission mise à jour",
+                  )
+                }
+              />
+              <DateField
+                label="Date de règlement reçu"
+                value={d.paiement_recu_at ? new Date(d.paiement_recu_at).toISOString().slice(0, 10) : null}
+                onChange={(v) =>
+                  updateDossier(
+                    {
+                      paiement_recu_at: v ? new Date(v).toISOString() : null,
+                      paiement_recu: !!v,
+                    },
+                    v ? "Règlement confirmé" : "Règlement annulé",
+                  )
+                }
+              />
             </div>
+            {d.status === "facture" && (
+              <div className="mt-3 flex items-center gap-2 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-700">
+                <AlertOctagon className="h-3.5 w-3.5" />
+                <span>À transmettre à la mutuelle</span>
+              </div>
+            )}
+            {d.paiement_recu && (
+              <div className="mt-3 flex items-center gap-2 rounded-md border border-green-300 bg-green-50 px-3 py-2 text-xs text-green-700">
+                <CheckCircle2 className="h-3.5 w-3.5" />
+                <span>Règlement reçu le {d.paiement_recu_at ? new Date(d.paiement_recu_at).toLocaleDateString("fr-FR") : "—"}</span>
+              </div>
+            )}
           </Card>
+
 
         </div>
 
