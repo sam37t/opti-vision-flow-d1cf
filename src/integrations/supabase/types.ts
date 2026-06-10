@@ -99,6 +99,7 @@ export type Database = {
         Row: {
           client_nom: string
           client_prenom: string
+          cotation_recue_at: string | null
           created_at: string
           created_by: string | null
           date_accord: string | null
@@ -127,6 +128,7 @@ export type Database = {
         Insert: {
           client_nom: string
           client_prenom: string
+          cotation_recue_at?: string | null
           created_at?: string
           created_by?: string | null
           date_accord?: string | null
@@ -155,6 +157,7 @@ export type Database = {
         Update: {
           client_nom?: string
           client_prenom?: string
+          cotation_recue_at?: string | null
           created_at?: string
           created_by?: string | null
           date_accord?: string | null
@@ -281,6 +284,9 @@ export type Database = {
         | "refuse"
         | "pas_de_tp"
         | "sans_suite_client"
+        | "facture"
+        | "transmis_mutuelle"
+        | "regle"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -421,6 +427,9 @@ export const Constants = {
         "refuse",
         "pas_de_tp",
         "sans_suite_client",
+        "facture",
+        "transmis_mutuelle",
+        "regle",
       ],
     },
   },

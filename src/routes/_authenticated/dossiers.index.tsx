@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { daysSinceDevisSansRetour, daysSinceTransmisNonRegle } from "@/lib/dossier-alerts";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { AlertOctagon, CheckCircle2, Clock, LayoutGrid, List, Receipt, Search, Send, X } from "lucide-react";
+import { AlertOctagon, Clock, LayoutGrid, List, Search, X } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -11,7 +11,7 @@ import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
 import { StatusBadge } from "@/components/StatusBadge";
-import { DOSSIER_STATUSES, STATUS_LABELS, TERMINAL_STATUSES, type DossierStatus } from "@/lib/dossier-status";
+import { SELECTABLE_STATUSES, STATUS_LABELS, TERMINAL_STATUSES, type DossierStatus } from "@/lib/dossier-status";
 
 const searchSchema = z.object({
   status: z.string().optional(),
@@ -87,7 +87,8 @@ function RecentBadge({ d, compact }: { d: Dossier; compact?: boolean }) {
 }
 
 function alertFactureNonTransmise(d: Dossier): boolean {
-  return d.facture_cosium && !d.transmis_mutuelle;
+  // Facturé mais pas encore transmis à la mutuelle
+  return d.status === "facture";
 }
 
 function AlertBadges({ d, compact }: { d: Dossier; compact?: boolean }) {
@@ -118,64 +119,34 @@ function AlertBadges({ d, compact }: { d: Dossier; compact?: boolean }) {
   );
 }
 
+const STATUS_RANK: Partial<Record<DossierStatus, number>> = {
+  refuse: 10,
+  a_traiter: 20,
+  devis_envoye: 30,
+  en_attente: 40,
+  cotation_recue: 50,
+  a_modifier: 55,
+  accord_recu: 60,
+  verres_commandes: 70,
+  facture: 80,
+  transmis_mutuelle: 90,
+  sans_suite_client: 100,
+  livre_facture: 105,
+  regle: 110,
+  pas_de_tp: 110,
+};
+
 function dossierRank(d: Dossier): number {
-  // 1. Problème — prioritaire sur tout le reste
+  // Problème — prioritaire sur tout le reste
   if (d.probleme) return 0;
-
-  // 11. Réglé — terminal, prioritaire sur les flags facturé/transmis
-  if (d.paiement_recu || d.status === "livre_facture" || d.status === "pas_de_tp") return 110;
-
-  // 10. Sans suite client
-  if (d.status === "sans_suite_client") return 100;
-
-  // 9. Transmis (transmis mais pas encore réglé)
-  if (d.transmis_mutuelle) return 90;
-
-  // 8. Facturé (facturé Cosium mais pas encore transmis ni réglé)
-  if (d.facture_cosium) return 80;
-
-  // 2. Refusé
-  if (d.status === "refuse") return 10;
-  // 3. À traiter
-  if (d.status === "a_traiter") return 20;
-  // 4. Devis envoyé
-  if (d.status === "devis_envoye") return 30;
-  // 5. En attente
-  if (d.status === "en_attente") return 40;
-  // 6. Cotation
-  if (d.status === "cotation_recue") return 50;
-  // À modifier (intercalé entre cotation et accord)
-  if (d.status === "a_modifier") return 55;
-  // 7. Accordé
-  if (d.status === "accord_recu") return 60;
-  // Verres commandés (intercalé entre accord et facturé)
-  if (d.status === "verres_commandes") return 70;
-
-  return 999;
+  return STATUS_RANK[d.status] ?? 999;
 }
 
-function BillingBadges({ d, compact }: { d: Dossier; compact?: boolean }) {
-  if (!d.facture_cosium && !d.transmis_mutuelle && !d.paiement_recu) return null;
-  const size = compact ? "h-3 w-3" : "h-3.5 w-3.5";
-  const cls = compact ? "text-[10px] px-1.5 py-0.5" : "text-xs px-2 py-0.5";
-  return (
-    <div className="flex flex-wrap items-center gap-1">
-      {d.paiement_recu ? (
-        <span className={`inline-flex items-center gap-1 rounded-full bg-green-100 font-medium text-green-800 ${cls}`}>
-          <CheckCircle2 className={size} /> Réglé
-        </span>
-      ) : d.transmis_mutuelle ? (
-        <span className={`inline-flex items-center gap-1 rounded-full bg-blue-100 font-medium text-blue-800 ${cls}`}>
-          <Send className={size} /> Transmis
-        </span>
-      ) : d.facture_cosium ? (
-        <span className={`inline-flex items-center gap-1 rounded-full bg-purple-100 font-medium text-purple-800 ${cls}`}>
-          <Receipt className={size} /> Facturé
-        </span>
-      ) : null}
-    </div>
-  );
+function BillingBadges(_props: { d: Dossier; compact?: boolean }) {
+  // Le statut affiche déjà l'état (Facturé / Transmis / Réglé) — on évite le doublon.
+  return null;
 }
+
 
 function DossiersPage() {
   const search = Route.useSearch();
@@ -272,7 +243,7 @@ function DossiersPage() {
             <SelectTrigger><SelectValue placeholder="Statut" /></SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Tous les statuts</SelectItem>
-              {DOSSIER_STATUSES.map((s) => (
+              {SELECTABLE_STATUSES.map((s) => (
                 <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
               ))}
             </SelectContent>
@@ -389,7 +360,7 @@ function ListView({ dossiers }: { dossiers: Dossier[] }) {
 function KanbanView({ dossiers }: { dossiers: Dossier[] }) {
   return (
     <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-      {DOSSIER_STATUSES.map((s) => {
+      {SELECTABLE_STATUSES.map((s) => {
         const items = dossiers.filter((d) => d.status === s);
         return (
           <div key={s} className="rounded-xl border bg-card p-3">

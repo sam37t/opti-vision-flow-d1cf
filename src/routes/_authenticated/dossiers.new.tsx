@@ -8,7 +8,7 @@ import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
-import { DOSSIER_STATUSES, STATUS_LABELS, type DossierStatus } from "@/lib/dossier-status";
+
 
 export const Route = createFileRoute("/_authenticated/dossiers/new")({
   head: () => ({ meta: [{ title: "Nouveau dossier — Optique Suivi" }] }),
@@ -18,7 +18,6 @@ export const Route = createFileRoute("/_authenticated/dossiers/new")({
 function NewDossierPage() {
   const router = useRouter();
   const [loading, setLoading] = useState(false);
-  const [status, setStatus] = useState<DossierStatus>("a_traiter");
   const [typeDossier, setTypeDossier] = useState<"lunettes" | "lentilles" | "autre">("lunettes");
 
   const { data: mutuelles = [] } = useQuery({
@@ -68,7 +67,6 @@ function NewDossierPage() {
         type_verres: typeVerres,
         montant_devis: parseNum(fd.get("montant_devis")) ?? 0,
         montant_pec: parseNum(fd.get("montant_pec")),
-        status,
         type_dossier: typeDossier,
         created_by: userData.user?.id,
       } as any)
@@ -121,17 +119,10 @@ function NewDossierPage() {
               </SelectContent>
             </Select>
           </div>
-          <div className="space-y-2">
-            <Label>Statut initial</Label>
-            <Select value={status} onValueChange={(v) => setStatus(v as DossierStatus)}>
-              <SelectTrigger><SelectValue /></SelectTrigger>
-              <SelectContent>
-                {DOSSIER_STATUSES.map((s) => (
-                  <SelectItem key={s} value={s}>{STATUS_LABELS[s]}</SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+          <div className="space-y-2 text-xs text-muted-foreground sm:col-span-1">
+            Le statut est défini automatiquement à « À traiter » et évoluera ensuite selon les dates saisies.
           </div>
+
         </div>
         <div className="flex justify-end gap-2">
           <Link to="/dossiers"><Button type="button" variant="ghost">Annuler</Button></Link>

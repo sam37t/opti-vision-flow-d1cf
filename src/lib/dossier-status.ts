@@ -1,27 +1,50 @@
 export const DOSSIER_STATUSES = [
   "a_traiter",
   "devis_envoye",
-  "en_attente",
   "cotation_recue",
-  "accord_recu",
+  "en_attente",
   "a_modifier",
+  "accord_recu",
+  "facture",
+  "transmis_mutuelle",
+  "regle",
+  "refuse",
+  "pas_de_tp",
+  "sans_suite_client",
+  // Statuts hérités, conservés pour affichage de données historiques uniquement
   "verres_commandes",
   "livre_facture",
-  "pas_de_tp",
-  "refuse",
-  "sans_suite_client",
 ] as const;
 
 export type DossierStatus = (typeof DOSSIER_STATUSES)[number];
+
+// Statuts proposés dans les sélecteurs (les statuts hérités sont masqués)
+export const SELECTABLE_STATUSES: DossierStatus[] = [
+  "a_traiter",
+  "devis_envoye",
+  "cotation_recue",
+  "en_attente",
+  "a_modifier",
+  "accord_recu",
+  "facture",
+  "transmis_mutuelle",
+  "regle",
+  "refuse",
+  "pas_de_tp",
+  "sans_suite_client",
+];
 
 export const STATUS_LABELS: Record<DossierStatus, string> = {
   a_traiter: "À traiter",
   devis_envoye: "Devis envoyé",
   en_attente: "En attente",
-  cotation_recue: "Cotation reçue",
-  accord_recu: "Accord reçu",
+  cotation_recue: "Cotation",
+  accord_recu: "Accordé",
   a_modifier: "À modifier",
   verres_commandes: "Verres commandés",
+  facture: "Facturé",
+  transmis_mutuelle: "Transmis",
+  regle: "Réglé",
   livre_facture: "Livré / Facturé",
   pas_de_tp: "Pas de Tiers Payant",
   refuse: "Refusé",
@@ -36,6 +59,9 @@ export const STATUS_COLORS: Record<DossierStatus, string> = {
   accord_recu: "bg-emerald-100 text-emerald-800 border-emerald-200",
   a_modifier: "bg-orange-100 text-orange-800 border-orange-200",
   verres_commandes: "bg-indigo-100 text-indigo-800 border-indigo-200",
+  facture: "bg-purple-100 text-purple-800 border-purple-200",
+  transmis_mutuelle: "bg-sky-100 text-sky-800 border-sky-200",
+  regle: "bg-green-100 text-green-800 border-green-200",
   livre_facture: "bg-teal-100 text-teal-800 border-teal-200",
   pas_de_tp: "bg-slate-100 text-slate-800 border-slate-200",
   refuse: "bg-rose-100 text-rose-800 border-rose-200",
@@ -43,4 +69,10 @@ export const STATUS_COLORS: Record<DossierStatus, string> = {
 };
 
 // Statuts considérés "terminés" (n'apparaissent plus dans les alertes 48h)
-export const TERMINAL_STATUSES: DossierStatus[] = ["livre_facture", "refuse", "pas_de_tp", "sans_suite_client"];
+export const TERMINAL_STATUSES: DossierStatus[] = [
+  "regle",
+  "refuse",
+  "pas_de_tp",
+  "sans_suite_client",
+  "livre_facture",
+];
