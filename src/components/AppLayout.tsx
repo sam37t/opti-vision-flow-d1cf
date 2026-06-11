@@ -1,7 +1,9 @@
 import { Link, useRouter } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { Glasses, LayoutDashboard, FolderKanban, LogOut, Plus, Settings, Receipt } from "lucide-react";
+import { LayoutDashboard, FolderKanban, LogOut, Plus, Settings, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import logoAsset from "@/assets/optic-house-logo.jpg.asset.json";
+
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 
@@ -18,12 +20,13 @@ export function AppLayout({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-30 border-b bg-card/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
-          <Link to="/" className="flex items-center gap-2 font-semibold text-foreground">
-            <span className="grid h-9 w-9 place-items-center rounded-lg bg-primary text-primary-foreground">
-              <Glasses className="h-5 w-5" />
+          <Link to="/" className="flex items-center gap-2.5 font-semibold text-foreground">
+            <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-lg ring-1 ring-accent/40">
+              <img src={logoAsset.url} alt="Optic House" className="h-full w-full object-cover" />
             </span>
-            <span className="text-lg">Optique Suivi</span>
+            <span className="text-lg tracking-wide">Optic House</span>
           </Link>
+
           <nav className="hidden items-center gap-1 md:flex">
             <NavLink to="/" icon={<LayoutDashboard className="h-4 w-4" />}>Tableau de bord</NavLink>
             <NavLink to="/dossiers" icon={<FolderKanban className="h-4 w-4" />}>Dossiers</NavLink>
