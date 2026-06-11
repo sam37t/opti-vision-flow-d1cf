@@ -1,7 +1,9 @@
 import { Link, useRouter } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { Glasses, LayoutDashboard, FolderKanban, LogOut, Plus, Settings, Receipt } from "lucide-react";
+import { LayoutDashboard, FolderKanban, LogOut, Plus, Settings, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import logoAsset from "@/assets/optic-house-logo.jpg.asset.json";
+
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
 
