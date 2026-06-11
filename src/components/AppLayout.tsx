@@ -20,12 +20,10 @@ export function AppLayout({ children }: { children: ReactNode }) {
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-30 border-b bg-card/95 backdrop-blur">
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
-          <Link to="/" className="flex items-center gap-2.5 font-semibold text-foreground">
-            <span className="grid h-10 w-10 place-items-center overflow-hidden rounded-lg ring-1 ring-accent/40">
-              <img src={logoAsset.url} alt="Optic House" className="h-full w-full object-cover" />
-            </span>
-            <span className="text-lg tracking-wide">Optic House</span>
+          <Link to="/" className="flex items-center gap-2.5 font-semibold text-foreground" aria-label="Optic House">
+            <img src={logoAsset.url} alt="Optic House" className="h-11 w-11 rounded-md object-cover ring-1 ring-accent/50" />
           </Link>
+
 
           <nav className="hidden items-center gap-1 md:flex">
             <NavLink to="/" icon={<LayoutDashboard className="h-4 w-4" />}>Tableau de bord</NavLink>
