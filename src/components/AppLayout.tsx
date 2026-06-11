@@ -22,7 +22,9 @@ export function AppLayout({ children }: { children: ReactNode }) {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
           <Link to="/" className="flex items-center gap-2.5 font-semibold text-foreground" aria-label="Optic House">
             <img src={logoAsset.url} alt="Optic House" className="h-11 w-11 rounded-md object-cover ring-1 ring-accent/50" />
+            <span className="text-lg tracking-[0.18em] font-semibold">OPTIC HOUSE</span>
           </Link>
+
 
 
           <nav className="hidden items-center gap-1 md:flex">
