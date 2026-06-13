@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { LayoutDashboard, FolderKanban, LogOut, Plus, Settings, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logoAsset from "@/assets/optic-house-logo.jpg.asset.json";
+import { MessagesPanel } from "@/components/MessagesPanel";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
