@@ -170,6 +170,18 @@ export function MessagesPanel() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("messages").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Message supprimé");
+      qc.invalidateQueries({ queryKey: ["messages", userId] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const dossierMap = useMemo(() => {
     const m = new Map<string, DossierLite>();
     for (const d of dossiers) m.set(d.id, d);
