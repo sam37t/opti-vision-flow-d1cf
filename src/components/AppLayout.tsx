@@ -3,6 +3,7 @@ import type { ReactNode } from "react";
 import { LayoutDashboard, FolderKanban, LogOut, Plus, Settings, Receipt } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logoAsset from "@/assets/optic-house-logo.jpg.asset.json";
+import { MessagesPanel } from "@/components/MessagesPanel";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
@@ -43,6 +44,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
               <div className="font-medium text-foreground">{fullName}</div>
               <div className="text-xs capitalize text-muted-foreground">{role}</div>
             </div>
+            <MessagesPanel />
             <Button variant="ghost" size="icon" onClick={signOut} title="Déconnexion">
               <LogOut className="h-4 w-4" />
             </Button>
