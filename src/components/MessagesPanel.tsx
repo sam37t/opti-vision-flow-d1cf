@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { MessageCircle, Send, FolderOpen } from "lucide-react";
+import { MessageCircle, Send, FolderOpen, Trash2 } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 
@@ -170,6 +170,18 @@ export function MessagesPanel() {
     onError: (e: Error) => toast.error(e.message),
   });
 
+  const deleteMutation = useMutation({
+    mutationFn: async (id: string) => {
+      const { error } = await supabase.from("messages").delete().eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Message supprimé");
+      qc.invalidateQueries({ queryKey: ["messages", userId] });
+    },
+    onError: (e: Error) => toast.error(e.message),
+  });
+
   const dossierMap = useMemo(() => {
     const m = new Map<string, DossierLite>();
     for (const d of dossiers) m.set(d.id, d);
@@ -222,7 +234,23 @@ export function MessagesPanel() {
                   >
                     <div className="mb-1 flex items-center justify-between gap-2 text-xs">
                       <span className="font-medium text-foreground">{senderName}</span>
-                      <span className="text-muted-foreground">{formatTime(m.created_at)}</span>
+                      <div className="flex items-center gap-2">
+                        <span className="text-muted-foreground">{formatTime(m.created_at)}</span>
+                        <button
+                          type="button"
+                          onClick={() => {
+                            if (confirm("Supprimer ce message de la messagerie ? (le dossier et la note d'origine ne sont pas affectés)")) {
+                              deleteMutation.mutate(m.id);
+                            }
+                          }}
+                          disabled={deleteMutation.isPending}
+                          className="text-muted-foreground transition-colors hover:text-destructive"
+                          title="Supprimer le message"
+                          aria-label="Supprimer le message"
+                        >
+                          <Trash2 className="h-3.5 w-3.5" />
+                        </button>
+                      </div>
                     </div>
                     <p className="whitespace-pre-wrap text-foreground">{m.body}</p>
                     {m.dossier_id && (
