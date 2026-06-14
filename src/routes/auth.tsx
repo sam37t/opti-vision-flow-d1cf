@@ -50,7 +50,6 @@ function AuthPage() {
     const email = String(fd.get("email"));
     const password = String(fd.get("password"));
     const fullName = String(fd.get("full_name"));
-    const role = String(fd.get("role"));
     setLoading(true);
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -59,7 +58,6 @@ function AuthPage() {
         emailRedirectTo: window.location.origin,
         data: {
           full_name: fullName,
-          role,
         },
       },
     });
