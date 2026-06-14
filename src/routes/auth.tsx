@@ -5,13 +5,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -50,7 +43,6 @@ function AuthPage() {
     const email = String(fd.get("email"));
     const password = String(fd.get("password"));
     const fullName = String(fd.get("full_name"));
-    const role = String(fd.get("role"));
     setLoading(true);
     const { data, error } = await supabase.auth.signUp({
       email,
@@ -59,7 +51,6 @@ function AuthPage() {
         emailRedirectTo: window.location.origin,
         data: {
           full_name: fullName,
-          role,
         },
       },
     });
@@ -142,16 +133,6 @@ function AuthPage() {
                 <Field name="full_name" label="Nom complet" required />
                 <Field name="email" label="Email" type="email" required />
                 <Field name="password" label="Mot de passe" type="password" required minLength={6} />
-                <div className="space-y-2">
-                  <Label>Rôle</Label>
-                  <Select name="role" defaultValue="employe">
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="gerante">Co pilote</SelectItem>
-                      <SelectItem value="employe">Employé</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
                 <Button className="w-full" disabled={loading}>
                   {loading ? "Création..." : "Créer le compte"}
                 </Button>
