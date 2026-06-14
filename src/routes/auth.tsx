@@ -140,16 +140,6 @@ function AuthPage() {
                 <Field name="full_name" label="Nom complet" required />
                 <Field name="email" label="Email" type="email" required />
                 <Field name="password" label="Mot de passe" type="password" required minLength={6} />
-                <div className="space-y-2">
-                  <Label>Rôle</Label>
-                  <Select name="role" defaultValue="employe">
-                    <SelectTrigger><SelectValue /></SelectTrigger>
-                    <SelectContent>
-                      <SelectItem value="gerante">Co pilote</SelectItem>
-                      <SelectItem value="employe">Employé</SelectItem>
-                    </SelectContent>
-                  </Select>
-                </div>
                 <Button className="w-full" disabled={loading}>
                   {loading ? "Création..." : "Créer le compte"}
                 </Button>
