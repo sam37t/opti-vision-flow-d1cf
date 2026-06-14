@@ -59,6 +59,9 @@ export function MessagesPanel() {
   const messagesQuery = useQuery({
     queryKey: ["messages", userId],
     enabled: !!userId,
+    refetchOnMount: "always",
+    refetchOnWindowFocus: true,
+    staleTime: 0,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("messages")
