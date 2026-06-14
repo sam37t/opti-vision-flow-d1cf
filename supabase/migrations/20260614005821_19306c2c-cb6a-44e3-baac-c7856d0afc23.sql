@@ -1,0 +1,1 @@
+REVOKE EXECUTE ON FUNCTION public.sync_note_to_messages() FROM PUBLIC, anon, authenticated;
