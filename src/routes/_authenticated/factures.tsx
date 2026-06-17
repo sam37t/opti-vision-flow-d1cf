@@ -1,6 +1,6 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useMemo } from "react";
 import { Receipt, ArrowRight, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -84,6 +84,19 @@ function FacturesPage() {
     0,
   );
 
+  const sortedDossiers = useMemo(() => {
+    return [...dossiers].sort((a, b) => {
+      const aDays = a.facture_cosium && !a.transmis_mutuelle ? daysSince(a.facture_cosium_at) : null;
+      const bDays = b.facture_cosium && !b.transmis_mutuelle ? daysSince(b.facture_cosium_at) : null;
+      const aAlert = aDays != null && aDays >= 2;
+      const bAlert = bDays != null && bDays >= 2;
+      if (aAlert && bAlert) return (bDays ?? 0) - (aDays ?? 0);
+      if (aAlert && !bAlert) return -1;
+      if (!aAlert && bAlert) return 1;
+      return 0;
+    });
+  }, [dossiers]);
+
   const confirmPayment = async (id: string, date: string) => {
     const { error } = await supabase
       .from("dossiers")
@@ -140,7 +153,7 @@ function FacturesPage() {
                 Aucune facture en attente de règlement.
               </td></tr>
             )}
-            {dossiers.map((d) => {
+            {sortedDossiers.map((d) => {
               const days = d.transmis_mutuelle ? daysSince(d.transmis_mutuelle_at) : null;
               const alert = alertForDays(days);
               const nonTransmisDays =
