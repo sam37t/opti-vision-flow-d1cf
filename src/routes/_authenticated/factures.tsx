@@ -84,6 +84,19 @@ function FacturesPage() {
     0,
   );
 
+  const sortedDossiers = useMemo(() => {
+    return [...dossiers].sort((a, b) => {
+      const aDays = a.facture_cosium && !a.transmis_mutuelle ? daysSince(a.facture_cosium_at) : null;
+      const bDays = b.facture_cosium && !b.transmis_mutuelle ? daysSince(b.facture_cosium_at) : null;
+      const aAlert = aDays != null && aDays >= 2;
+      const bAlert = bDays != null && bDays >= 2;
+      if (aAlert && bAlert) return (bDays ?? 0) - (aDays ?? 0);
+      if (aAlert && !bAlert) return -1;
+      if (!aAlert && bAlert) return 1;
+      return 0;
+    });
+  }, [dossiers]);
+
   const confirmPayment = async (id: string, date: string) => {
     const { error } = await supabase
       .from("dossiers")
