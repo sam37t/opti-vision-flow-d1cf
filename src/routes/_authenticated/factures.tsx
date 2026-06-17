@@ -143,10 +143,21 @@ function FacturesPage() {
             {dossiers.map((d) => {
               const days = d.transmis_mutuelle ? daysSince(d.transmis_mutuelle_at) : null;
               const alert = alertForDays(days);
+              const nonTransmisDays =
+                d.facture_cosium && !d.transmis_mutuelle ? daysSince(d.facture_cosium_at) : null;
+              const showNonTransmis = nonTransmisDays != null && nonTransmisDays >= 2;
               return (
                 <tr key={d.id} className="hover:bg-muted/30">
                   <td className="px-4 py-3 font-medium">
-                    {d.client_nom?.toUpperCase()} {d.client_prenom}
+                    <div className="flex items-center gap-2">
+                      <span>{d.client_nom?.toUpperCase()} {d.client_prenom}</span>
+                      {showNonTransmis && (
+                        <span className="inline-flex items-center gap-1 rounded-full bg-red-600 px-2 py-0.5 text-xs font-semibold text-white">
+                          <AlertTriangle className="h-3 w-3" />
+                          {nonTransmisDays}j non transmis
+                        </span>
+                      )}
+                    </div>
                   </td>
                   <td className="px-4 py-3">{d.mutuelle || "—"}</td>
                   <td className="px-4 py-3 text-muted-foreground">
