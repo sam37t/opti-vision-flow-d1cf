@@ -153,7 +153,7 @@ function FacturesPage() {
                 Aucune facture en attente de règlement.
               </td></tr>
             )}
-            {dossiers.map((d) => {
+            {sortedDossiers.map((d) => {
               const days = d.transmis_mutuelle ? daysSince(d.transmis_mutuelle_at) : null;
               const alert = alertForDays(days);
               const nonTransmisDays =
