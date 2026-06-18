@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { Textarea } from "@/components/ui/textarea";
 import { supabase } from "@/integrations/supabase/client";
 import { toast } from "sonner";
 
@@ -74,6 +75,17 @@ function NewDossierPage() {
       .single();
     setLoading(false);
     if (error) return toast.error(error.message);
+
+    const noteContent = String(fd.get("note_initiale") || "").trim();
+    if (noteContent && data?.id) {
+      const { error: noteError } = await supabase.from("dossier_notes").insert({
+        dossier_id: data.id,
+        author_id: userData.user?.id ?? null,
+        content: noteContent,
+      });
+      if (noteError) toast.error(`Dossier créé, mais note non enregistrée : ${noteError.message}`);
+    }
+
     toast.success("Dossier créé");
     router.navigate({ to: "/dossiers/$id", params: { id: data.id } });
   };
@@ -121,6 +133,17 @@ function NewDossierPage() {
           </div>
           <div className="space-y-2 text-xs text-muted-foreground sm:col-span-1">
             Le statut est défini automatiquement à « À traiter » et évoluera ensuite selon les dates saisies.
+          </div>
+
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="note_initiale">Note initiale (envoyée dans la messagerie)</Label>
+            <Textarea
+              id="note_initiale"
+              name="note_initiale"
+              rows={3}
+              maxLength={2000}
+              placeholder="Ajouter une note visible par les autres utilisateurs dans la messagerie interne (optionnel)"
+            />
           </div>
 
         </div>
