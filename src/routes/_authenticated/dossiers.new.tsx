@@ -135,6 +135,17 @@ function NewDossierPage() {
             Le statut est défini automatiquement à « À traiter » et évoluera ensuite selon les dates saisies.
           </div>
 
+          <div className="space-y-2 sm:col-span-2">
+            <Label htmlFor="note_initiale">Note initiale (envoyée dans la messagerie)</Label>
+            <Textarea
+              id="note_initiale"
+              name="note_initiale"
+              rows={3}
+              maxLength={2000}
+              placeholder="Ajouter une note visible par les autres utilisateurs dans la messagerie interne (optionnel)"
+            />
+          </div>
+
         </div>
         <div className="flex justify-end gap-2">
           <Link to="/dossiers"><Button type="button" variant="ghost">Annuler</Button></Link>
