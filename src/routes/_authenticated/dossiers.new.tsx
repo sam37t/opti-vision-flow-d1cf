@@ -75,6 +75,17 @@ function NewDossierPage() {
       .single();
     setLoading(false);
     if (error) return toast.error(error.message);
+
+    const noteContent = String(fd.get("note_initiale") || "").trim();
+    if (noteContent && data?.id) {
+      const { error: noteError } = await supabase.from("dossier_notes").insert({
+        dossier_id: data.id,
+        author_id: userData.user?.id ?? null,
+        content: noteContent,
+      });
+      if (noteError) toast.error(`Dossier créé, mais note non enregistrée : ${noteError.message}`);
+    }
+
     toast.success("Dossier créé");
     router.navigate({ to: "/dossiers/$id", params: { id: data.id } });
   };
