@@ -40,12 +40,21 @@ function Dashboard() {
     return acc;
   }, {} as Record<DossierStatus, number>);
 
+  const ACTIFS_48H_STATUSES: DossierStatus[] = [
+    "a_traiter",
+    "devis_envoye",
+    "en_attente",
+    "cotation_recue",
+    "accord_recu",
+  ];
+
   const now = Date.now();
   const stale = dossiers.filter(
     (d) =>
-      !TERMINAL_STATUSES.includes(d.status as DossierStatus) &&
+      ACTIFS_48H_STATUSES.includes(d.status as DossierStatus) &&
       now - new Date(d.last_status_change_at).getTime() > 48 * 3600 * 1000,
   );
+
 
   const problemes = dossiers.filter((d) => d.probleme);
 
