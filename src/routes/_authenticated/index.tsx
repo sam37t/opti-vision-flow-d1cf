@@ -125,12 +125,141 @@ function Dashboard() {
         <p className="text-sm text-muted-foreground">Vue d'ensemble de l'activité du magasin (dossiers en cours)</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
         <StatCard icon={<FolderKanban className="h-5 w-5" />} label="Dossiers actifs" valueText={String(totalActifs)} />
         <StatCard icon={<Receipt className="h-5 w-5" />} label="Total devis" valueText={fmt(totalDevis)} hint={sansMontant > 0 ? `${sansMontant} dossier${sansMontant > 1 ? "s" : ""} sans montant exclu${sansMontant > 1 ? "s" : ""}` : undefined} />
         <StatCard icon={<TrendingUp className="h-5 w-5" />} label="Total accordé (PEC)" valueText={fmt(totalAccorde)} />
         <StatCard icon={<Wallet className="h-5 w-5" />} label="Total reste à charge" valueText={fmt(totalRAC)} />
+        <StatCard icon={<BadgeEuro className="h-5 w-5" />} label="Total encaissé (réglé)" valueText={fmt(totalEncaisse)} />
       </div>
+
+      <section className="rounded-xl border bg-card p-5">
+        <div className="mb-4 flex items-center justify-between gap-2">
+          <h2 className="flex items-center gap-2 text-base font-semibold">
+            <Search className="h-4 w-4" /> Rechercher un dossier
+          </h2>
+          {hasFilters && (
+            <button
+              type="button"
+              onClick={resetFilters}
+              className="inline-flex items-center gap-1 rounded-md border bg-background px-2.5 py-1 text-xs text-muted-foreground hover:bg-accent"
+            >
+              <X className="h-3 w-3" /> Réinitialiser
+            </button>
+          )}
+        </div>
+
+        <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
+          <label className="flex flex-col gap-1 text-xs">
+            <span className="text-muted-foreground">Nom du client</span>
+            <input
+              type="text"
+              value={query}
+              onChange={(e) => setQuery(e.target.value)}
+              placeholder="Nom ou prénom"
+              className="h-9 rounded-md border bg-background px-2 text-sm"
+            />
+          </label>
+
+          <label className="flex flex-col gap-1 text-xs">
+            <span className="text-muted-foreground">Statut</span>
+            <select
+              value={filterStatus}
+              onChange={(e) => setFilterStatus(e.target.value as DossierStatus | "")}
+              className="h-9 rounded-md border bg-background px-2 text-sm"
+            >
+              <option value="">Tous</option>
+              {DOSSIER_STATUSES.map((s) => (
+                <option key={s} value={s}>{STATUS_LABELS[s]}</option>
+              ))}
+            </select>
+          </label>
+
+          <label className="flex flex-col gap-1 text-xs">
+            <span className="text-muted-foreground">Mutuelle</span>
+            <select
+              value={filterMutuelle}
+              onChange={(e) => setFilterMutuelle(e.target.value)}
+              className="h-9 rounded-md border bg-background px-2 text-sm"
+            >
+              <option value="">Toutes</option>
+              {mutuelles.map((m) => (
+                <option key={m} value={m}>{m}</option>
+              ))}
+            </select>
+          </label>
+
+          <label className="flex flex-col gap-1 text-xs">
+            <span className="text-muted-foreground">Période sur</span>
+            <select
+              value={dateField}
+              onChange={(e) => setDateField(e.target.value as DateField)}
+              className="h-9 rounded-md border bg-background px-2 text-sm"
+            >
+              <option value="created_at">Date de création</option>
+              <option value="facture_cosium_at">Date de facturation</option>
+            </select>
+          </label>
+
+          <label className="flex flex-col gap-1 text-xs">
+            <span className="text-muted-foreground">Du</span>
+            <input
+              type="date"
+              value={dateFrom}
+              onChange={(e) => setDateFrom(e.target.value)}
+              className="h-9 rounded-md border bg-background px-2 text-sm"
+            />
+          </label>
+
+          <label className="flex flex-col gap-1 text-xs">
+            <span className="text-muted-foreground">Au</span>
+            <input
+              type="date"
+              value={dateTo}
+              onChange={(e) => setDateTo(e.target.value)}
+              className="h-9 rounded-md border bg-background px-2 text-sm"
+            />
+          </label>
+        </div>
+
+        {hasFilters && (
+          <div className="mt-4">
+            <div className="mb-2 text-xs text-muted-foreground">
+              {filtered.length} résultat{filtered.length > 1 ? "s" : ""}
+            </div>
+            {filtered.length > 0 ? (
+              <ul className="divide-y rounded-lg border">
+                {filtered.slice(0, 50).map((d) => (
+                  <li key={d.id}>
+                    <Link
+                      to="/dossiers/$id"
+                      params={{ id: d.id }}
+                      className="flex items-center justify-between gap-3 px-3 py-2 text-sm hover:bg-accent"
+                    >
+                      <span className="font-medium truncate">
+                        {(d.client_nom || "").toUpperCase()} {d.client_prenom}
+                      </span>
+                      <span className="flex items-center gap-3 text-muted-foreground">
+                        <span className="hidden sm:inline truncate max-w-[14rem]">{d.mutuelle || "—"}</span>
+                        <StatusBadge status={d.status as DossierStatus} />
+                      </span>
+                    </Link>
+                  </li>
+                ))}
+              </ul>
+            ) : (
+              <p className="rounded-lg border bg-background px-3 py-4 text-sm text-muted-foreground">
+                Aucun dossier ne correspond aux filtres.
+              </p>
+            )}
+            {filtered.length > 50 && (
+              <p className="mt-2 text-xs text-muted-foreground">
+                Affichage des 50 premiers résultats sur {filtered.length}.
+              </p>
+            )}
+          </div>
+        )}
+      </section>
 
       <div className="grid gap-4 sm:grid-cols-2">
         <StatCard
