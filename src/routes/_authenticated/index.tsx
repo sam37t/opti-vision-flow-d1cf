@@ -1,7 +1,7 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect } from "react";
-import { AlertOctagon, AlertTriangle, FolderKanban, TrendingUp, Wallet, Receipt } from "lucide-react";
+import { useEffect, useMemo, useState } from "react";
+import { AlertOctagon, AlertTriangle, FolderKanban, TrendingUp, Wallet, Receipt, BadgeEuro, Search, X } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { DOSSIER_STATUSES, STATUS_LABELS, type DossierStatus } from "@/lib/dossier-status";
 import { StatusBadge } from "@/components/StatusBadge";
@@ -11,6 +11,8 @@ export const Route = createFileRoute("/_authenticated/")({
   component: Dashboard,
 });
 
+type DateField = "created_at" | "facture_cosium_at";
+
 function Dashboard() {
   const qc = useQueryClient();
 
@@ -19,7 +21,7 @@ function Dashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("dossiers")
-        .select("id, client_nom, client_prenom, mutuelle, status, montant_devis, montant_pec, reste_a_charge, probleme, last_status_change_at, created_at")
+        .select("id, client_nom, client_prenom, mutuelle, status, montant_devis, montant_pec, reste_a_charge, probleme, last_status_change_at, created_at, facture_cosium_at")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -68,7 +70,53 @@ function Dashboard() {
   const totalDevis = actifsAvecDevis.reduce((s, d) => s + Number(d.montant_devis), 0);
   const totalAccorde = actifs.reduce((s, d) => s + (Number(d.montant_pec) || 0), 0);
   const totalRAC = actifs.reduce((s, d) => s + (Number(d.reste_a_charge) || 0), 0);
+  const totalEncaisse = dossiers
+    .filter((d) => d.status === "regle")
+    .reduce((s, d) => s + (Number(d.montant_pec) || 0), 0);
   const fmt = (n: number) => `${n.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €`;
+
+  // ---- Filtres / recherche ----
+  const [query, setQuery] = useState("");
+  const [filterStatus, setFilterStatus] = useState<DossierStatus | "">("");
+  const [filterMutuelle, setFilterMutuelle] = useState("");
+  const [dateField, setDateField] = useState<DateField>("created_at");
+  const [dateFrom, setDateFrom] = useState("");
+  const [dateTo, setDateTo] = useState("");
+
+  const mutuelles = useMemo(() => {
+    const set = new Set<string>();
+    dossiers.forEach((d) => { if (d.mutuelle) set.add(d.mutuelle); });
+    return Array.from(set).sort((a, b) => a.localeCompare(b, "fr"));
+  }, [dossiers]);
+
+  const hasFilters = Boolean(query || filterStatus || filterMutuelle || dateFrom || dateTo);
+  const filtered = useMemo(() => {
+    if (!hasFilters) return [];
+    const q = query.trim().toLowerCase();
+    const from = dateFrom ? new Date(dateFrom).getTime() : null;
+    const to = dateTo ? new Date(dateTo).getTime() + 24 * 3600 * 1000 - 1 : null;
+    return dossiers.filter((d) => {
+      if (filterStatus && d.status !== filterStatus) return false;
+      if (filterMutuelle && d.mutuelle !== filterMutuelle) return false;
+      if (q) {
+        const name = `${d.client_nom ?? ""} ${d.client_prenom ?? ""}`.toLowerCase();
+        if (!name.includes(q)) return false;
+      }
+      if (from !== null || to !== null) {
+        const raw = (d as Record<string, unknown>)[dateField] as string | null | undefined;
+        if (!raw) return false;
+        const t = new Date(raw).getTime();
+        if (from !== null && t < from) return false;
+        if (to !== null && t > to) return false;
+      }
+      return true;
+    });
+  }, [dossiers, query, filterStatus, filterMutuelle, dateField, dateFrom, dateTo, hasFilters]);
+
+  const resetFilters = () => {
+    setQuery(""); setFilterStatus(""); setFilterMutuelle("");
+    setDateField("created_at"); setDateFrom(""); setDateTo("");
+  };
 
   return (
     <div className="space-y-6">
