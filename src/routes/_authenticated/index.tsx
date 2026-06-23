@@ -3,7 +3,7 @@ import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect } from "react";
 import { AlertOctagon, AlertTriangle, FolderKanban, TrendingUp, Wallet, Receipt } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
-import { DOSSIER_STATUSES, STATUS_LABELS, TERMINAL_STATUSES, type DossierStatus } from "@/lib/dossier-status";
+import { DOSSIER_STATUSES, STATUS_LABELS, type DossierStatus } from "@/lib/dossier-status";
 import { StatusBadge } from "@/components/StatusBadge";
 
 export const Route = createFileRoute("/_authenticated/")({
@@ -40,7 +40,7 @@ function Dashboard() {
     return acc;
   }, {} as Record<DossierStatus, number>);
 
-  const ACTIFS_48H_STATUSES: DossierStatus[] = [
+  const ACTIFS_STATUSES: DossierStatus[] = [
     "a_traiter",
     "devis_envoye",
     "en_attente",
@@ -51,7 +51,7 @@ function Dashboard() {
   const now = Date.now();
   const stale = dossiers.filter(
     (d) =>
-      ACTIFS_48H_STATUSES.includes(d.status as DossierStatus) &&
+      ACTIFS_STATUSES.includes(d.status as DossierStatus) &&
       now - new Date(d.last_status_change_at).getTime() > 48 * 3600 * 1000,
   );
 
@@ -59,7 +59,7 @@ function Dashboard() {
   const problemes = dossiers.filter((d) => d.probleme);
 
   const actifs = dossiers.filter(
-    (d) => !TERMINAL_STATUSES.includes(d.status as DossierStatus),
+    (d) => ACTIFS_STATUSES.includes(d.status as DossierStatus),
   );
 
   const totalActifs = actifs.length;
@@ -103,6 +103,15 @@ function Dashboard() {
       <section className="rounded-xl border bg-card p-5">
         <h2 className="mb-4 text-base font-semibold">Répartition par statut</h2>
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+          <Link
+            to="/dossiers"
+            className="flex items-center justify-between rounded-lg border bg-primary/10 px-3 py-3 transition-colors hover:bg-primary/20"
+          >
+            <span className="inline-flex items-center rounded-full border border-primary/30 bg-background px-2.5 py-0.5 text-xs font-medium text-primary">
+              Total dossiers actifs
+            </span>
+            <span className="text-lg font-semibold tabular-nums">{totalActifs}</span>
+          </Link>
           {DOSSIER_STATUSES.map((s) => (
             <Link
               key={s}
