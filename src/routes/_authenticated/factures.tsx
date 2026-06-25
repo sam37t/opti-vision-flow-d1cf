@@ -128,10 +128,18 @@ function FacturesPage() {
             Dossiers facturés ou transmis à la mutuelle, en attente du règlement.
           </p>
         </div>
-        <div className="rounded-lg border bg-card px-4 py-2 text-right">
-          <div className="text-xs uppercase text-muted-foreground">Total en attente</div>
-          <div className="text-lg font-semibold">
-            {totalEnAttente.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+        <div className="flex flex-wrap gap-3">
+          <div className="rounded-lg border bg-card px-4 py-2 text-right">
+            <div className="text-xs uppercase text-muted-foreground">Total en attente</div>
+            <div className="text-lg font-semibold">
+              {totalEnAttente.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+            </div>
+          </div>
+          <div className="rounded-lg border bg-card px-4 py-2 text-right">
+            <div className="text-xs uppercase text-muted-foreground">Total devis</div>
+            <div className="text-lg font-semibold">
+              {totalDevis.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+            </div>
           </div>
         </div>
       </div>
