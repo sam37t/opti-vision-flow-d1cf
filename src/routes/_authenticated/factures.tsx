@@ -85,6 +85,11 @@ function FacturesPage() {
     0,
   );
 
+  const totalDevis = dossiers.reduce(
+    (acc, d) => acc + (Number(d.montant_devis) || 0),
+    0,
+  );
+
   const sortedDossiers = useMemo(() => {
     return [...dossiers].sort((a, b) => {
       const aDays = a.facture_cosium && !a.transmis_mutuelle ? daysSince(a.facture_cosium_at) : null;
