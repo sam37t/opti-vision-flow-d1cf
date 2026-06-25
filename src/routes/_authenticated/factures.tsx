@@ -18,6 +18,7 @@ type Dossier = {
   client_prenom: string;
   mutuelle: string;
   montant_pec: number | null;
+  montant_devis: number | null;
   transmis_mutuelle: boolean;
   transmis_mutuelle_at: string | null;
   facture_cosium: boolean;
