@@ -18,6 +18,7 @@ type Dossier = {
   client_prenom: string;
   mutuelle: string;
   montant_pec: number | null;
+  montant_devis: number | null;
   transmis_mutuelle: boolean;
   transmis_mutuelle_at: string | null;
   facture_cosium: boolean;
@@ -56,7 +57,7 @@ function FacturesPage() {
       const { data, error } = await supabase
         .from("dossiers")
         .select(
-          "id, client_nom, client_prenom, mutuelle, montant_pec, transmis_mutuelle, transmis_mutuelle_at, facture_cosium, facture_cosium_at",
+          "id, client_nom, client_prenom, mutuelle, montant_pec, montant_devis, transmis_mutuelle, transmis_mutuelle_at, facture_cosium, facture_cosium_at",
         )
         .or("facture_cosium.eq.true,transmis_mutuelle.eq.true,transmis_mutuelle_at.not.is.null")
         .eq("paiement_recu", false)
@@ -81,6 +82,11 @@ function FacturesPage() {
 
   const totalEnAttente = dossiers.reduce(
     (acc, d) => acc + (Number(d.montant_pec) || 0),
+    0,
+  );
+
+  const totalDevis = dossiers.reduce(
+    (acc, d) => acc + (Number(d.montant_devis) || 0),
     0,
   );
 
@@ -122,10 +128,18 @@ function FacturesPage() {
             Dossiers facturés ou transmis à la mutuelle, en attente du règlement.
           </p>
         </div>
-        <div className="rounded-lg border bg-card px-4 py-2 text-right">
-          <div className="text-xs uppercase text-muted-foreground">Total en attente</div>
-          <div className="text-lg font-semibold">
-            {totalEnAttente.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+        <div className="flex flex-wrap gap-3">
+          <div className="rounded-lg border bg-card px-4 py-2 text-right">
+            <div className="text-xs uppercase text-muted-foreground">Total en attente</div>
+            <div className="text-lg font-semibold">
+              {totalEnAttente.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+            </div>
+          </div>
+          <div className="rounded-lg border bg-card px-4 py-2 text-right">
+            <div className="text-xs uppercase text-muted-foreground">Total devis</div>
+            <div className="text-lg font-semibold">
+              {totalDevis.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+            </div>
           </div>
         </div>
       </div>
