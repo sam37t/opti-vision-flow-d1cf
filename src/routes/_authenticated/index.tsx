@@ -127,9 +127,11 @@ function Dashboard() {
         <p className="text-sm text-muted-foreground">Vue d'ensemble de l'activité du magasin (dossiers en cours)</p>
       </div>
 
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-5">
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard icon={<FolderKanban className="h-5 w-5" />} label="Dossiers actifs" valueText={String(totalActifs)} />
-        <StatCard icon={<Receipt className="h-5 w-5" />} label="Total devis" valueText={fmt(totalDevis)} hint={sansMontant > 0 ? `${sansMontant} dossier${sansMontant > 1 ? "s" : ""} sans montant exclu${sansMontant > 1 ? "s" : ""}` : undefined} />
+        <StatCard icon={<Files className="h-5 w-5" />} label="Total dossiers" valueText={String(totalDossiersAll)} />
+        <StatCard icon={<Receipt className="h-5 w-5" />} label="Total devis (actifs)" valueText={fmt(totalDevis)} hint={sansMontant > 0 ? `${sansMontant} dossier${sansMontant > 1 ? "s" : ""} sans montant exclu${sansMontant > 1 ? "s" : ""}` : undefined} />
+        <StatCard icon={<FileText className="h-5 w-5" />} label="Total devis (tous dossiers)" valueText={fmt(totalDevisAll)} />
         <StatCard icon={<TrendingUp className="h-5 w-5" />} label="Total accordé (PEC)" valueText={fmt(totalAccorde)} />
         <StatCard icon={<Wallet className="h-5 w-5" />} label="Total reste à charge" valueText={fmt(totalRAC)} />
         <StatCard icon={<BadgeEuro className="h-5 w-5" />} label="Total encaissé (réglé)" valueText={fmt(totalEncaisse)} />
