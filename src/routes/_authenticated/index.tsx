@@ -65,9 +65,11 @@ function Dashboard() {
   );
 
   const totalActifs = actifs.length;
+  const totalDossiersAll = dossiers.length;
   const actifsAvecDevis = actifs.filter((d) => Number(d.montant_devis) > 0);
   const sansMontant = actifs.length - actifsAvecDevis.length;
   const totalDevis = actifsAvecDevis.reduce((s, d) => s + Number(d.montant_devis), 0);
+  const totalDevisAll = dossiers.reduce((s, d) => s + (Number(d.montant_devis) || 0), 0);
   const totalAccorde = actifs.reduce((s, d) => s + (Number(d.montant_pec) || 0), 0);
   const totalRAC = actifs.reduce((s, d) => s + (Number(d.reste_a_charge) || 0), 0);
   const totalEncaisse = dossiers
