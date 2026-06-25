@@ -136,7 +136,7 @@ function FacturesPage() {
             </div>
           </div>
           <div className="rounded-lg border bg-card px-4 py-2 text-right">
-            <div className="text-xs uppercase text-muted-foreground">Total devis</div>
+            <div className="text-xs uppercase text-muted-foreground">Total facturé</div>
             <div className="text-lg font-semibold">
               {totalDevis.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
             </div>
