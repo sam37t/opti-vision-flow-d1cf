@@ -316,6 +316,27 @@ function DossierDetail() {
         </div>
       </div>
 
+      <Card title="Règlement du reste à charge" icon={<Receipt className="h-4 w-4" />}>
+        <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(220px,320px)] sm:items-end">
+          <div className="space-y-1.5">
+            <Label className="text-xs text-muted-foreground">Reste à charge</Label>
+            <div className="text-2xl font-semibold">{racLive.toFixed(2)} €</div>
+          </div>
+          <div className="space-y-2">
+            <Label>Mode de règlement</Label>
+            <PaymentMethodSelect
+              value={paymentMethod}
+              onChange={(method) => {
+                setPaymentMethod(method);
+                updatePaymentMethodMutation.mutate(method);
+              }}
+              placeholder="Renseigner le mode de règlement"
+              disabled={updatePaymentMethodMutation.isPending}
+            />
+          </div>
+        </div>
+      </Card>
+
       {notes.length > 0 && (
         <Card title="Notes internes" icon={<MessageSquare className="h-4 w-4" />}>
           <ul className="divide-y">
@@ -442,18 +463,6 @@ function DossierDetail() {
               <div className="space-y-2">
                 <Label>Reste à charge (€) <span className="text-xs text-muted-foreground">(auto)</span></Label>
                 <Input type="number" step="0.01" value={racLive.toFixed(2)} readOnly className="bg-muted/40 font-semibold" />
-              </div>
-              <div className="space-y-2 sm:col-span-2">
-                <Label>Mode de paiement du reste à charge</Label>
-                <PaymentMethodSelect
-                  value={paymentMethod}
-                  onChange={(method) => {
-                    setPaymentMethod(method);
-                    updatePaymentMethodMutation.mutate(method);
-                  }}
-                  placeholder="Renseigner le mode de paiement"
-                  disabled={updatePaymentMethodMutation.isPending}
-                />
               </div>
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
