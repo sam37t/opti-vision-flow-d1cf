@@ -20,6 +20,8 @@ function AuthPage() {
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) router.navigate({ to: "/", replace: true });
+    }).catch((error) => {
+      console.error("Failed to check user:", error);
     });
   }, [router]);
 

@@ -1,11 +1,14 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useEffect, useState, useMemo } from "react";
 import { Receipt, ArrowRight, AlertTriangle, CheckCircle2 } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { toast } from "sonner";
+import { PaymentMethodSelect } from "@/components/PaymentMethodSelect";
+import { PaymentMethodBadge } from "@/components/PaymentMethodBadge";
+import type { PaymentMethod } from "@/lib/payment-methods";
 
 export const Route = createFileRoute("/_authenticated/factures")({
   head: () => ({ meta: [{ title: "Factures en attente — Optique Suivi" }] }),
@@ -23,6 +26,9 @@ type Dossier = {
   transmis_mutuelle_at: string | null;
   facture_cosium: boolean;
   facture_cosium_at: string | null;
+  reste_a_charge: number | null;
+  avoir_commercial: number | null;
+  reste_a_charge_payment_method: string | null;
 };
 
 function daysSince(iso: string | null): number | null {
@@ -50,6 +56,7 @@ function FacturesPage() {
   const qc = useQueryClient();
   const today = new Date().toISOString().slice(0, 10);
   const [paymentDates, setPaymentDates] = useState<Record<string, string>>({});
+  const [paymentMethods, setPaymentMethods] = useState<Record<string, PaymentMethod | null>>({});
 
   const { data: dossiers = [], isLoading } = useQuery({
     queryKey: ["factures-en-attente"],
@@ -57,14 +64,23 @@ function FacturesPage() {
       const { data, error } = await supabase
         .from("dossiers")
         .select(
-          "id, client_nom, client_prenom, mutuelle, montant_pec, montant_devis, transmis_mutuelle, transmis_mutuelle_at, facture_cosium, facture_cosium_at",
+          "id, client_nom, client_prenom, mutuelle, montant_pec, montant_devis, transmis_mutuelle, transmis_mutuelle_at, facture_cosium, facture_cosium_at, reste_a_charge, avoir_commercial, reste_a_charge_payment_method",
         )
         .or("facture_cosium.eq.true,transmis_mutuelle.eq.true,transmis_mutuelle_at.not.is.null")
         .eq("paiement_recu", false)
         .order("transmis_mutuelle_at", { ascending: true, nullsFirst: false });
 
       if (error) throw error;
-      return (data ?? []) as Dossier[];
+      const result = (data ?? []) as Dossier[];
+      // Initialize payment methods from loaded data
+      const methods: Record<string, PaymentMethod | null> = {};
+      result.forEach((d) => {
+        if (d.reste_a_charge_payment_method) {
+          methods[d.id] = d.reste_a_charge_payment_method as PaymentMethod;
+        }
+      });
+      setPaymentMethods(methods);
+      return result;
     },
   });
 
@@ -81,12 +97,17 @@ function FacturesPage() {
   }, [qc]);
 
   const totalEnAttente = dossiers.reduce(
-    (acc, d) => acc + (Number(d.montant_pec) || 0),
+    (acc, d) => acc + Math.max(0, (Number(d.montant_pec) || 0) - (Number(d.avoir_commercial) || 0)),
     0,
   );
 
   const totalDevis = dossiers.reduce(
     (acc, d) => acc + (Number(d.montant_devis) || 0),
+    0,
+  );
+
+  const totalAvoir = dossiers.reduce(
+    (acc, d) => acc + (Number(d.avoir_commercial) || 0),
     0,
   );
 
@@ -116,6 +137,24 @@ function FacturesPage() {
     qc.invalidateQueries({ queryKey: ["factures-en-attente"] });
   };
 
+  const updatePaymentMethod = useMutation({
+    mutationFn: async ({ id, method }: { id: string; method: PaymentMethod | null }) => {
+      const { error } = await supabase
+        .from("dossiers")
+        .update({ reste_a_charge_payment_method: method })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Mode de paiement enregistré");
+      qc.invalidateQueries({ queryKey: ["factures-en-attente"] });
+    },
+    onError: (error) => {
+      console.error(error);
+      toast.error("Erreur lors de la sauvegarde du mode de paiement");
+    },
+  });
+
   return (
     <div className="space-y-5">
       <div className="flex flex-wrap items-center justify-between gap-3">
@@ -141,6 +180,14 @@ function FacturesPage() {
               {totalDevis.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
             </div>
           </div>
+          {totalAvoir > 0 && (
+            <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-right">
+              <div className="text-xs uppercase text-amber-900">Total avoirs</div>
+              <div className="text-lg font-semibold text-amber-900">
+                -{totalAvoir.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -154,16 +201,19 @@ function FacturesPage() {
               <th className="px-4 py-3">Transmis le</th>
               <th className="px-4 py-3">Délai</th>
               <th className="px-4 py-3 text-right">Montant accordé</th>
-              <th className="px-4 py-3">Règlement</th>
-              <th className="px-4 py-3"></th>
-            </tr>
+             <th className="px-4 py-3 text-right">Avoir commercial</th>
+             <th className="px-4 py-3 text-right">À payer</th>
+             <th className="px-4 py-3">Mode de paiement</th>
+             <th className="px-4 py-3">Règlement</th>
+             <th className="px-4 py-3"></th>
+           </tr>
           </thead>
           <tbody className="divide-y">
             {isLoading && (
-              <tr><td colSpan={8} className="px-4 py-6 text-center text-muted-foreground">Chargement...</td></tr>
+              <tr><td colSpan={11} className="px-4 py-6 text-center text-muted-foreground">Chargement...</td></tr>
             )}
             {!isLoading && dossiers.length === 0 && (
-              <tr><td colSpan={8} className="px-4 py-6 text-center text-muted-foreground">
+              <tr><td colSpan={11} className="px-4 py-6 text-center text-muted-foreground">
                 Aucune facture en attente de règlement.
               </td></tr>
             )}
@@ -215,31 +265,58 @@ function FacturesPage() {
                       maximumFractionDigits: 2,
                     })} €
                   </td>
+                  <td className="px-4 py-3 text-right font-medium">
+                   {Number(d.avoir_commercial || 0).toLocaleString("fr-FR", {
+                     minimumFractionDigits: 2,
+                     maximumFractionDigits: 2,
+                   })} €
+                  </td>
+                  <td className="px-4 py-3 text-right font-medium">
+                   {Math.max(0, Number(d.montant_pec || 0) - Number(d.avoir_commercial || 0)).toLocaleString("fr-FR", {
+                     minimumFractionDigits: 2,
+                     maximumFractionDigits: 2,
+                   })} €
+                  </td>
+                  <td className="px-4 py-3 min-w-[180px]">
+                   {Math.max(0, Number(d.montant_pec || 0) - Number(d.avoir_commercial || 0)) > 0 ? (
+                     <PaymentMethodSelect
+                       value={paymentMethods[d.id] ?? null}
+                       onChange={(method) => {
+                         setPaymentMethods((p) => ({ ...p, [d.id]: method }));
+                         updatePaymentMethod.mutate({ id: d.id, method });
+                       }}
+                       placeholder="Mode de paiement"
+                       disabled={updatePaymentMethod.isPending}
+                     />
+                   ) : (
+                     <div className="text-xs text-muted-foreground">—</div>
+                   )}
+                  </td>
                   <td className="px-4 py-3">
-                    <div className="flex items-center gap-1.5">
-                      <Input
-                        type="date"
-                        value={paymentDates[d.id] ?? today}
-                        onChange={(e) => setPaymentDates((p) => ({ ...p, [d.id]: e.target.value }))}
-                        className="h-8 w-[140px]"
-                      />
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="gap-1"
-                        onClick={() => confirmPayment(d.id, paymentDates[d.id] || today)}
-                      >
-                        <CheckCircle2 className="h-3.5 w-3.5" />
-                        Reçu
-                      </Button>
-                    </div>
+                   <div className="flex items-center gap-1.5">
+                     <Input
+                       type="date"
+                       value={paymentDates[d.id] ?? today}
+                       onChange={(e) => setPaymentDates((p) => ({ ...p, [d.id]: e.target.value }))}
+                       className="h-8 w-[140px]"
+                     />
+                     <Button
+                       size="sm"
+                       variant="outline"
+                       className="gap-1"
+                       onClick={() => confirmPayment(d.id, paymentDates[d.id] || today)}
+                     >
+                       <CheckCircle2 className="h-3.5 w-3.5" />
+                       Reçu
+                     </Button>
+                   </div>
                   </td>
                   <td className="px-4 py-3 text-right">
-                    <Link to="/dossiers/$id" params={{ id: d.id }}>
-                      <Button size="sm" variant="ghost" className="gap-1">
-                        Ouvrir <ArrowRight className="h-3.5 w-3.5" />
-                      </Button>
-                    </Link>
+                   <Link to="/dossiers/$id" params={{ id: d.id }}>
+                     <Button size="sm" variant="ghost" className="gap-1">
+                       Ouvrir <ArrowRight className="h-3.5 w-3.5" />
+                     </Button>
+                   </Link>
                   </td>
                 </tr>
               );

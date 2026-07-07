@@ -109,8 +109,10 @@ export function MessagesPanel() {
 
   // Default recipient = the other user (single peer case)
   useEffect(() => {
-    if (!recipientId && others.length > 0) setRecipientId(others[0].id);
-  }, [others, recipientId]);
+    if (!recipientId && others.length > 0 && others[0].id) {
+      setRecipientId(others[0].id);
+    }
+  }, [others.length, others[0]?.id, recipientId]);
 
   // Auto-open once if unread on mount
   useEffect(() => {

@@ -3,22 +3,32 @@
 
 let lastCapturedError: { error: unknown; at: number } | undefined;
 const TTL_MS = 5_000;
+const MAX_ERRORS = 5;
+let errorCount = 0;
 
 function record(error: unknown) {
+  errorCount++;
+  // Prevent unbounded memory growth from repeated errors
+  if (errorCount > MAX_ERRORS) {
+    errorCount = 0;
+  }
   lastCapturedError = { error, at: Date.now() };
 }
 
 if (typeof globalThis.addEventListener === "function") {
-  globalThis.addEventListener("error", (event) => record((event as ErrorEvent).error ?? event));
-  globalThis.addEventListener("unhandledrejection", (event) =>
-    record((event as PromiseRejectionEvent).reason),
-  );
+  globalThis.addEventListener("error", (event) => {
+    record((event as ErrorEvent).error ?? event);
+  });
+  globalThis.addEventListener("unhandledrejection", (event) => {
+    record((event as PromiseRejectionEvent).reason);
+  });
 }
 
 export function consumeLastCapturedError(): unknown {
   if (!lastCapturedError) return undefined;
   if (Date.now() - lastCapturedError.at > TTL_MS) {
     lastCapturedError = undefined;
+    errorCount = 0;
     return undefined;
   }
   const { error } = lastCapturedError;
