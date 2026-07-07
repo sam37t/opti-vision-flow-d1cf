@@ -97,6 +97,7 @@ export type Database = {
       }
       dossiers: {
         Row: {
+          avoir_commercial: number | null
           client_nom: string
           client_prenom: string
           cotation_recue_at: string | null
@@ -117,6 +118,7 @@ export type Database = {
           probleme: boolean
           remboursement_attendu: number | null
           reste_a_charge: number | null
+          reste_a_charge_payment_method: string | null
           status: Database["public"]["Enums"]["dossier_status"]
           telephone: string
           transmis_mutuelle: boolean
@@ -126,6 +128,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          avoir_commercial?: number | null
           client_nom: string
           client_prenom: string
           cotation_recue_at?: string | null
@@ -146,6 +149,7 @@ export type Database = {
           probleme?: boolean
           remboursement_attendu?: number | null
           reste_a_charge?: number | null
+          reste_a_charge_payment_method?: string | null
           status?: Database["public"]["Enums"]["dossier_status"]
           telephone?: string
           transmis_mutuelle?: boolean
@@ -155,6 +159,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          avoir_commercial?: number | null
           client_nom?: string
           client_prenom?: string
           cotation_recue_at?: string | null
@@ -175,6 +180,7 @@ export type Database = {
           probleme?: boolean
           remboursement_attendu?: number | null
           reste_a_charge?: number | null
+          reste_a_charge_payment_method?: string | null
           status?: Database["public"]["Enums"]["dossier_status"]
           telephone?: string
           transmis_mutuelle?: boolean
