@@ -132,6 +132,24 @@ function DossierDetail() {
   const [avoir, setAvoir] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
 
+  const updatePaymentMethodMutation = useMutation({
+    mutationFn: async (method: PaymentMethod | null) => {
+      const { error } = await supabase
+        .from("dossiers")
+        .update({ reste_a_charge_payment_method: method } as any)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Mode de paiement enregistré");
+      qc.invalidateQueries({ queryKey: ["dossier", id] });
+    },
+    onError: (error) => {
+      console.error(error);
+      toast.error("Erreur lors de la sauvegarde du mode de paiement");
+    },
+  });
+
   useEffect(() => {
     if (dossier) {
       const dd = dossier as any;
@@ -218,23 +236,6 @@ function DossierDetail() {
     else toast.success("Montants enregistrés");
   };
 
-  const updatePaymentMethodMutation = useMutation({
-    mutationFn: async (method: PaymentMethod | null) => {
-      const { error } = await supabase
-        .from("dossiers")
-        .update({ reste_a_charge_payment_method: method } as any)
-        .eq("id", id);
-      if (error) throw error;
-    },
-    onSuccess: () => {
-      toast.success("Mode de paiement enregistré");
-      qc.invalidateQueries({ queryKey: ["dossier", id] });
-    },
-    onError: (error) => {
-      console.error(error);
-      toast.error("Erreur lors de la sauvegarde du mode de paiement");
-    },
-  });
 
   const updateDossier = async (patch: any, successMsg = "Dossier mis à jour") => {
     const { error } = await supabase.from("dossiers").update(patch).eq("id", id);
