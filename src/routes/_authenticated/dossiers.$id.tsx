@@ -1,5 +1,5 @@
 import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { ArrowLeft, ExternalLink, Phone, History, MessageSquare, Trash2, AlertOctagon, Receipt, CheckCircle2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -16,6 +16,9 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { SELECTABLE_STATUSES, STATUS_LABELS, type DossierStatus } from "@/lib/dossier-status";
 import { getTpPlatform, isDifferentPlatform } from "@/lib/tp-platforms";
 import { daysSinceTransmisNonRegle } from "@/lib/dossier-alerts";
+import { PaymentMethodSelect } from "@/components/PaymentMethodSelect";
+import { PaymentMethodBadge } from "@/components/PaymentMethodBadge";
+import type { PaymentMethod } from "@/lib/payment-methods";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dossiers/$id")({
@@ -119,6 +122,7 @@ function DossierDetail() {
   const [devis, setDevis] = useState("");
   const [pec, setPec] = useState("");
   const [ss, setSs] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [noteContent, setNoteContent] = useState("");
   const [paiementDate, setPaiementDate] = useState(new Date().toISOString().slice(0, 10));
 
@@ -134,6 +138,7 @@ function DossierDetail() {
       setDevis(dd.montant_devis?.toString() ?? "");
       setPec(dd.montant_pec?.toString() ?? "");
       setSs(dd.montant_ss?.toString() ?? "");
+      setPaymentMethod(dd.reste_a_charge_payment_method as PaymentMethod | null);
     }
   }, [dossier]);
 
@@ -209,6 +214,24 @@ function DossierDetail() {
     if (error) toast.error(error.message);
     else toast.success(successMsg);
   };
+
+  const updatePaymentMethodMutation = useMutation({
+    mutationFn: async (method: PaymentMethod | null) => {
+      const { error } = await supabase
+        .from("dossiers")
+        .update({ reste_a_charge_payment_method: method })
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Mode de paiement enregistré");
+      qc.invalidateQueries({ queryKey: ["dossier", id] });
+    },
+    onError: (error) => {
+      console.error(error);
+      toast.error("Erreur lors de la sauvegarde du mode de paiement");
+    },
+  });
 
   const today = new Date().toISOString().slice(0, 10);
 
@@ -412,6 +435,20 @@ function DossierDetail() {
                 <Label>Reste à charge (€) <span className="text-xs text-muted-foreground">(auto)</span></Label>
                 <Input type="number" step="0.01" value={racLive.toFixed(2)} readOnly className="bg-muted/40 font-semibold" />
               </div>
+              {racLive > 0 && (
+                <div className="space-y-2 sm:col-span-2">
+                  <Label>Mode de paiement du reste à charge</Label>
+                  <PaymentMethodSelect
+                    value={paymentMethod}
+                    onChange={(method) => {
+                      setPaymentMethod(method);
+                      updatePaymentMethodMutation.mutate(method);
+                    }}
+                    placeholder="Renseigner le mode de paiement"
+                    disabled={updatePaymentMethodMutation.isPending}
+                  />
+                </div>
+              )}
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
               Reste à charge = Montant du devis − Remboursement SS − Montant accordé mutuelle.
