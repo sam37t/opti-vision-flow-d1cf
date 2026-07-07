@@ -27,6 +27,7 @@ type Dossier = {
   facture_cosium: boolean;
   facture_cosium_at: string | null;
   reste_a_charge: number | null;
+  avoir_commercial: number | null;
   reste_a_charge_payment_method: string | null;
 };
 
@@ -63,7 +64,7 @@ function FacturesPage() {
       const { data, error } = await supabase
         .from("dossiers")
         .select(
-          "id, client_nom, client_prenom, mutuelle, montant_pec, montant_devis, transmis_mutuelle, transmis_mutuelle_at, facture_cosium, facture_cosium_at, reste_a_charge, reste_a_charge_payment_method",
+          "id, client_nom, client_prenom, mutuelle, montant_pec, montant_devis, transmis_mutuelle, transmis_mutuelle_at, facture_cosium, facture_cosium_at, reste_a_charge, avoir_commercial, reste_a_charge_payment_method",
         )
         .or("facture_cosium.eq.true,transmis_mutuelle.eq.true,transmis_mutuelle_at.not.is.null")
         .eq("paiement_recu", false)
@@ -96,12 +97,17 @@ function FacturesPage() {
   }, [qc]);
 
   const totalEnAttente = dossiers.reduce(
-    (acc, d) => acc + (Number(d.montant_pec) || 0),
+    (acc, d) => acc + Math.max(0, (Number(d.montant_pec) || 0) - (Number(d.avoir_commercial) || 0)),
     0,
   );
 
   const totalDevis = dossiers.reduce(
     (acc, d) => acc + (Number(d.montant_devis) || 0),
+    0,
+  );
+
+  const totalAvoir = dossiers.reduce(
+    (acc, d) => acc + (Number(d.avoir_commercial) || 0),
     0,
   );
 
@@ -174,6 +180,14 @@ function FacturesPage() {
               {totalDevis.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
             </div>
           </div>
+          {totalAvoir > 0 && (
+            <div className="rounded-lg border border-amber-300 bg-amber-50 px-4 py-2 text-right">
+              <div className="text-xs uppercase text-amber-900">Total avoirs</div>
+              <div className="text-lg font-semibold text-amber-900">
+                -{totalAvoir.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+              </div>
+            </div>
+          )}
         </div>
       </div>
 
@@ -187,7 +201,8 @@ function FacturesPage() {
               <th className="px-4 py-3">Transmis le</th>
               <th className="px-4 py-3">Délai</th>
               <th className="px-4 py-3 text-right">Montant accordé</th>
-             <th className="px-4 py-3 text-right">Reste à charge</th>
+             <th className="px-4 py-3 text-right">Avoir commercial</th>
+             <th className="px-4 py-3 text-right">À payer</th>
              <th className="px-4 py-3">Mode de paiement</th>
              <th className="px-4 py-3">Règlement</th>
              <th className="px-4 py-3"></th>
@@ -195,10 +210,10 @@ function FacturesPage() {
           </thead>
           <tbody className="divide-y">
             {isLoading && (
-              <tr><td colSpan={10} className="px-4 py-6 text-center text-muted-foreground">Chargement...</td></tr>
+              <tr><td colSpan={11} className="px-4 py-6 text-center text-muted-foreground">Chargement...</td></tr>
             )}
             {!isLoading && dossiers.length === 0 && (
-              <tr><td colSpan={10} className="px-4 py-6 text-center text-muted-foreground">
+              <tr><td colSpan={11} className="px-4 py-6 text-center text-muted-foreground">
                 Aucune facture en attente de règlement.
               </td></tr>
             )}
@@ -251,13 +266,19 @@ function FacturesPage() {
                     })} €
                   </td>
                   <td className="px-4 py-3 text-right font-medium">
-                   {Number(d.reste_a_charge || 0).toLocaleString("fr-FR", {
+                   {Number(d.avoir_commercial || 0).toLocaleString("fr-FR", {
+                     minimumFractionDigits: 2,
+                     maximumFractionDigits: 2,
+                   })} €
+                  </td>
+                  <td className="px-4 py-3 text-right font-medium">
+                   {Math.max(0, Number(d.montant_pec || 0) - Number(d.avoir_commercial || 0)).toLocaleString("fr-FR", {
                      minimumFractionDigits: 2,
                      maximumFractionDigits: 2,
                    })} €
                   </td>
                   <td className="px-4 py-3 min-w-[180px]">
-                   {d.reste_a_charge && d.reste_a_charge > 0 ? (
+                   {Math.max(0, Number(d.montant_pec || 0) - Number(d.avoir_commercial || 0)) > 0 ? (
                      <PaymentMethodSelect
                        value={paymentMethods[d.id] ?? null}
                        onChange={(method) => {

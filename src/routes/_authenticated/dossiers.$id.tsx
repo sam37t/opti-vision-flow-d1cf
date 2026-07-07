@@ -122,6 +122,7 @@ function DossierDetail() {
   const [devis, setDevis] = useState("");
   const [pec, setPec] = useState("");
   const [ss, setSs] = useState("");
+  const [avoir, setAvoir] = useState("");
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
   const [noteContent, setNoteContent] = useState("");
   const [paiementDate, setPaiementDate] = useState(new Date().toISOString().slice(0, 10));
@@ -138,6 +139,7 @@ function DossierDetail() {
       setDevis(dd.montant_devis?.toString() ?? "");
       setPec(dd.montant_pec?.toString() ?? "");
       setSs(dd.montant_ss?.toString() ?? "");
+      setAvoir(dd.avoir_commercial?.toString() ?? "");
       setPaymentMethod(dd.reste_a_charge_payment_method as PaymentMethod | null);
     }
   }, [dossier]);
@@ -146,7 +148,8 @@ function DossierDetail() {
   const devisNum = parseAmount(devis) ?? 0;
   const pecNum = parseAmount(pec) ?? 0;
   const ssNum = parseAmount(ss) ?? 0;
-  const racLive = Math.max(0, devisNum - ssNum - pecNum);
+  const avoirNum = parseAmount(avoir) ?? 0;
+  const racLive = Math.max(0, devisNum - ssNum - pecNum - avoirNum);
 
 
   const saveInfos = async () => {
@@ -202,6 +205,7 @@ function DossierDetail() {
         montant_devis: parseAmount(devis) ?? 0,
         montant_pec: parseAmount(pec),
         montant_ss: parseAmount(ss),
+        avoir_commercial: parseAmount(avoir),
       } as any)
       .eq("id", id);
     setSaving(false);
@@ -430,6 +434,10 @@ function DossierDetail() {
               <div className="space-y-2">
                 <Label>Montant accordé / PEC mutuelle (€)</Label>
                 <Input type="number" step="0.01" value={pec} onChange={(e) => setPec(e.target.value)} placeholder="Optionnel" />
+              </div>
+              <div className="space-y-2">
+                <Label>Avoir commercial (€)</Label>
+                <Input type="number" step="0.01" value={avoir} onChange={(e) => setAvoir(e.target.value)} placeholder="Optionnel" />
               </div>
               <div className="space-y-2">
                 <Label>Reste à charge (€) <span className="text-xs text-muted-foreground">(auto)</span></Label>
