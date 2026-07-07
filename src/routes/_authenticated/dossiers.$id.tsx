@@ -436,9 +436,27 @@ function DossierDetail() {
                 <Input type="number" step="0.01" value={pec} onChange={(e) => setPec(e.target.value)} placeholder="Optionnel" />
               </div>
               <div className="space-y-2">
+                <Label>Avoir commercial (€)</Label>
+                <Input type="number" step="0.01" value={avoir} onChange={(e) => setAvoir(e.target.value)} placeholder="Optionnel" />
+              </div>
+              <div className="space-y-2">
                 <Label>Reste à charge (€) <span className="text-xs text-muted-foreground">(auto)</span></Label>
                 <Input type="number" step="0.01" value={racLive.toFixed(2)} readOnly className="bg-muted/40 font-semibold" />
               </div>
+              {racLive > 0 && (
+                <div className="space-y-2 sm:col-span-2">
+                  <Label>Mode de paiement du reste à charge</Label>
+                  <PaymentMethodSelect
+                    value={paymentMethod}
+                    onChange={(method) => {
+                      setPaymentMethod(method);
+                      updatePaymentMethodMutation.mutate(method);
+                    }}
+                    placeholder="Renseigner le mode de paiement"
+                    disabled={updatePaymentMethodMutation.isPending}
+                  />
+                </div>
+              )}
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
               Reste à charge = Montant du devis − Remboursement SS − Montant accordé mutuelle.
