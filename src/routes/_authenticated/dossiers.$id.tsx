@@ -32,8 +32,11 @@ function DossierDetail() {
   const qc = useQueryClient();
   const { user } = useAuth();
 
+  const authReady = !!user;
+
   const { data: dossier, isLoading } = useQuery({
     queryKey: ["dossier", id],
+    enabled: authReady,
     queryFn: async () => {
       const { data, error } = await supabase.from("dossiers").select("*").eq("id", id).single();
       if (error) throw error;
@@ -43,6 +46,7 @@ function DossierDetail() {
 
   const { data: history = [] } = useQuery({
     queryKey: ["history", id],
+    enabled: authReady,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("dossier_history")
@@ -62,6 +66,7 @@ function DossierDetail() {
 
   const { data: notes = [] } = useQuery({
     queryKey: ["notes", id],
+    enabled: authReady,
     queryFn: async () => {
       const { data, error } = await supabase
         .from("dossier_notes")
