@@ -1,5 +1,5 @@
 import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
-import { useQuery, useQueryClient } from "@tanstack/react-query";
+import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { ArrowLeft, ExternalLink, Phone, History, MessageSquare, Trash2, AlertOctagon, Receipt, CheckCircle2 } from "lucide-react";
 import { Checkbox } from "@/components/ui/checkbox";
@@ -16,6 +16,9 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { SELECTABLE_STATUSES, STATUS_LABELS, type DossierStatus } from "@/lib/dossier-status";
 import { getTpPlatform, isDifferentPlatform } from "@/lib/tp-platforms";
 import { daysSinceTransmisNonRegle } from "@/lib/dossier-alerts";
+import { PaymentMethodSelect } from "@/components/PaymentMethodSelect";
+import { PaymentMethodBadge } from "@/components/PaymentMethodBadge";
+import type { PaymentMethod } from "@/lib/payment-methods";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/dossiers/$id")({
@@ -121,6 +124,8 @@ function DossierDetail() {
   const [ss, setSs] = useState("");
   const [noteContent, setNoteContent] = useState("");
   const [paiementDate, setPaiementDate] = useState(new Date().toISOString().slice(0, 10));
+  const [avoir, setAvoir] = useState("");
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethod | null>(null);
 
   useEffect(() => {
     if (dossier) {
@@ -134,6 +139,8 @@ function DossierDetail() {
       setDevis(dd.montant_devis?.toString() ?? "");
       setPec(dd.montant_pec?.toString() ?? "");
       setSs(dd.montant_ss?.toString() ?? "");
+      setAvoir(dd.avoir_commercial?.toString() ?? "");
+      setPaymentMethod(dd.reste_a_charge_payment_method as PaymentMethod | null);
     }
   }, [dossier]);
 
@@ -141,7 +148,8 @@ function DossierDetail() {
   const devisNum = parseAmount(devis) ?? 0;
   const pecNum = parseAmount(pec) ?? 0;
   const ssNum = parseAmount(ss) ?? 0;
-  const racLive = Math.max(0, devisNum - ssNum - pecNum);
+  const avoirNum = parseAmount(avoir) ?? 0;
+  const racLive = Math.max(0, devisNum - ssNum - pecNum - avoirNum);
 
 
   const saveInfos = async () => {
@@ -197,12 +205,31 @@ function DossierDetail() {
         montant_devis: parseAmount(devis) ?? 0,
         montant_pec: parseAmount(pec),
         montant_ss: parseAmount(ss),
+        avoir_commercial: parseAmount(avoir),
       } as any)
       .eq("id", id);
     setSaving(false);
     if (error) toast.error(error.message);
     else toast.success("Montants enregistrés");
   };
+
+  const updatePaymentMethodMutation = useMutation({
+    mutationFn: async (method: PaymentMethod | null) => {
+      const { error } = await supabase
+        .from("dossiers")
+        .update({ reste_a_charge_payment_method: method } as any)
+        .eq("id", id);
+      if (error) throw error;
+    },
+    onSuccess: () => {
+      toast.success("Mode de paiement enregistré");
+      qc.invalidateQueries({ queryKey: ["dossier", id] });
+    },
+    onError: (error) => {
+      console.error(error);
+      toast.error("Erreur lors de la sauvegarde du mode de paiement");
+    },
+  });
 
   const updateDossier = async (patch: any, successMsg = "Dossier mis à jour") => {
     const { error } = await supabase.from("dossiers").update(patch).eq("id", id);
