@@ -240,8 +240,9 @@ function Dashboard() {
                       params={{ id: d.id }}
                       className="flex items-center justify-between gap-3 px-3 py-2 text-sm hover:bg-accent"
                     >
-                      <span className="font-medium truncate">
-                        {(d.client_nom || "").toUpperCase()} {d.client_prenom}
+                      <span className="font-medium truncate flex items-center gap-1.5">
+                        <span className="truncate">{(d.client_nom || "").toUpperCase()} {d.client_prenom}</span>
+                        {d.type_dossier === "lentilles" && <LensBadge />}
                       </span>
                       <span className="flex items-center gap-3 text-muted-foreground">
                         <span className="hidden sm:inline truncate max-w-[14rem]">{d.mutuelle || "—"}</span>
