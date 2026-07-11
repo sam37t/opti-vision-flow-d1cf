@@ -69,7 +69,7 @@ function alertForClientDays(days: number | null): {
 function LensBadge() {
   return (
     <span
-      className="inline-flex items-center rounded-full border border-red-300 bg-red-50 px-1.5 py-0 text-[10px] font-bold uppercase tracking-wide text-red-600"
+      className="inline-flex items-center rounded-full border border-red-400 bg-red-100 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-red-700 shadow-sm"
       title="Dossier lentilles"
     >
       LENT
