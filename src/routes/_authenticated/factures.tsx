@@ -221,14 +221,14 @@ function FacturesPage() {
           <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
             <tr>
               <th className="px-2 py-2">Client</th>
-              <th className="px-2 py-2">Mutuelle</th>
-              <th className="px-2 py-2">Facturé le</th>
+              <th className="px-2 py-2 hidden xl:table-cell">Mutuelle</th>
+              <th className="px-2 py-2 hidden 2xl:table-cell">Facturé le</th>
               <th className="px-2 py-2">Transmis le</th>
               <th className="px-2 py-2">Délai</th>
-              <th className="px-2 py-2 text-right">Montant accordé</th>
-              <th className="px-2 py-2 text-right">Avoir commercial</th>
+              <th className="px-2 py-2 text-right hidden lg:table-cell">Montant</th>
+              <th className="px-2 py-2 text-right hidden xl:table-cell">Avoir</th>
               <th className="px-2 py-2 text-right">À payer</th>
-              <th className="px-2 py-2">Mode de paiement</th>
+              <th className="px-2 py-2">Mode paiement</th>
               <th className="px-2 py-2">Règlement</th>
               <th className="px-2 py-2"></th>
             </tr>
