@@ -31,6 +31,10 @@ type Dossier = {
   avoir_commercial: number | null;
   reste_a_charge_payment_method: string | null;
   type_dossier: string | null;
+  paiement_client_recu: boolean | null;
+  paiement_client_recu_at: string | null;
+  paiement_mutuelle_recu: boolean | null;
+  paiement_mutuelle_recu_at: string | null;
 };
 
 function daysSince(iso: string | null): number | null {
@@ -80,7 +84,8 @@ function LensBadge() {
 function FacturesPage() {
   const qc = useQueryClient();
   const today = new Date().toISOString().slice(0, 10);
-  const [paymentDates, setPaymentDates] = useState<Record<string, string>>({});
+  const [clientDates, setClientDates] = useState<Record<string, string>>({});
+  const [mutuelleDates, setMutuelleDates] = useState<Record<string, string>>({});
   const [paymentMethods, setPaymentMethods] = useState<Record<string, PaymentMethod | null>>({});
 
   const { data: dossiers = [], isLoading } = useQuery({
@@ -89,7 +94,7 @@ function FacturesPage() {
       const { data, error } = await supabase
         .from("dossiers")
         .select(
-          "id, client_nom, client_prenom, mutuelle, montant_pec, montant_devis, transmis_mutuelle, transmis_mutuelle_at, facture_cosium, facture_cosium_at, facture_client, facture_client_at, reste_a_charge, avoir_commercial, reste_a_charge_payment_method, type_dossier",
+          "id, client_nom, client_prenom, mutuelle, montant_pec, montant_devis, transmis_mutuelle, transmis_mutuelle_at, facture_cosium, facture_cosium_at, facture_client, facture_client_at, reste_a_charge, avoir_commercial, reste_a_charge_payment_method, type_dossier, paiement_client_recu, paiement_client_recu_at, paiement_mutuelle_recu, paiement_mutuelle_recu_at",
         )
         .or("facture_cosium.eq.true,transmis_mutuelle.eq.true,transmis_mutuelle_at.not.is.null,facture_client.eq.true")
         .eq("paiement_recu", false)
@@ -120,39 +125,43 @@ function FacturesPage() {
     };
   }, [qc]);
 
-  // Compute per-dossier due amounts (mutuelle + client can coexist)
+  // Volets de règlement indépendants (mutuelle + client)
   const computeDue = (d: Dossier) => {
     const isLentilles = d.type_dossier === "lentilles";
-    const mutuelleDue = d.transmis_mutuelle ? Number(d.montant_pec) || 0 : 0;
+    const pec = Number(d.montant_pec) || 0;
     const rac = Number(d.reste_a_charge) || 0;
     const avoir = Number(d.avoir_commercial) || 0;
-    // Geste commercial (avoir) réduit le reste à charge client
-    const clientDue = Math.max(0, rac - avoir);
-    // Si aucune transmission mutuelle et pas de reste à charge saisi, on retombe sur la facture client (lentilles ou facture_client)
-    const fallbackClient =
-      !d.transmis_mutuelle && (d.facture_client || isLentilles) && rac === 0
-        ? Math.max(0, (Number(d.montant_devis) || 0) - avoir)
-        : 0;
+
+    // Mutuelle: dû dès qu'un montant PEC existe, jusqu'à encaissement
+    const mutuelleExpected = pec;
+    const mutuellePaid = !!d.paiement_mutuelle_recu;
+    const mutuelleDue = mutuellePaid ? 0 : mutuelleExpected;
+
+    // Client: reste à charge - geste commercial
+    let clientExpected = Math.max(0, rac - avoir);
+    // Cas facture client directe sans PEC ni RAC saisi
+    if (clientExpected === 0 && pec === 0 && rac === 0 && (d.facture_client || isLentilles)) {
+      clientExpected = Math.max(0, (Number(d.montant_devis) || 0) - avoir);
+    }
+    const clientPaid = !!d.paiement_client_recu;
+    const clientDue = clientPaid ? 0 : clientExpected;
+
     return {
+      mutuelleExpected,
       mutuelleDue,
-      clientDue: clientDue || fallbackClient,
-      total: mutuelleDue + (clientDue || fallbackClient),
+      mutuellePaid,
+      clientExpected,
+      clientDue,
+      clientPaid,
+      total: mutuelleDue + clientDue,
     };
   };
 
   const totalEnAttente = dossiers.reduce((acc, d) => acc + computeDue(d).total, 0);
   const totalMutuelle = dossiers.reduce((acc, d) => acc + computeDue(d).mutuelleDue, 0);
   const totalClient = dossiers.reduce((acc, d) => acc + computeDue(d).clientDue, 0);
-
-  const totalDevis = dossiers.reduce(
-    (acc, d) => acc + (Number(d.montant_devis) || 0),
-    0,
-  );
-
-  const totalAvoir = dossiers.reduce(
-    (acc, d) => acc + (Number(d.avoir_commercial) || 0),
-    0,
-  );
+  const totalDevis = dossiers.reduce((acc, d) => acc + (Number(d.montant_devis) || 0), 0);
+  const totalAvoir = dossiers.reduce((acc, d) => acc + (Number(d.avoir_commercial) || 0), 0);
 
   const sortedDossiers = useMemo(() => {
     return [...dossiers].sort((a, b) => {
@@ -167,16 +176,55 @@ function FacturesPage() {
     });
   }, [dossiers]);
 
-  const confirmPayment = async (id: string, date: string) => {
+  const confirmClient = async (id: string, date: string) => {
     const { error } = await supabase
       .from("dossiers")
-      .update({ paiement_recu: true, paiement_recu_at: date })
+      .update({ paiement_client_recu: true, paiement_client_recu_at: date } as any)
       .eq("id", id);
     if (error) {
-      toast.error("Erreur lors de la confirmation du règlement");
+      toast.error("Erreur lors de la confirmation du règlement client");
       return;
     }
-    toast.success("Règlement confirmé");
+    toast.success("Règlement client confirmé");
+    qc.invalidateQueries({ queryKey: ["factures-en-attente"] });
+  };
+
+  const confirmMutuelle = async (id: string, date: string) => {
+    const { error } = await supabase
+      .from("dossiers")
+      .update({ paiement_mutuelle_recu: true, paiement_mutuelle_recu_at: date } as any)
+      .eq("id", id);
+    if (error) {
+      toast.error("Erreur lors de la confirmation du règlement mutuelle");
+      return;
+    }
+    toast.success("Règlement mutuelle confirmé");
+    qc.invalidateQueries({ queryKey: ["factures-en-attente"] });
+  };
+
+  const updateClientDate = async (id: string, date: string) => {
+    const { error } = await supabase
+      .from("dossiers")
+      .update({ paiement_client_recu_at: date } as any)
+      .eq("id", id);
+    if (error) {
+      toast.error("Erreur lors de la mise à jour de la date");
+      return;
+    }
+    toast.success("Date mise à jour");
+    qc.invalidateQueries({ queryKey: ["factures-en-attente"] });
+  };
+
+  const updateMutuelleDate = async (id: string, date: string) => {
+    const { error } = await supabase
+      .from("dossiers")
+      .update({ paiement_mutuelle_recu_at: date } as any)
+      .eq("id", id);
+    if (error) {
+      toast.error("Erreur lors de la mise à jour de la date");
+      return;
+    }
+    toast.success("Date mise à jour");
     qc.invalidateQueries({ queryKey: ["factures-en-attente"] });
   };
 
@@ -207,7 +255,7 @@ function FacturesPage() {
             Factures en attente
           </h1>
           <p className="text-sm text-muted-foreground">
-            Dossiers facturés ou transmis à la mutuelle, en attente du règlement.
+            Suivi indépendant des règlements <span className="font-medium text-sky-800">mutuelle</span> et <span className="font-medium text-emerald-800">client</span>.
           </p>
         </div>
         <div className="flex flex-wrap gap-3">
@@ -247,36 +295,30 @@ function FacturesPage() {
       </div>
 
       <div className="overflow-x-auto rounded-xl border bg-card">
-        <table className="w-full min-w-[980px] text-sm">
+        <table className="w-full min-w-[1100px] text-sm">
           <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
             <tr>
               <th className="px-2 py-2">Client</th>
               <th className="px-2 py-2 hidden xl:table-cell">Mutuelle</th>
-              <th className="px-2 py-2 hidden 2xl:table-cell">Facturé le</th>
-              <th className="px-2 py-2">Transmis le</th>
               <th className="px-2 py-2">Délai</th>
-              <th className="px-2 py-2 text-right hidden lg:table-cell">Montant</th>
-              <th className="px-2 py-2 text-right hidden xl:table-cell">Avoir</th>
-              <th className="px-2 py-2 text-right">À payer</th>
-              <th className="px-2 py-2">Mode paiement</th>
-              <th className="px-2 py-2">Règlement</th>
+              <th className="px-2 py-2 text-right hidden lg:table-cell">Montant / Avoir</th>
+              <th className="px-2 py-2">Règlement mutuelle</th>
+              <th className="px-2 py-2">Règlement client</th>
               <th className="px-2 py-2"></th>
             </tr>
           </thead>
           <tbody className="divide-y">
             {isLoading && (
-              <tr><td colSpan={11} className="px-4 py-6 text-center text-muted-foreground">Chargement...</td></tr>
+              <tr><td colSpan={7} className="px-4 py-6 text-center text-muted-foreground">Chargement...</td></tr>
             )}
             {!isLoading && dossiers.length === 0 && (
-              <tr><td colSpan={11} className="px-4 py-6 text-center text-muted-foreground">
+              <tr><td colSpan={7} className="px-4 py-6 text-center text-muted-foreground">
                 Aucune facture en attente de règlement.
               </td></tr>
             )}
             {sortedDossiers.map((d) => {
               const isLentilles = d.type_dossier === "lentilles";
               const due = computeDue(d);
-              const hasMutuelle = due.mutuelleDue > 0;
-              const hasClient = due.clientDue > 0;
               const isClientDirect = (d.facture_client && !d.transmis_mutuelle) || (isLentilles && !d.transmis_mutuelle);
               const days = d.transmis_mutuelle
                 ? daysSince(d.transmis_mutuelle_at)
@@ -285,47 +327,43 @@ function FacturesPage() {
                   : null;
               const alert = isClientDirect ? alertForClientDays(days) : alertForDays(days);
               const nonTransmisDays =
-                d.facture_cosium && !d.transmis_mutuelle && !d.facture_client && !isLentilles
+                d.facture_cosium && !d.transmis_mutuelle && due.mutuelleExpected > 0
                   ? daysSince(d.facture_cosium_at)
                   : null;
               const showNonTransmis = nonTransmisDays != null && nonTransmisDays >= 2;
-              const aPayer = due.total;
+              const avoir = Number(d.avoir_commercial) || 0;
+
               return (
-                <tr key={d.id} className="hover:bg-muted/30">
+                <tr key={d.id} className="hover:bg-muted/30 align-top">
                   <td className="px-2 py-2 font-medium">
-                    <div className="flex flex-wrap items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-1.5">
                       <span>{d.client_nom?.toUpperCase()} {d.client_prenom}</span>
                       {isLentilles && <LensBadge />}
-                      {hasMutuelle && (
-                        <span className="inline-flex items-center rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-sky-800">
-                          Mutuelle
+                    </div>
+                    <div className="mt-1 flex flex-wrap gap-1">
+                      {due.mutuelleExpected > 0 && (
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${due.mutuellePaid ? "bg-sky-100 text-sky-500 line-through" : "bg-sky-100 text-sky-800"}`}>
+                          Mutuelle {due.mutuelleExpected.toLocaleString("fr-FR", { minimumFractionDigits: 2 })}€
                         </span>
                       )}
-                      {hasClient && (
-                        <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-emerald-800">
-                          Client
+                      {due.clientExpected > 0 && (
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-[10px] font-semibold uppercase ${due.clientPaid ? "bg-emerald-100 text-emerald-500 line-through" : "bg-emerald-100 text-emerald-800"}`}>
+                          Client {due.clientExpected.toLocaleString("fr-FR", { minimumFractionDigits: 2 })}€
                         </span>
                       )}
                       {showNonTransmis && (
-                        <span className="inline-flex items-center gap-1 rounded-full bg-red-600 px-2 py-0.5 text-xs font-semibold text-white">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-red-600 px-2 py-0.5 text-[10px] font-semibold text-white">
                           <AlertTriangle className="h-3 w-3" />
                           {nonTransmisDays}j non transmis
                         </span>
                       )}
                     </div>
                   </td>
-                  <td className="px-2 py-2 hidden xl:table-cell">{hasMutuelle ? (d.mutuelle || "—") : <span className="text-muted-foreground italic">Client direct</span>}</td>
-                  <td className="px-2 py-2 text-muted-foreground hidden 2xl:table-cell">
-                    {d.facture_cosium_at
-                      ? new Date(d.facture_cosium_at).toLocaleDateString("fr-FR")
-                      : d.facture_cosium ? "—" : "Non facturé"}
-                  </td>
-                  <td className="px-2 py-2 text-muted-foreground">
-                    {d.transmis_mutuelle_at
-                      ? new Date(d.transmis_mutuelle_at).toLocaleDateString("fr-FR")
-                      : (d.facture_client_at || d.facture_cosium_at)
-                        ? `Client ${new Date((d.facture_client_at || d.facture_cosium_at)!).toLocaleDateString("fr-FR")}`
-                        : "Non transmis"}
+                  <td className="px-2 py-2 hidden xl:table-cell text-muted-foreground">
+                    {d.mutuelle || (isClientDirect ? <span className="italic">Client direct</span> : "—")}
+                    {d.transmis_mutuelle_at && (
+                      <div className="text-[11px]">Transmis {new Date(d.transmis_mutuelle_at).toLocaleDateString("fr-FR")}</div>
+                    )}
                   </td>
                   <td className="px-2 py-2">
                     {alert ? (
@@ -339,71 +377,132 @@ function FacturesPage() {
                       <span className="text-xs text-muted-foreground">—</span>
                     )}
                   </td>
-                  <td className="px-2 py-2 text-right font-medium hidden lg:table-cell">
-                    {Number(d.montant_devis || 0).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
-                  </td>
-                  <td className="px-2 py-2 text-right font-medium hidden xl:table-cell">
-                    {Number(d.avoir_commercial || 0) > 0 ? (
-                      <span className="text-amber-700">
-                        -{Number(d.avoir_commercial || 0).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
-                      </span>
-                    ) : (
-                      <span className="text-muted-foreground">—</span>
+                  <td className="px-2 py-2 text-right hidden lg:table-cell text-xs">
+                    <div>Devis : <span className="font-medium">{Number(d.montant_devis || 0).toLocaleString("fr-FR", { minimumFractionDigits: 2 })} €</span></div>
+                    {avoir > 0 && (
+                      <div className="text-amber-700">Avoir : -{avoir.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} €</div>
                     )}
                   </td>
-                  <td className="px-2 py-2 text-right font-medium">
-                    {hasMutuelle && hasClient ? (
-                      <div className="flex flex-col items-end gap-0.5 leading-tight">
-                        <span className="text-[11px] font-normal text-sky-700">
-                          Mut. {due.mutuelleDue.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
-                        </span>
-                        <span className="text-[11px] font-normal text-emerald-700">
-                          Cli. {due.clientDue.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
-                        </span>
-                        <span className="border-t pt-0.5 text-sm font-semibold">
-                          {aPayer.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
-                        </span>
-                      </div>
-                    ) : (
-                      <span className={hasClient ? "text-emerald-700" : hasMutuelle ? "text-sky-700" : ""}>
-                        {aPayer.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
-                      </span>
-                    )}
-                  </td>
-                  <td className="px-2 py-2 min-w-[180px]">
-                    {aPayer > 0 ? (
-                      <PaymentMethodSelect
-                        value={paymentMethods[d.id] ?? null}
-                        onChange={(method) => {
-                          setPaymentMethods((p) => ({ ...p, [d.id]: method }));
-                          updatePaymentMethod.mutate({ id: d.id, method });
-                        }}
-                        placeholder={hasClient ? "Mode (client)" : "Mode de paiement"}
-                        disabled={updatePaymentMethod.isPending}
-                      />
+
+                  {/* Colonne mutuelle */}
+                  <td className="px-2 py-2 min-w-[220px]">
+                    {due.mutuelleExpected > 0 ? (
+                      due.mutuellePaid ? (
+                        <div className="space-y-1">
+                          <div className="text-xs text-emerald-700 font-medium">✓ Reçu</div>
+                          <div className="flex items-center gap-1.5">
+                            <Input
+                              type="date"
+                              value={mutuelleDates[d.id] ?? (d.paiement_mutuelle_recu_at ?? today)}
+                              onChange={(e) => setMutuelleDates((p) => ({ ...p, [d.id]: e.target.value }))}
+                              onBlur={(e) => {
+                                if (e.target.value && e.target.value !== d.paiement_mutuelle_recu_at) {
+                                  updateMutuelleDate(d.id, e.target.value);
+                                }
+                              }}
+                              className="h-8 w-[130px] text-xs"
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-1">
+                          <div className="text-xs font-semibold text-sky-800">
+                            {due.mutuelleDue.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} € dû
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <Input
+                              type="date"
+                              value={mutuelleDates[d.id] ?? today}
+                              onChange={(e) => setMutuelleDates((p) => ({ ...p, [d.id]: e.target.value }))}
+                              className="h-8 w-[120px] text-xs"
+                            />
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 gap-1 px-2"
+                              onClick={() => confirmMutuelle(d.id, mutuelleDates[d.id] || today)}
+                            >
+                              <CheckCircle2 className="h-3.5 w-3.5" />
+                              Reçu
+                            </Button>
+                          </div>
+                          {!d.transmis_mutuelle && (
+                            <div className="text-[10px] text-red-600">⚠ Non transmis</div>
+                          )}
+                        </div>
+                      )
                     ) : (
                       <div className="text-xs text-muted-foreground">—</div>
                     )}
                   </td>
-                  <td className="px-2 py-2">
-                    <div className="flex items-center gap-1.5">
-                      <Input
-                        type="date"
-                        value={paymentDates[d.id] ?? today}
-                        onChange={(e) => setPaymentDates((p) => ({ ...p, [d.id]: e.target.value }))}
-                        className="h-8 w-[120px]"
-                      />
-                      <Button
-                        size="sm"
-                        variant="outline"
-                        className="gap-1"
-                        onClick={() => confirmPayment(d.id, paymentDates[d.id] || today)}
-                      >
-                        <CheckCircle2 className="h-3.5 w-3.5" />
-                        Reçu
-                      </Button>
-                    </div>
+
+                  {/* Colonne client */}
+                  <td className="px-2 py-2 min-w-[260px]">
+                    {due.clientExpected > 0 ? (
+                      due.clientPaid ? (
+                        <div className="space-y-1">
+                          <div className="text-xs text-emerald-700 font-medium">✓ Encaissé</div>
+                          <div className="flex items-center gap-1.5">
+                            <PaymentMethodSelect
+                              value={paymentMethods[d.id] ?? null}
+                              onChange={(method) => {
+                                setPaymentMethods((p) => ({ ...p, [d.id]: method }));
+                                updatePaymentMethod.mutate({ id: d.id, method });
+                              }}
+                              placeholder="Mode"
+                              disabled={updatePaymentMethod.isPending}
+                            />
+                            <Input
+                              type="date"
+                              value={clientDates[d.id] ?? (d.paiement_client_recu_at ?? today)}
+                              onChange={(e) => setClientDates((p) => ({ ...p, [d.id]: e.target.value }))}
+                              onBlur={(e) => {
+                                if (e.target.value && e.target.value !== d.paiement_client_recu_at) {
+                                  updateClientDate(d.id, e.target.value);
+                                }
+                              }}
+                              className="h-8 w-[130px] text-xs"
+                            />
+                          </div>
+                        </div>
+                      ) : (
+                        <div className="space-y-1">
+                          <div className="text-xs font-semibold text-emerald-800">
+                            {due.clientDue.toLocaleString("fr-FR", { minimumFractionDigits: 2 })} € dû
+                          </div>
+                          <div className="flex items-center gap-1.5">
+                            <PaymentMethodSelect
+                              value={paymentMethods[d.id] ?? null}
+                              onChange={(method) => {
+                                setPaymentMethods((p) => ({ ...p, [d.id]: method }));
+                                updatePaymentMethod.mutate({ id: d.id, method });
+                              }}
+                              placeholder="Mode"
+                              disabled={updatePaymentMethod.isPending}
+                            />
+                            <Input
+                              type="date"
+                              value={clientDates[d.id] ?? today}
+                              onChange={(e) => setClientDates((p) => ({ ...p, [d.id]: e.target.value }))}
+                              className="h-8 w-[120px] text-xs"
+                            />
+                            <Button
+                              size="sm"
+                              variant="outline"
+                              className="h-8 gap-1 px-2"
+                              onClick={() => confirmClient(d.id, clientDates[d.id] || today)}
+                            >
+                              <CheckCircle2 className="h-3.5 w-3.5" />
+                              Reçu
+                            </Button>
+                          </div>
+                        </div>
+                      )
+                    ) : (
+                      <div className="text-xs text-muted-foreground">—</div>
+                    )}
                   </td>
+
                   <td className="px-2 py-2 text-right">
                     <Link to="/dossiers/$id" params={{ id: d.id }}>
                       <Button size="sm" variant="ghost" className="gap-1">
