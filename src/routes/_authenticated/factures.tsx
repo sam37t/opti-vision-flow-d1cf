@@ -395,12 +395,16 @@ function FacturesPage() {
                               type="date"
                               value={mutuelleDates[d.id] ?? (d.paiement_mutuelle_recu_at ?? today)}
                               onChange={(e) => setMutuelleDates((p) => ({ ...p, [d.id]: e.target.value }))}
+                              onClick={(e) => e.currentTarget.showPicker?.()}
                               onBlur={(e) => {
                                 if (e.target.value && e.target.value !== d.paiement_mutuelle_recu_at) {
                                   updateMutuelleDate(d.id, e.target.value);
                                 }
                               }}
-                              className="h-8 w-[130px] text-xs"
+                              max={today}
+                              aria-label={`Modifier la date du règlement mutuelle de ${d.client_prenom} ${d.client_nom}`}
+                              title="Modifier la date du règlement mutuelle"
+                              className="h-8 w-[140px] cursor-pointer text-xs"
                             />
                           </div>
                         </div>
@@ -414,7 +418,11 @@ function FacturesPage() {
                               type="date"
                               value={mutuelleDates[d.id] ?? today}
                               onChange={(e) => setMutuelleDates((p) => ({ ...p, [d.id]: e.target.value }))}
-                              className="h-8 w-[120px] text-xs"
+                              onClick={(e) => e.currentTarget.showPicker?.()}
+                              max={today}
+                              aria-label={`Choisir la date du règlement mutuelle de ${d.client_prenom} ${d.client_nom}`}
+                              title="Choisir la date réelle d'encaissement"
+                              className="h-8 w-[140px] cursor-pointer text-xs"
                             />
                             <Button
                               size="sm"
