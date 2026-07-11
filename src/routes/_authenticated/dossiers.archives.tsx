@@ -124,9 +124,10 @@ function ArchivesPage() {
                     <Link
                       to="/dossiers/$id"
                       params={{ id: d.id }}
-                      className="font-medium hover:underline"
+                      className="inline-flex items-center gap-2 font-medium hover:underline"
                     >
-                      {d.client_nom.toUpperCase()} {d.client_prenom}
+                      <span>{d.client_nom.toUpperCase()} {d.client_prenom}</span>
+                      {d.type_dossier === "lentilles" && <LensBadge />}
                     </Link>
                     {d.telephone && (
                       <div className="text-xs text-muted-foreground">{d.telephone}</div>
