@@ -217,20 +217,20 @@ function FacturesPage() {
       </div>
 
       <div className="overflow-x-auto rounded-xl border bg-card">
-        <table className="w-full min-w-[1200px] text-sm">
+        <table className="w-full min-w-[980px] text-sm">
           <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
             <tr>
-              <th className="px-4 py-3">Client</th>
-              <th className="px-4 py-3">Mutuelle</th>
-              <th className="px-4 py-3">Facturé le</th>
-              <th className="px-4 py-3">Transmis le</th>
-              <th className="px-4 py-3">Délai</th>
-              <th className="px-4 py-3 text-right">Montant accordé</th>
-              <th className="px-4 py-3 text-right">Avoir commercial</th>
-              <th className="px-4 py-3 text-right">À payer</th>
-              <th className="px-4 py-3">Mode de paiement</th>
-              <th className="px-4 py-3">Règlement</th>
-              <th className="px-4 py-3"></th>
+              <th className="px-2 py-2">Client</th>
+              <th className="px-2 py-2">Mutuelle</th>
+              <th className="px-2 py-2">Facturé le</th>
+              <th className="px-2 py-2">Transmis le</th>
+              <th className="px-2 py-2">Délai</th>
+              <th className="px-2 py-2 text-right">Montant accordé</th>
+              <th className="px-2 py-2 text-right">Avoir commercial</th>
+              <th className="px-2 py-2 text-right">À payer</th>
+              <th className="px-2 py-2">Mode de paiement</th>
+              <th className="px-2 py-2">Règlement</th>
+              <th className="px-2 py-2"></th>
             </tr>
           </thead>
           <tbody className="divide-y">
@@ -262,7 +262,7 @@ function FacturesPage() {
                 : Math.max(0, Number(d.montant_pec || 0) - Number(d.avoir_commercial || 0));
               return (
                 <tr key={d.id} className="hover:bg-muted/30">
-                  <td className="px-4 py-3 font-medium">
+                  <td className="px-2 py-2 font-medium">
                     <div className="flex flex-wrap items-center gap-2">
                       <span>{d.client_nom?.toUpperCase()} {d.client_prenom}</span>
                       {isLentilles && <LensBadge />}
@@ -279,13 +279,13 @@ function FacturesPage() {
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-3">{clientCollect ? <span className="text-muted-foreground italic">Client direct</span> : (d.mutuelle || "—")}</td>
-                  <td className="px-4 py-3 text-muted-foreground">
+                  <td className="px-2 py-2">{clientCollect ? <span className="text-muted-foreground italic">Client direct</span> : (d.mutuelle || "—")}</td>
+                  <td className="px-2 py-2 text-muted-foreground">
                     {d.facture_cosium_at
                       ? new Date(d.facture_cosium_at).toLocaleDateString("fr-FR")
                       : d.facture_cosium ? "—" : "Non facturé"}
                   </td>
-                  <td className="px-4 py-3 text-muted-foreground">
+                  <td className="px-2 py-2 text-muted-foreground">
                     {clientCollect
                       ? (d.facture_client_at || d.facture_cosium_at)
                         ? `Remis client le ${new Date((d.facture_client_at || d.facture_cosium_at)!).toLocaleDateString("fr-FR")}`
@@ -294,7 +294,7 @@ function FacturesPage() {
                         ? new Date(d.transmis_mutuelle_at).toLocaleDateString("fr-FR")
                         : "Non transmis"}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-2 py-2">
                     {alert ? (
                       <span className={`inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium ${alert.className}`}>
                         {alert.icon && <AlertTriangle className="h-3 w-3" />}
@@ -306,24 +306,24 @@ function FacturesPage() {
                       <span className="text-xs text-muted-foreground">—</span>
                     )}
                   </td>
-                  <td className="px-4 py-3 text-right font-medium">
+                  <td className="px-2 py-2 text-right font-medium">
                     {clientCollect
                       ? Number(d.reste_a_charge || 0).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                       : Number(d.montant_pec || 0).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
                   </td>
-                  <td className="px-4 py-3 text-right font-medium">
+                  <td className="px-2 py-2 text-right font-medium">
                     {Number(d.avoir_commercial || 0).toLocaleString("fr-FR", {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })} €
                   </td>
-                  <td className="px-4 py-3 text-right font-medium">
+                  <td className="px-2 py-2 text-right font-medium">
                     {aPayer.toLocaleString("fr-FR", {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
                     })} €
                   </td>
-                  <td className="px-4 py-3 min-w-[180px]">
+                  <td className="px-2 py-2 min-w-[180px]">
                     {aPayer > 0 ? (
                       <PaymentMethodSelect
                         value={paymentMethods[d.id] ?? null}
@@ -338,13 +338,13 @@ function FacturesPage() {
                       <div className="text-xs text-muted-foreground">—</div>
                     )}
                   </td>
-                  <td className="px-4 py-3">
+                  <td className="px-2 py-2">
                     <div className="flex items-center gap-1.5">
                       <Input
                         type="date"
                         value={paymentDates[d.id] ?? today}
                         onChange={(e) => setPaymentDates((p) => ({ ...p, [d.id]: e.target.value }))}
-                        className="h-8 w-[140px]"
+                        className="h-8 w-[120px]"
                       />
                       <Button
                         size="sm"
@@ -357,7 +357,7 @@ function FacturesPage() {
                       </Button>
                     </div>
                   </td>
-                  <td className="px-4 py-3 text-right">
+                  <td className="px-2 py-2 text-right">
                     <Link to="/dossiers/$id" params={{ id: d.id }}>
                       <Button size="sm" variant="ghost" className="gap-1">
                         Ouvrir <ArrowRight className="h-3.5 w-3.5" />
