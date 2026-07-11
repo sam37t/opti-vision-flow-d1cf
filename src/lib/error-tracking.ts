@@ -23,6 +23,16 @@ export function initSentry() {
   window.addEventListener("error", (e) => {
     captureError(e.error ?? e.message, { source: "window.onerror" });
   });
+
+  // Identify the current user for Sentry (Supabase auth)
+  void import("@/integrations/supabase/client").then(({ supabase }) => {
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) setUser({ id: data.user.id, email: data.user.email });
+    });
+    supabase.auth.onAuthStateChange((_e, session) => {
+      setUser(session?.user ? { id: session.user.id, email: session.user.email } : null);
+    });
+  }).catch(() => {});
 }
 
 export function reportSupabaseError(
