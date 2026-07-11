@@ -120,11 +120,29 @@ function FacturesPage() {
     };
   }, [qc]);
 
-  const totalEnAttente = dossiers.reduce((acc, d) => {
-    const clientCollect = (d.facture_client && !d.transmis_mutuelle) || (d.type_dossier === "lentilles" && !d.transmis_mutuelle);
-    const base = clientCollect ? Number(d.reste_a_charge) || 0 : Number(d.montant_pec) || 0;
-    return acc + Math.max(0, base - (Number(d.avoir_commercial) || 0));
-  }, 0);
+  // Compute per-dossier due amounts (mutuelle + client can coexist)
+  const computeDue = (d: Dossier) => {
+    const isLentilles = d.type_dossier === "lentilles";
+    const mutuelleDue = d.transmis_mutuelle ? Number(d.montant_pec) || 0 : 0;
+    const rac = Number(d.reste_a_charge) || 0;
+    const avoir = Number(d.avoir_commercial) || 0;
+    // Geste commercial (avoir) réduit le reste à charge client
+    const clientDue = Math.max(0, rac - avoir);
+    // Si aucune transmission mutuelle et pas de reste à charge saisi, on retombe sur la facture client (lentilles ou facture_client)
+    const fallbackClient =
+      !d.transmis_mutuelle && (d.facture_client || isLentilles) && rac === 0
+        ? Math.max(0, (Number(d.montant_devis) || 0) - avoir)
+        : 0;
+    return {
+      mutuelleDue,
+      clientDue: clientDue || fallbackClient,
+      total: mutuelleDue + (clientDue || fallbackClient),
+    };
+  };
+
+  const totalEnAttente = dossiers.reduce((acc, d) => acc + computeDue(d).total, 0);
+  const totalMutuelle = dossiers.reduce((acc, d) => acc + computeDue(d).mutuelleDue, 0);
+  const totalClient = dossiers.reduce((acc, d) => acc + computeDue(d).clientDue, 0);
 
   const totalDevis = dossiers.reduce(
     (acc, d) => acc + (Number(d.montant_devis) || 0),
