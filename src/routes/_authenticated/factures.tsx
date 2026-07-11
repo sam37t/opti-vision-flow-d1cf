@@ -464,12 +464,16 @@ function FacturesPage() {
                               type="date"
                               value={clientDates[d.id] ?? (d.paiement_client_recu_at ?? today)}
                               onChange={(e) => setClientDates((p) => ({ ...p, [d.id]: e.target.value }))}
+                              onClick={(e) => e.currentTarget.showPicker?.()}
                               onBlur={(e) => {
                                 if (e.target.value && e.target.value !== d.paiement_client_recu_at) {
                                   updateClientDate(d.id, e.target.value);
                                 }
                               }}
-                              className="h-8 w-[130px] text-xs"
+                              max={today}
+                              aria-label={`Modifier la date d'encaissement client de ${d.client_prenom} ${d.client_nom}`}
+                              title="Modifier la date d'encaissement"
+                              className="h-8 w-[140px] cursor-pointer text-xs"
                             />
                           </div>
                         </div>
