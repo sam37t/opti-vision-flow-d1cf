@@ -21,7 +21,7 @@ function Dashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("dossiers")
-        .select("id, client_nom, client_prenom, mutuelle, status, montant_devis, montant_pec, reste_a_charge, probleme, last_status_change_at, created_at, facture_cosium_at")
+        .select("id, client_nom, client_prenom, mutuelle, status, montant_devis, montant_pec, reste_a_charge, probleme, last_status_change_at, created_at, facture_cosium_at, type_dossier")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -240,8 +240,9 @@ function Dashboard() {
                       params={{ id: d.id }}
                       className="flex items-center justify-between gap-3 px-3 py-2 text-sm hover:bg-accent"
                     >
-                      <span className="font-medium truncate">
-                        {(d.client_nom || "").toUpperCase()} {d.client_prenom}
+                      <span className="font-medium truncate flex items-center gap-1.5">
+                        <span className="truncate">{(d.client_nom || "").toUpperCase()} {d.client_prenom}</span>
+                        {d.type_dossier === "lentilles" && <LensBadge />}
                       </span>
                       <span className="flex items-center gap-3 text-muted-foreground">
                         <span className="hidden sm:inline truncate max-w-[14rem]">{d.mutuelle || "—"}</span>
@@ -317,7 +318,7 @@ function Dashboard() {
             {problemes.map((d) => (
               <li key={d.id} className="py-2">
                 <Link to="/dossiers/$id" params={{ id: d.id }} className="flex items-center justify-between text-sm hover:underline">
-                  <span className="font-medium">{d.client_nom.toUpperCase()} {d.client_prenom}</span>
+                  <span className="font-medium flex items-center gap-1.5">{d.client_nom.toUpperCase()} {d.client_prenom}{d.type_dossier === "lentilles" && <LensBadge />}</span>
                   <span className="text-muted-foreground">{d.mutuelle || "—"}</span>
                 </Link>
               </li>
@@ -336,7 +337,7 @@ function Dashboard() {
             {stale.map((d) => (
               <li key={d.id} className="py-2">
                 <Link to="/dossiers/$id" params={{ id: d.id }} className="flex items-center justify-between text-sm hover:underline">
-                  <span className="font-medium">{d.client_nom.toUpperCase()} {d.client_prenom}</span>
+                  <span className="font-medium flex items-center gap-1.5">{d.client_nom.toUpperCase()} {d.client_prenom}{d.type_dossier === "lentilles" && <LensBadge />}</span>
                   <span className="text-muted-foreground">{d.mutuelle} · {hoursAgo(d.last_status_change_at)}h</span>
                 </Link>
               </li>
@@ -372,4 +373,15 @@ function StatCard({
 
 function hoursAgo(date: string) {
   return Math.floor((Date.now() - new Date(date).getTime()) / 3600000);
+}
+
+function LensBadge() {
+  return (
+    <span
+      className="inline-flex items-center rounded-full border border-red-300 bg-red-50 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-red-600"
+      title="Dossier lentilles"
+    >
+      LENT
+    </span>
+  );
 }
