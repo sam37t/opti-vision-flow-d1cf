@@ -217,6 +217,18 @@ function FacturesPage() {
               {totalEnAttente.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
             </div>
           </div>
+          <div className="rounded-lg border border-sky-200 bg-sky-50 px-4 py-2 text-right">
+            <div className="text-xs uppercase text-sky-900">Dû mutuelle</div>
+            <div className="text-lg font-semibold text-sky-900">
+              {totalMutuelle.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+            </div>
+          </div>
+          <div className="rounded-lg border border-emerald-200 bg-emerald-50 px-4 py-2 text-right">
+            <div className="text-xs uppercase text-emerald-900">Dû client</div>
+            <div className="text-lg font-semibold text-emerald-900">
+              {totalClient.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+            </div>
+          </div>
           <div className="rounded-lg border bg-card px-4 py-2 text-right">
             <div className="text-xs uppercase text-muted-foreground">Total facturé</div>
             <div className="text-lg font-semibold">
