@@ -69,7 +69,7 @@ function alertForClientDays(days: number | null): {
 function LensBadge() {
   return (
     <span
-      className="inline-flex items-center rounded-full border border-red-300 bg-red-50 px-1.5 py-0 text-[10px] font-bold uppercase tracking-wide text-red-600"
+      className="inline-flex items-center rounded-full border border-red-400 bg-red-100 px-2 py-0.5 text-[11px] font-bold uppercase tracking-wide text-red-700 shadow-sm"
       title="Dossier lentilles"
     >
       LENT
@@ -120,10 +120,11 @@ function FacturesPage() {
     };
   }, [qc]);
 
-  const totalEnAttente = dossiers.reduce(
-    (acc, d) => acc + Math.max(0, (Number(d.montant_pec) || 0) - (Number(d.avoir_commercial) || 0)),
-    0,
-  );
+  const totalEnAttente = dossiers.reduce((acc, d) => {
+    const clientCollect = (d.facture_client && !d.transmis_mutuelle) || (d.type_dossier === "lentilles" && !d.transmis_mutuelle);
+    const base = clientCollect ? Number(d.reste_a_charge) || 0 : Number(d.montant_pec) || 0;
+    return acc + Math.max(0, base - (Number(d.avoir_commercial) || 0));
+  }, 0);
 
   const totalDevis = dossiers.reduce(
     (acc, d) => acc + (Number(d.montant_devis) || 0),
@@ -242,19 +243,21 @@ function FacturesPage() {
               </td></tr>
             )}
             {sortedDossiers.map((d) => {
-              const isClientDirect = d.facture_client && !d.transmis_mutuelle;
+              const isLentilles = d.type_dossier === "lentilles";
+              const isClientDirect = (d.facture_client && !d.transmis_mutuelle) || (isLentilles && !d.transmis_mutuelle);
+              const clientCollect = isClientDirect || isLentilles;
               const days = d.transmis_mutuelle
                 ? daysSince(d.transmis_mutuelle_at)
                 : isClientDirect
-                  ? daysSince(d.facture_client_at)
+                  ? daysSince(d.facture_client_at || d.facture_cosium_at)
                   : null;
               const alert = isClientDirect ? alertForClientDays(days) : alertForDays(days);
               const nonTransmisDays =
-                d.facture_cosium && !d.transmis_mutuelle && !d.facture_client
+                d.facture_cosium && !d.transmis_mutuelle && !d.facture_client && !isLentilles
                   ? daysSince(d.facture_cosium_at)
                   : null;
               const showNonTransmis = nonTransmisDays != null && nonTransmisDays >= 2;
-              const aPayer = isClientDirect
+              const aPayer = clientCollect
                 ? Math.max(0, Number(d.reste_a_charge || 0) - Number(d.avoir_commercial || 0))
                 : Math.max(0, Number(d.montant_pec || 0) - Number(d.avoir_commercial || 0));
               return (
@@ -262,10 +265,10 @@ function FacturesPage() {
                   <td className="px-4 py-3 font-medium">
                     <div className="flex flex-wrap items-center gap-2">
                       <span>{d.client_nom?.toUpperCase()} {d.client_prenom}</span>
-                      {d.type_dossier === "lentilles" && <LensBadge />}
-                      {isClientDirect && (
+                      {isLentilles && <LensBadge />}
+                      {clientCollect && (
                         <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-800">
-                          Client direct
+                          À encaisser client
                         </span>
                       )}
                       {showNonTransmis && (
@@ -276,16 +279,16 @@ function FacturesPage() {
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-3">{isClientDirect ? <span className="text-muted-foreground italic">Client direct</span> : (d.mutuelle || "—")}</td>
+                  <td className="px-4 py-3">{clientCollect ? <span className="text-muted-foreground italic">Client direct</span> : (d.mutuelle || "—")}</td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {d.facture_cosium_at
                       ? new Date(d.facture_cosium_at).toLocaleDateString("fr-FR")
                       : d.facture_cosium ? "—" : "Non facturé"}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
-                    {isClientDirect
-                      ? d.facture_client_at
-                        ? `Remis client le ${new Date(d.facture_client_at).toLocaleDateString("fr-FR")}`
+                    {clientCollect
+                      ? (d.facture_client_at || d.facture_cosium_at)
+                        ? `Remis client le ${new Date((d.facture_client_at || d.facture_cosium_at)!).toLocaleDateString("fr-FR")}`
                         : "Remis client"
                       : d.transmis_mutuelle_at
                         ? new Date(d.transmis_mutuelle_at).toLocaleDateString("fr-FR")
@@ -304,7 +307,7 @@ function FacturesPage() {
                     )}
                   </td>
                   <td className="px-4 py-3 text-right font-medium">
-                    {isClientDirect
+                    {clientCollect
                       ? Number(d.reste_a_charge || 0).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                       : Number(d.montant_pec || 0).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
                   </td>
