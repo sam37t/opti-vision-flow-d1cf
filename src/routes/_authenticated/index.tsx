@@ -337,7 +337,7 @@ function Dashboard() {
             {stale.map((d) => (
               <li key={d.id} className="py-2">
                 <Link to="/dossiers/$id" params={{ id: d.id }} className="flex items-center justify-between text-sm hover:underline">
-                  <span className="font-medium">{d.client_nom.toUpperCase()} {d.client_prenom}</span>
+                  <span className="font-medium flex items-center gap-1.5">{d.client_nom.toUpperCase()} {d.client_prenom}{d.type_dossier === "lentilles" && <LensBadge />}</span>
                   <span className="text-muted-foreground">{d.mutuelle} · {hoursAgo(d.last_status_change_at)}h</span>
                 </Link>
               </li>
