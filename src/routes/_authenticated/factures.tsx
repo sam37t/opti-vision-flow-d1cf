@@ -120,10 +120,11 @@ function FacturesPage() {
     };
   }, [qc]);
 
-  const totalEnAttente = dossiers.reduce(
-    (acc, d) => acc + Math.max(0, (Number(d.montant_pec) || 0) - (Number(d.avoir_commercial) || 0)),
-    0,
-  );
+  const totalEnAttente = dossiers.reduce((acc, d) => {
+    const clientCollect = (d.facture_client && !d.transmis_mutuelle) || (d.type_dossier === "lentilles" && !d.transmis_mutuelle);
+    const base = clientCollect ? Number(d.reste_a_charge) || 0 : Number(d.montant_pec) || 0;
+    return acc + Math.max(0, base - (Number(d.avoir_commercial) || 0));
+  }, 0);
 
   const totalDevis = dossiers.reduce(
     (acc, d) => acc + (Number(d.montant_devis) || 0),
