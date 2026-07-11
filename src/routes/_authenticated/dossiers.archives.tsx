@@ -26,7 +26,19 @@ type Dossier = {
   created_at: string;
   updated_at: string;
   last_status_change_at: string;
+  type_dossier: string | null;
 };
+
+function LensBadge() {
+  return (
+    <span
+      className="inline-flex items-center rounded-full border border-red-300 bg-red-50 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-red-600"
+      title="Dossier lentilles"
+    >
+      LENT
+    </span>
+  );
+}
 
 function ArchivesPage() {
   const [q, setQ] = useState("");
