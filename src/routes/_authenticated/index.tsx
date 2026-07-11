@@ -373,3 +373,14 @@ function StatCard({
 function hoursAgo(date: string) {
   return Math.floor((Date.now() - new Date(date).getTime()) / 3600000);
 }
+
+function LensBadge() {
+  return (
+    <span
+      className="inline-flex items-center rounded-full border border-red-300 bg-red-50 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-red-600"
+      title="Dossier lentilles"
+    >
+      LENT
+    </span>
+  );
+}
