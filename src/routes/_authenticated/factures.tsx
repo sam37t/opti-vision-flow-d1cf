@@ -242,17 +242,32 @@ function FacturesPage() {
               </td></tr>
             )}
             {sortedDossiers.map((d) => {
-              const days = d.transmis_mutuelle ? daysSince(d.transmis_mutuelle_at) : null;
-              const alert = alertForDays(days);
+              const isClientDirect = d.facture_client && !d.transmis_mutuelle;
+              const days = d.transmis_mutuelle
+                ? daysSince(d.transmis_mutuelle_at)
+                : isClientDirect
+                  ? daysSince(d.facture_client_at)
+                  : null;
+              const alert = isClientDirect ? alertForClientDays(days) : alertForDays(days);
               const nonTransmisDays =
-                d.facture_cosium && !d.transmis_mutuelle ? daysSince(d.facture_cosium_at) : null;
+                d.facture_cosium && !d.transmis_mutuelle && !d.facture_client
+                  ? daysSince(d.facture_cosium_at)
+                  : null;
               const showNonTransmis = nonTransmisDays != null && nonTransmisDays >= 2;
-              const aPayer = Math.max(0, Number(d.montant_pec || 0) - Number(d.avoir_commercial || 0));
+              const aPayer = isClientDirect
+                ? Math.max(0, Number(d.reste_a_charge || 0) - Number(d.avoir_commercial || 0))
+                : Math.max(0, Number(d.montant_pec || 0) - Number(d.avoir_commercial || 0));
               return (
                 <tr key={d.id} className="hover:bg-muted/30">
                   <td className="px-4 py-3 font-medium">
-                    <div className="flex items-center gap-2">
+                    <div className="flex flex-wrap items-center gap-2">
                       <span>{d.client_nom?.toUpperCase()} {d.client_prenom}</span>
+                      {d.type_dossier === "lentilles" && <LensBadge />}
+                      {isClientDirect && (
+                        <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-800">
+                          Client direct
+                        </span>
+                      )}
                       {showNonTransmis && (
                         <span className="inline-flex items-center gap-1 rounded-full bg-red-600 px-2 py-0.5 text-xs font-semibold text-white">
                           <AlertTriangle className="h-3 w-3" />
@@ -261,16 +276,20 @@ function FacturesPage() {
                       )}
                     </div>
                   </td>
-                  <td className="px-4 py-3">{d.mutuelle || "—"}</td>
+                  <td className="px-4 py-3">{isClientDirect ? <span className="text-muted-foreground italic">Client direct</span> : (d.mutuelle || "—")}</td>
                   <td className="px-4 py-3 text-muted-foreground">
                     {d.facture_cosium_at
                       ? new Date(d.facture_cosium_at).toLocaleDateString("fr-FR")
                       : d.facture_cosium ? "—" : "Non facturé"}
                   </td>
                   <td className="px-4 py-3 text-muted-foreground">
-                    {d.transmis_mutuelle_at
-                      ? new Date(d.transmis_mutuelle_at).toLocaleDateString("fr-FR")
-                      : "Non transmis"}
+                    {isClientDirect
+                      ? d.facture_client_at
+                        ? `Remis client le ${new Date(d.facture_client_at).toLocaleDateString("fr-FR")}`
+                        : "Remis client"
+                      : d.transmis_mutuelle_at
+                        ? new Date(d.transmis_mutuelle_at).toLocaleDateString("fr-FR")
+                        : "Non transmis"}
                   </td>
                   <td className="px-4 py-3">
                     {alert ? (
@@ -285,10 +304,9 @@ function FacturesPage() {
                     )}
                   </td>
                   <td className="px-4 py-3 text-right font-medium">
-                    {Number(d.montant_pec || 0).toLocaleString("fr-FR", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })} €
+                    {isClientDirect
+                      ? Number(d.reste_a_charge || 0).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
+                      : Number(d.montant_pec || 0).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
                   </td>
                   <td className="px-4 py-3 text-right font-medium">
                     {Number(d.avoir_commercial || 0).toLocaleString("fr-FR", {
