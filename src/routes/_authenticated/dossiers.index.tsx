@@ -61,7 +61,19 @@ type Dossier = {
   created_at: string;
   updated_at: string;
   last_status_change_at: string;
+  type_dossier: string | null;
 };
+
+function LensBadge() {
+  return (
+    <span
+      className="inline-flex items-center rounded-full border border-red-300 bg-red-50 px-1.5 py-0.5 text-[10px] font-bold uppercase tracking-wide text-red-600"
+      title="Dossier lentilles"
+    >
+      LENT
+    </span>
+  );
+}
 
 function isRecentlyUpdated(d: Dossier): boolean {
   if (!d.updated_at) return false;
@@ -318,6 +330,7 @@ function ListView({ dossiers }: { dossiers: Dossier[] }) {
                   <Link to="/dossiers/$id" params={{ id: d.id }} className="flex items-center gap-2 font-medium hover:underline">
                     {d.probleme && <AlertOctagon className="h-4 w-4 text-destructive" />}
                     <span>{d.client_nom.toUpperCase()} {d.client_prenom}</span>
+                    {d.type_dossier === "lentilles" && <LensBadge />}
                   </Link>
                   <div className="mt-0.5 flex items-center gap-2">
                     <span className="text-xs text-muted-foreground">{d.telephone}</span>
@@ -381,6 +394,7 @@ function KanbanView({ dossiers }: { dossiers: Dossier[] }) {
                   <div className="flex items-center gap-1.5 text-sm font-medium">
                     {d.probleme && <AlertOctagon className="h-3.5 w-3.5 text-destructive" />}
                     {d.client_nom.toUpperCase()} {d.client_prenom}
+                    {d.type_dossier === "lentilles" && <LensBadge />}
                   </div>
                   <div className="text-xs text-muted-foreground">{d.mutuelle || "—"}</div>
                   <div className="mt-1 flex flex-wrap items-center gap-1"><StatusBadge status={d.status} className="text-[10px] px-1.5 py-0" /><BillingBadges d={d} compact /><AlertBadges d={d} compact /><RecentBadge d={d} compact /></div>
