@@ -496,7 +496,11 @@ function FacturesPage() {
                               type="date"
                               value={clientDates[d.id] ?? today}
                               onChange={(e) => setClientDates((p) => ({ ...p, [d.id]: e.target.value }))}
-                              className="h-8 w-[120px] text-xs"
+                              onClick={(e) => e.currentTarget.showPicker?.()}
+                              max={today}
+                              aria-label={`Choisir la date d'encaissement client de ${d.client_prenom} ${d.client_nom}`}
+                              title="Choisir la date d'encaissement"
+                              className="h-8 w-[150px] cursor-pointer text-xs"
                             />
                             <Button
                               size="sm"
