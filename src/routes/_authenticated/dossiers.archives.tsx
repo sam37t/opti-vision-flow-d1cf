@@ -23,6 +23,8 @@ type Dossier = {
   montant_devis: number | null;
   montant_pec: number | null;
   reste_a_charge: number | null;
+  paiement_client_recu: boolean | null;
+  paiement_recu: boolean | null;
   created_at: string;
   updated_at: string;
   last_status_change_at: string;
