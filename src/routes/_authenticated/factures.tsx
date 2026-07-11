@@ -25,9 +25,12 @@ type Dossier = {
   transmis_mutuelle_at: string | null;
   facture_cosium: boolean;
   facture_cosium_at: string | null;
+  facture_client: boolean;
+  facture_client_at: string | null;
   reste_a_charge: number | null;
   avoir_commercial: number | null;
   reste_a_charge_payment_method: string | null;
+  type_dossier: string | null;
 };
 
 function daysSince(iso: string | null): number | null {
