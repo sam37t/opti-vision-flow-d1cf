@@ -114,6 +114,10 @@ export type Database = {
           montant_pec: number | null
           montant_ss: number | null
           mutuelle: string
+          paiement_client_recu: boolean
+          paiement_client_recu_at: string | null
+          paiement_mutuelle_recu: boolean
+          paiement_mutuelle_recu_at: string | null
           paiement_recu: boolean
           paiement_recu_at: string | null
           pec_demande_at: string | null
@@ -147,6 +151,10 @@ export type Database = {
           montant_pec?: number | null
           montant_ss?: number | null
           mutuelle?: string
+          paiement_client_recu?: boolean
+          paiement_client_recu_at?: string | null
+          paiement_mutuelle_recu?: boolean
+          paiement_mutuelle_recu_at?: string | null
           paiement_recu?: boolean
           paiement_recu_at?: string | null
           pec_demande_at?: string | null
@@ -180,6 +188,10 @@ export type Database = {
           montant_pec?: number | null
           montant_ss?: number | null
           mutuelle?: string
+          paiement_client_recu?: boolean
+          paiement_client_recu_at?: string | null
+          paiement_mutuelle_recu?: boolean
+          paiement_mutuelle_recu_at?: string | null
           paiement_recu?: boolean
           paiement_recu_at?: string | null
           pec_demande_at?: string | null
