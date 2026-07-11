@@ -318,6 +318,7 @@ function ListView({ dossiers }: { dossiers: Dossier[] }) {
                   <Link to="/dossiers/$id" params={{ id: d.id }} className="flex items-center gap-2 font-medium hover:underline">
                     {d.probleme && <AlertOctagon className="h-4 w-4 text-destructive" />}
                     <span>{d.client_nom.toUpperCase()} {d.client_prenom}</span>
+                    {d.type_dossier === "lentilles" && <LensBadge />}
                   </Link>
                   <div className="mt-0.5 flex items-center gap-2">
                     <span className="text-xs text-muted-foreground">{d.telephone}</span>
