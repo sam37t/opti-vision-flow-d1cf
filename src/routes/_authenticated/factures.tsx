@@ -54,6 +54,29 @@ function alertForDays(days: number | null): {
   return null;
 }
 
+function alertForClientDays(days: number | null): {
+  className: string;
+  label: string;
+  icon?: boolean;
+} | null {
+  if (days == null) return null;
+  if (days >= 21) return { className: "bg-red-600 text-white", label: `${days} j`, icon: true };
+  if (days >= 14) return { className: "bg-orange-300 text-orange-950", label: `${days} j`, icon: true };
+  if (days >= 7) return { className: "bg-yellow-200 text-yellow-950", label: `${days} j` };
+  return null;
+}
+
+function LensBadge() {
+  return (
+    <span
+      className="inline-flex items-center rounded-full border border-red-300 bg-red-50 px-1.5 py-0 text-[10px] font-bold uppercase tracking-wide text-red-600"
+      title="Dossier lentilles"
+    >
+      LENT
+    </span>
+  );
+}
+
 function FacturesPage() {
   const qc = useQueryClient();
   const today = new Date().toISOString().slice(0, 10);
