@@ -104,6 +104,9 @@ function RootShell({ children }: { children: ReactNode }) {
 
 function RootComponent() {
   const { queryClient } = Route.useRouteContext();
+  useEffect(() => {
+    void import("../lib/error-tracking").then(({ initSentry }) => initSentry());
+  }, []);
   return (
     <QueryClientProvider client={queryClient}>
       <Outlet />
@@ -111,3 +114,4 @@ function RootComponent() {
     </QueryClientProvider>
   );
 }
+
