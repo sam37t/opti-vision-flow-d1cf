@@ -66,9 +66,9 @@ function FacturesPage() {
       const { data, error } = await supabase
         .from("dossiers")
         .select(
-          "id, client_nom, client_prenom, mutuelle, montant_pec, montant_devis, transmis_mutuelle, transmis_mutuelle_at, facture_cosium, facture_cosium_at, reste_a_charge, avoir_commercial, reste_a_charge_payment_method",
+          "id, client_nom, client_prenom, mutuelle, montant_pec, montant_devis, transmis_mutuelle, transmis_mutuelle_at, facture_cosium, facture_cosium_at, facture_client, facture_client_at, reste_a_charge, avoir_commercial, reste_a_charge_payment_method, type_dossier",
         )
-        .or("facture_cosium.eq.true,transmis_mutuelle.eq.true,transmis_mutuelle_at.not.is.null")
+        .or("facture_cosium.eq.true,transmis_mutuelle.eq.true,transmis_mutuelle_at.not.is.null,facture_client.eq.true")
         .eq("paiement_recu", false)
         .order("transmis_mutuelle_at", { ascending: true, nullsFirst: false });
 
