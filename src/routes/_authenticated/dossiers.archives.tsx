@@ -38,7 +38,8 @@ function ArchivesPage() {
         .from("dossiers")
         .select("*")
         .in("status", TERMINAL_STATUSES)
-        .order("last_status_change_at", { ascending: false });
+        .order("client_nom", { ascending: true })
+        .order("client_prenom", { ascending: true });
       if (error) throw error;
       return data as unknown as Dossier[];
     },
