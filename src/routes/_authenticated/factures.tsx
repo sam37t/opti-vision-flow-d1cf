@@ -274,8 +274,10 @@ function FacturesPage() {
             )}
             {sortedDossiers.map((d) => {
               const isLentilles = d.type_dossier === "lentilles";
+              const due = computeDue(d);
+              const hasMutuelle = due.mutuelleDue > 0;
+              const hasClient = due.clientDue > 0;
               const isClientDirect = (d.facture_client && !d.transmis_mutuelle) || (isLentilles && !d.transmis_mutuelle);
-              const clientCollect = isClientDirect || isLentilles;
               const days = d.transmis_mutuelle
                 ? daysSince(d.transmis_mutuelle_at)
                 : isClientDirect
@@ -287,18 +289,21 @@ function FacturesPage() {
                   ? daysSince(d.facture_cosium_at)
                   : null;
               const showNonTransmis = nonTransmisDays != null && nonTransmisDays >= 2;
-              const aPayer = clientCollect
-                ? Math.max(0, Number(d.reste_a_charge || 0) - Number(d.avoir_commercial || 0))
-                : Math.max(0, Number(d.montant_pec || 0) - Number(d.avoir_commercial || 0));
+              const aPayer = due.total;
               return (
                 <tr key={d.id} className="hover:bg-muted/30">
                   <td className="px-2 py-2 font-medium">
                     <div className="flex flex-wrap items-center gap-2">
                       <span>{d.client_nom?.toUpperCase()} {d.client_prenom}</span>
                       {isLentilles && <LensBadge />}
-                      {clientCollect && (
-                        <span className="inline-flex items-center rounded-full bg-amber-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-amber-800">
-                          À encaisser client
+                      {hasMutuelle && (
+                        <span className="inline-flex items-center rounded-full bg-sky-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-sky-800">
+                          Mutuelle
+                        </span>
+                      )}
+                      {hasClient && (
+                        <span className="inline-flex items-center rounded-full bg-emerald-100 px-2 py-0.5 text-[10px] font-semibold uppercase text-emerald-800">
+                          Client
                         </span>
                       )}
                       {showNonTransmis && (
@@ -309,19 +314,17 @@ function FacturesPage() {
                       )}
                     </div>
                   </td>
-                  <td className="px-2 py-2 hidden xl:table-cell">{clientCollect ? <span className="text-muted-foreground italic">Client direct</span> : (d.mutuelle || "—")}</td>
+                  <td className="px-2 py-2 hidden xl:table-cell">{hasMutuelle ? (d.mutuelle || "—") : <span className="text-muted-foreground italic">Client direct</span>}</td>
                   <td className="px-2 py-2 text-muted-foreground hidden 2xl:table-cell">
                     {d.facture_cosium_at
                       ? new Date(d.facture_cosium_at).toLocaleDateString("fr-FR")
                       : d.facture_cosium ? "—" : "Non facturé"}
                   </td>
                   <td className="px-2 py-2 text-muted-foreground">
-                    {clientCollect
-                      ? (d.facture_client_at || d.facture_cosium_at)
+                    {d.transmis_mutuelle_at
+                      ? new Date(d.transmis_mutuelle_at).toLocaleDateString("fr-FR")
+                      : (d.facture_client_at || d.facture_cosium_at)
                         ? `Client ${new Date((d.facture_client_at || d.facture_cosium_at)!).toLocaleDateString("fr-FR")}`
-                        : "Remis client"
-                      : d.transmis_mutuelle_at
-                        ? new Date(d.transmis_mutuelle_at).toLocaleDateString("fr-FR")
                         : "Non transmis"}
                   </td>
                   <td className="px-2 py-2">
@@ -337,21 +340,35 @@ function FacturesPage() {
                     )}
                   </td>
                   <td className="px-2 py-2 text-right font-medium hidden lg:table-cell">
-                    {clientCollect
-                      ? Number(d.reste_a_charge || 0).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
-                      : Number(d.montant_pec || 0).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+                    {Number(d.montant_devis || 0).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
                   </td>
                   <td className="px-2 py-2 text-right font-medium hidden xl:table-cell">
-                    {Number(d.avoir_commercial || 0).toLocaleString("fr-FR", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })} €
+                    {Number(d.avoir_commercial || 0) > 0 ? (
+                      <span className="text-amber-700">
+                        -{Number(d.avoir_commercial || 0).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+                      </span>
+                    ) : (
+                      <span className="text-muted-foreground">—</span>
+                    )}
                   </td>
                   <td className="px-2 py-2 text-right font-medium">
-                    {aPayer.toLocaleString("fr-FR", {
-                      minimumFractionDigits: 2,
-                      maximumFractionDigits: 2,
-                    })} €
+                    {hasMutuelle && hasClient ? (
+                      <div className="flex flex-col items-end gap-0.5 leading-tight">
+                        <span className="text-[11px] font-normal text-sky-700">
+                          Mut. {due.mutuelleDue.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+                        </span>
+                        <span className="text-[11px] font-normal text-emerald-700">
+                          Cli. {due.clientDue.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+                        </span>
+                        <span className="border-t pt-0.5 text-sm font-semibold">
+                          {aPayer.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+                        </span>
+                      </div>
+                    ) : (
+                      <span className={hasClient ? "text-emerald-700" : hasMutuelle ? "text-sky-700" : ""}>
+                        {aPayer.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
+                      </span>
+                    )}
                   </td>
                   <td className="px-2 py-2 min-w-[180px]">
                     {aPayer > 0 ? (
@@ -361,7 +378,7 @@ function FacturesPage() {
                           setPaymentMethods((p) => ({ ...p, [d.id]: method }));
                           updatePaymentMethod.mutate({ id: d.id, method });
                         }}
-                        placeholder="Mode de paiement"
+                        placeholder={hasClient ? "Mode (client)" : "Mode de paiement"}
                         disabled={updatePaymentMethod.isPending}
                       />
                     ) : (
