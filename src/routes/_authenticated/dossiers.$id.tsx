@@ -538,6 +538,21 @@ function DossierDetail() {
                 }
               />
               <DateField
+                label="Date de remise facture au client (sans mutuelle)"
+                value={d.facture_client_at}
+                onChange={(v) =>
+                  updateDossier(
+                    {
+                      facture_client_at: v,
+                      facture_client: !!v,
+                      ...(v && !d.facture_cosium ? { facture_cosium: true, facture_cosium_at: d.facture_cosium_at ?? today } : {}),
+                      ...(v ? {} : { paiement_recu: false, paiement_recu_at: null }),
+                    },
+                    v ? "Facture remise au client" : "Facturation client annulée",
+                  )
+                }
+              />
+              <DateField
                 label="Date de règlement reçu"
                 value={d.paiement_recu_at ? new Date(d.paiement_recu_at).toISOString().slice(0, 10) : null}
                 onChange={(v) =>
@@ -551,10 +566,16 @@ function DossierDetail() {
                 }
               />
             </div>
-            {d.status === "facture" && (
+            {d.status === "facture" && !d.facture_client && (
               <div className="mt-3 flex items-center gap-2 rounded-md border border-red-300 bg-red-50 px-3 py-2 text-xs text-red-700">
                 <AlertOctagon className="h-3.5 w-3.5" />
                 <span>À transmettre à la mutuelle</span>
+              </div>
+            )}
+            {d.facture_client && !d.paiement_recu && (
+              <div className="mt-3 flex items-center gap-2 rounded-md border border-amber-300 bg-amber-50 px-3 py-2 text-xs text-amber-800">
+                <Receipt className="h-3.5 w-3.5" />
+                <span>Facture remise au client — en attente de règlement direct</span>
               </div>
             )}
             {d.paiement_recu && (
