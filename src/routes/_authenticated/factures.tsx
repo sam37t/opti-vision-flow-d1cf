@@ -216,8 +216,8 @@ function FacturesPage() {
         </div>
       </div>
 
-      <div className="overflow-hidden rounded-xl border bg-card">
-        <table className="w-full text-sm">
+      <div className="overflow-x-auto rounded-xl border bg-card">
+        <table className="w-full min-w-[1200px] text-sm">
           <thead className="bg-muted/40 text-left text-xs uppercase text-muted-foreground">
             <tr>
               <th className="px-4 py-3">Client</th>
