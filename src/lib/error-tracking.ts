@@ -16,6 +16,27 @@ export function initSentry() {
     integrations: [Sentry.browserTracingIntegration(), Sentry.replayIntegration()],
   });
   initialized = true;
+
+  window.addEventListener("unhandledrejection", (e) => {
+    captureError(e.reason, { source: "unhandledrejection" });
+  });
+  window.addEventListener("error", (e) => {
+    captureError(e.error ?? e.message, { source: "window.onerror" });
+  });
+}
+
+export function reportSupabaseError(
+  where: string,
+  error: { message?: string; code?: string; details?: string } | null | undefined,
+  extra: Record<string, unknown> = {},
+) {
+  if (!error) return;
+  captureError(new Error(`[supabase:${where}] ${error.message ?? "unknown error"}`), {
+    where,
+    code: error.code,
+    details: error.details,
+    ...extra,
+  });
 }
 
 export function captureError(error: unknown, context: Record<string, unknown> = {}) {
