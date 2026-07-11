@@ -394,6 +394,7 @@ function KanbanView({ dossiers }: { dossiers: Dossier[] }) {
                   <div className="flex items-center gap-1.5 text-sm font-medium">
                     {d.probleme && <AlertOctagon className="h-3.5 w-3.5 text-destructive" />}
                     {d.client_nom.toUpperCase()} {d.client_prenom}
+                    {d.type_dossier === "lentilles" && <LensBadge />}
                   </div>
                   <div className="text-xs text-muted-foreground">{d.mutuelle || "—"}</div>
                   <div className="mt-1 flex flex-wrap items-center gap-1"><StatusBadge status={d.status} className="text-[10px] px-1.5 py-0" /><BillingBadges d={d} compact /><AlertBadges d={d} compact /><RecentBadge d={d} compact /></div>
