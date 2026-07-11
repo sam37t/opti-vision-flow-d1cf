@@ -1,6 +1,6 @@
 import { Link, useRouter } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { LayoutDashboard, FolderKanban, LogOut, Plus, Settings, Receipt } from "lucide-react";
+import { LayoutDashboard, FolderKanban, LogOut, Plus, Settings, Receipt, Archive } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logoAsset from "@/assets/optic-house-logo.jpg.asset.json";
 import { MessagesPanel } from "@/components/MessagesPanel";
@@ -32,6 +32,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             <NavLink to="/" icon={<LayoutDashboard className="h-4 w-4" />}>Tableau de bord</NavLink>
             <NavLink to="/dossiers" icon={<FolderKanban className="h-4 w-4" />}>Dossiers</NavLink>
             <NavLink to="/factures" icon={<Receipt className="h-4 w-4" />}>Factures en attente</NavLink>
+            <NavLink to="/dossiers/archives" icon={<Archive className="h-4 w-4" />}>Archives</NavLink>
             <NavLink to="/parametres" icon={<Settings className="h-4 w-4" />}>Paramètres</NavLink>
           </nav>
           <div className="flex items-center gap-3">
@@ -53,8 +54,9 @@ export function AppLayout({ children }: { children: ReactNode }) {
         <nav className="flex gap-1 overflow-x-auto border-t px-4 py-2 md:hidden">
           <NavLink to="/" icon={<LayoutDashboard className="h-4 w-4" />}>Accueil</NavLink>
           <NavLink to="/dossiers" icon={<FolderKanban className="h-4 w-4" />}>Dossiers</NavLink>
-          <NavLink to="/factures" icon={<Receipt className="h-4 w-4" />}>Factures</NavLink>
-          <NavLink to="/parametres" icon={<Settings className="h-4 w-4" />}>Paramètres</NavLink>
+            <NavLink to="/factures" icon={<Receipt className="h-4 w-4" />}>Factures</NavLink>
+            <NavLink to="/dossiers/archives" icon={<Archive className="h-4 w-4" />}>Archives</NavLink>
+            <NavLink to="/parametres" icon={<Settings className="h-4 w-4" />}>Paramètres</NavLink>
         </nav>
       </header>
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6">{children}</main>
