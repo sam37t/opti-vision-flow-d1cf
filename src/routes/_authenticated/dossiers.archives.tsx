@@ -33,6 +33,7 @@ function ArchivesPage() {
 
   const { data: dossiers = [], isLoading } = useQuery({
     queryKey: ["dossiers-archives"],
+    refetchOnMount: "always",
     queryFn: async () => {
       const { data, error } = await supabase
         .from("dossiers")
