@@ -233,7 +233,14 @@ function DossierDetail() {
       .eq("id", id);
     setSaving(false);
     if (error) toast.error(error.message);
-    else toast.success("Montants enregistrés");
+    else {
+      await Promise.all([
+        qc.invalidateQueries({ queryKey: ["dossier", id] }),
+        qc.invalidateQueries({ queryKey: ["dossiers-archives"] }),
+        qc.invalidateQueries({ queryKey: ["dossiers"] }),
+      ]);
+      toast.success("Montants enregistrés");
+    }
   };
 
 
@@ -480,7 +487,7 @@ function DossierDetail() {
               </div>
             </div>
             <p className="mt-2 text-xs text-muted-foreground">
-              Reste à charge = Montant du devis − Remboursement SS − Montant accordé mutuelle.
+              Reste à charge = Montant du devis − Remboursement SS − Montant accordé mutuelle − Avoir commercial.
             </p>
             <Button onClick={saveMontants} disabled={saving} className="mt-4">
               {saving ? "Enregistrement..." : "Enregistrer"}
