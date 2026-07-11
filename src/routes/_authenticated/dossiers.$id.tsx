@@ -292,8 +292,16 @@ function DossierDetail() {
 
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-semibold tracking-tight">
-            {d.client_nom.toUpperCase()} {d.client_prenom}
+          <h1 className="flex flex-wrap items-center gap-2 text-2xl font-semibold tracking-tight">
+            <span>{d.client_nom.toUpperCase()} {d.client_prenom}</span>
+            {d.type_dossier === "lentilles" && (
+              <span
+                className="inline-flex items-center rounded-full border border-red-300 bg-red-50 px-2 py-0.5 text-xs font-bold uppercase tracking-wide text-red-600"
+                title="Dossier lentilles"
+              >
+                LENT
+              </span>
+            )}
           </h1>
           <div className="mt-1 flex flex-wrap items-center gap-3 text-sm text-muted-foreground">
             {d.telephone && (
