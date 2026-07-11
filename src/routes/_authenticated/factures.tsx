@@ -279,8 +279,8 @@ function FacturesPage() {
                       )}
                     </div>
                   </td>
-                  <td className="px-2 py-2">{clientCollect ? <span className="text-muted-foreground italic">Client direct</span> : (d.mutuelle || "—")}</td>
-                  <td className="px-2 py-2 text-muted-foreground">
+                  <td className="px-2 py-2 hidden xl:table-cell">{clientCollect ? <span className="text-muted-foreground italic">Client direct</span> : (d.mutuelle || "—")}</td>
+                  <td className="px-2 py-2 text-muted-foreground hidden 2xl:table-cell">
                     {d.facture_cosium_at
                       ? new Date(d.facture_cosium_at).toLocaleDateString("fr-FR")
                       : d.facture_cosium ? "—" : "Non facturé"}
@@ -288,7 +288,7 @@ function FacturesPage() {
                   <td className="px-2 py-2 text-muted-foreground">
                     {clientCollect
                       ? (d.facture_client_at || d.facture_cosium_at)
-                        ? `Remis client le ${new Date((d.facture_client_at || d.facture_cosium_at)!).toLocaleDateString("fr-FR")}`
+                        ? `Client ${new Date((d.facture_client_at || d.facture_cosium_at)!).toLocaleDateString("fr-FR")}`
                         : "Remis client"
                       : d.transmis_mutuelle_at
                         ? new Date(d.transmis_mutuelle_at).toLocaleDateString("fr-FR")
@@ -306,12 +306,12 @@ function FacturesPage() {
                       <span className="text-xs text-muted-foreground">—</span>
                     )}
                   </td>
-                  <td className="px-2 py-2 text-right font-medium">
+                  <td className="px-2 py-2 text-right font-medium hidden lg:table-cell">
                     {clientCollect
                       ? Number(d.reste_a_charge || 0).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })
                       : Number(d.montant_pec || 0).toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })} €
                   </td>
-                  <td className="px-2 py-2 text-right font-medium">
+                  <td className="px-2 py-2 text-right font-medium hidden xl:table-cell">
                     {Number(d.avoir_commercial || 0).toLocaleString("fr-FR", {
                       minimumFractionDigits: 2,
                       maximumFractionDigits: 2,
