@@ -143,9 +143,11 @@ function ArchivesPage() {
                     {d.montant_pec != null ? `${Number(d.montant_pec).toFixed(2)} €` : "—"}
                   </td>
                   <td className="px-4 py-3 tabular-nums">
-                    {d.reste_a_charge != null
-                      ? `${Number(d.reste_a_charge).toFixed(2)} €`
-                      : "—"}
+                    {d.paiement_client_recu || d.paiement_recu
+                      ? "0.00 €"
+                      : d.reste_a_charge != null
+                        ? `${Number(d.reste_a_charge).toFixed(2)} €`
+                        : "—"}
                   </td>
                   <td className="px-4 py-3"><StatusBadge status={d.status} /></td>
                   <td className="px-4 py-3 text-muted-foreground">
