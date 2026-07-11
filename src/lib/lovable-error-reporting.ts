@@ -33,4 +33,6 @@ export function reportLovableError(error: unknown, context: Record<string, unkno
       severity: "error",
     },
   );
+  // Also forward to Sentry when configured
+  void import("./error-tracking").then(({ captureError }) => captureError(error, context)).catch(() => {});
 }
