@@ -198,10 +198,9 @@ function DossiersPage() {
 
   const sortedDossiers = useMemo(() => {
     return [...dossiers].sort((a, b) => {
-      const ra = dossierRank(a);
-      const rb = dossierRank(b);
-      if (ra !== rb) return ra - rb;
-      return new Date(b.created_at).getTime() - new Date(a.created_at).getTime();
+      const nomA = `${a.client_nom} ${a.client_prenom}`.toLocaleLowerCase("fr-FR");
+      const nomB = `${b.client_nom} ${b.client_prenom}`.toLocaleLowerCase("fr-FR");
+      return nomA.localeCompare(nomB, "fr-FR");
     });
   }, [dossiers]);
 
