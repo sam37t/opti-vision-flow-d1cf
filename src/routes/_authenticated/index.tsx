@@ -21,7 +21,7 @@ function Dashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("dossiers")
-        .select("id, client_nom, client_prenom, mutuelle, status, montant_devis, montant_pec, reste_a_charge, probleme, last_status_change_at, created_at, facture_cosium_at, type_dossier")
+        .select("id, client_nom, client_prenom, mutuelle, status, montant_devis, montant_pec, reste_a_charge, avoir_commercial, probleme, last_status_change_at, created_at, facture_cosium, facture_cosium_at, facture_client, transmis_mutuelle, paiement_client_recu, paiement_mutuelle_recu, paiement_recu, type_dossier")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -73,9 +73,36 @@ function Dashboard() {
 
   const totalActifs = actifs.length;
   const totalDossiersAll = dossiers.length;
-  const actifsAvecDevis = actifs.filter((d) => Number(d.montant_devis) > 0);
-  const sansMontant = actifs.length - actifsAvecDevis.length;
-  const totalDevis = actifsAvecDevis.reduce((s, d) => s + Number(d.montant_devis), 0);
+
+  // Factures réellement émises et non encore réglées (aligné avec /factures)
+  const facturesEnAttente = dossiers.filter(
+    (d) =>
+      !d.paiement_recu &&
+      (d.facture_cosium || d.facture_client || d.transmis_mutuelle),
+  );
+  const computeDue = (d: typeof dossiers[number]) => {
+    const isLentilles = d.type_dossier === "lentilles";
+    const pec = Number(d.montant_pec) || 0;
+    const rac = Number(d.reste_a_charge) || 0;
+    const avoir = Number(d.avoir_commercial) || 0;
+    const mutuelleExpected = pec;
+    const mutuelleDue = d.paiement_mutuelle_recu ? 0 : mutuelleExpected;
+    let clientExpected = Math.max(0, rac - avoir);
+    if (clientExpected === 0 && pec === 0 && rac === 0 && (d.facture_client || isLentilles)) {
+      clientExpected = Math.max(0, (Number(d.montant_devis) || 0) - avoir);
+    }
+    const clientDue = d.paiement_client_recu ? 0 : clientExpected;
+    return { mutuelleExpected, mutuelleDue, clientExpected, clientDue };
+  };
+  const totalFacture = facturesEnAttente.reduce((s, d) => {
+    const due = computeDue(d);
+    return s + due.mutuelleExpected + due.clientExpected;
+  }, 0);
+  const totalEnAttente = facturesEnAttente.reduce((s, d) => {
+    const due = computeDue(d);
+    return s + due.mutuelleDue + due.clientDue;
+  }, 0);
+
   const totalDevisAll = dossiers.reduce((s, d) => s + (Number(d.montant_devis) || 0), 0);
   const totalAccorde = actifs.reduce((s, d) => s + (Number(d.montant_pec) || 0), 0);
   const totalRAC = actifs.reduce((s, d) => s + (Number(d.reste_a_charge) || 0), 0);
@@ -137,7 +164,8 @@ function Dashboard() {
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard icon={<FolderKanban className="h-5 w-5" />} label="Dossiers actifs" valueText={String(totalActifs)} />
         <StatCard icon={<Files className="h-5 w-5" />} label="Total dossiers" valueText={String(totalDossiersAll)} />
-        <StatCard icon={<Receipt className="h-5 w-5" />} label="Total facturé" valueText={fmt(totalDevis)} hint={sansMontant > 0 ? `${sansMontant} dossier${sansMontant > 1 ? "s" : ""} sans montant exclu${sansMontant > 1 ? "s" : ""}` : undefined} />
+        <StatCard icon={<Receipt className="h-5 w-5" />} label="Total facturé (en attente)" valueText={fmt(totalFacture)} hint={`${facturesEnAttente.length} facture${facturesEnAttente.length > 1 ? "s" : ""} en attente`} />
+        <StatCard icon={<Wallet className="h-5 w-5" />} label="Total en attente de règlement" valueText={fmt(totalEnAttente)} />
         <StatCard icon={<FileText className="h-5 w-5" />} label="Total devis (tous dossiers)" valueText={fmt(totalDevisAll)} />
         <StatCard icon={<TrendingUp className="h-5 w-5" />} label="Total accordé (PEC)" valueText={fmt(totalAccorde)} />
         <StatCard icon={<Wallet className="h-5 w-5" />} label="Total reste à charge" valueText={fmt(totalRAC)} />
