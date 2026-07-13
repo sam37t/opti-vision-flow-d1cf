@@ -16,6 +16,7 @@ import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedParametresRouteImport } from './routes/_authenticated/parametres'
 import { Route as AuthenticatedFacturesRouteImport } from './routes/_authenticated/factures'
 import { Route as AuthenticatedDossiersIndexRouteImport } from './routes/_authenticated/dossiers.index'
+import { Route as AuthenticatedFacturesMutuellesRouteImport } from './routes/_authenticated/factures.mutuelles'
 import { Route as AuthenticatedDossiersNewRouteImport } from './routes/_authenticated/dossiers.new'
 import { Route as AuthenticatedDossiersArchivesRouteImport } from './routes/_authenticated/dossiers.archives'
 import { Route as AuthenticatedDossiersIdRouteImport } from './routes/_authenticated/dossiers.$id'
@@ -55,6 +56,12 @@ const AuthenticatedDossiersIndexRoute =
     path: '/dossiers/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
+const AuthenticatedFacturesMutuellesRoute =
+  AuthenticatedFacturesMutuellesRouteImport.update({
+    id: '/mutuelles',
+    path: '/mutuelles',
+    getParentRoute: () => AuthenticatedFacturesRoute,
+  } as any)
 const AuthenticatedDossiersNewRoute =
   AuthenticatedDossiersNewRouteImport.update({
     id: '/dossiers/new',
@@ -77,22 +84,24 @@ export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/factures': typeof AuthenticatedFacturesRoute
+  '/factures': typeof AuthenticatedFacturesRouteWithChildren
   '/parametres': typeof AuthenticatedParametresRoute
   '/dossiers/$id': typeof AuthenticatedDossiersIdRoute
   '/dossiers/archives': typeof AuthenticatedDossiersArchivesRoute
   '/dossiers/new': typeof AuthenticatedDossiersNewRoute
+  '/factures/mutuelles': typeof AuthenticatedFacturesMutuellesRoute
   '/dossiers/': typeof AuthenticatedDossiersIndexRoute
 }
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/factures': typeof AuthenticatedFacturesRoute
+  '/factures': typeof AuthenticatedFacturesRouteWithChildren
   '/parametres': typeof AuthenticatedParametresRoute
   '/': typeof AuthenticatedIndexRoute
   '/dossiers/$id': typeof AuthenticatedDossiersIdRoute
   '/dossiers/archives': typeof AuthenticatedDossiersArchivesRoute
   '/dossiers/new': typeof AuthenticatedDossiersNewRoute
+  '/factures/mutuelles': typeof AuthenticatedFacturesMutuellesRoute
   '/dossiers': typeof AuthenticatedDossiersIndexRoute
 }
 export interface FileRoutesById {
@@ -100,12 +109,13 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
-  '/_authenticated/factures': typeof AuthenticatedFacturesRoute
+  '/_authenticated/factures': typeof AuthenticatedFacturesRouteWithChildren
   '/_authenticated/parametres': typeof AuthenticatedParametresRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/dossiers/$id': typeof AuthenticatedDossiersIdRoute
   '/_authenticated/dossiers/archives': typeof AuthenticatedDossiersArchivesRoute
   '/_authenticated/dossiers/new': typeof AuthenticatedDossiersNewRoute
+  '/_authenticated/factures/mutuelles': typeof AuthenticatedFacturesMutuellesRoute
   '/_authenticated/dossiers/': typeof AuthenticatedDossiersIndexRoute
 }
 export interface FileRouteTypes {
@@ -119,6 +129,7 @@ export interface FileRouteTypes {
     | '/dossiers/$id'
     | '/dossiers/archives'
     | '/dossiers/new'
+    | '/factures/mutuelles'
     | '/dossiers/'
   fileRoutesByTo: FileRoutesByTo
   to:
@@ -130,6 +141,7 @@ export interface FileRouteTypes {
     | '/dossiers/$id'
     | '/dossiers/archives'
     | '/dossiers/new'
+    | '/factures/mutuelles'
     | '/dossiers'
   id:
     | '__root__'
@@ -142,6 +154,7 @@ export interface FileRouteTypes {
     | '/_authenticated/dossiers/$id'
     | '/_authenticated/dossiers/archives'
     | '/_authenticated/dossiers/new'
+    | '/_authenticated/factures/mutuelles'
     | '/_authenticated/dossiers/'
   fileRoutesById: FileRoutesById
 }
@@ -202,6 +215,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDossiersIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/factures/mutuelles': {
+      id: '/_authenticated/factures/mutuelles'
+      path: '/mutuelles'
+      fullPath: '/factures/mutuelles'
+      preLoaderRoute: typeof AuthenticatedFacturesMutuellesRouteImport
+      parentRoute: typeof AuthenticatedFacturesRoute
+    }
     '/_authenticated/dossiers/new': {
       id: '/_authenticated/dossiers/new'
       path: '/dossiers/new'
@@ -226,8 +246,21 @@ declare module '@tanstack/react-router' {
   }
 }
 
+interface AuthenticatedFacturesRouteChildren {
+  AuthenticatedFacturesMutuellesRoute: typeof AuthenticatedFacturesMutuellesRoute
+}
+
+const AuthenticatedFacturesRouteChildren: AuthenticatedFacturesRouteChildren = {
+  AuthenticatedFacturesMutuellesRoute: AuthenticatedFacturesMutuellesRoute,
+}
+
+const AuthenticatedFacturesRouteWithChildren =
+  AuthenticatedFacturesRoute._addFileChildren(
+    AuthenticatedFacturesRouteChildren,
+  )
+
 interface AuthenticatedRouteRouteChildren {
-  AuthenticatedFacturesRoute: typeof AuthenticatedFacturesRoute
+  AuthenticatedFacturesRoute: typeof AuthenticatedFacturesRouteWithChildren
   AuthenticatedParametresRoute: typeof AuthenticatedParametresRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedDossiersIdRoute: typeof AuthenticatedDossiersIdRoute
@@ -237,7 +270,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
-  AuthenticatedFacturesRoute: AuthenticatedFacturesRoute,
+  AuthenticatedFacturesRoute: AuthenticatedFacturesRouteWithChildren,
   AuthenticatedParametresRoute: AuthenticatedParametresRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedDossiersIdRoute: AuthenticatedDossiersIdRoute,
