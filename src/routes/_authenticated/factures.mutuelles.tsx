@@ -2,6 +2,9 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { Building2, ChevronDown, ChevronRight, Search } from "lucide-react";
+import {
+  Bar, BarChart, CartesianGrid, Cell, ResponsiveContainer, Tooltip, XAxis, YAxis,
+} from "recharts";
 import { supabase } from "@/integrations/supabase/client";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
@@ -157,6 +160,46 @@ function FacturesMutuellesPage() {
           </Button>
         </div>
       </div>
+
+      {!isLoading && groups.length > 0 && (
+        <div className="rounded-xl border bg-card p-4">
+          <div className="mb-3 flex items-baseline justify-between">
+            <h2 className="text-sm font-semibold">Répartition par mutuelle</h2>
+            <span className="text-xs text-muted-foreground">
+              Top {Math.min(12, groups.length)} sur {groups.length}
+            </span>
+          </div>
+          <div className="h-72 w-full">
+            <ResponsiveContainer width="100%" height="100%">
+              <BarChart
+                data={groups.slice(0, 12).map((g) => ({ name: g.mutuelle, total: g.total }))}
+                margin={{ top: 8, right: 16, left: 8, bottom: 60 }}
+              >
+                <CartesianGrid strokeDasharray="3 3" className="stroke-muted" />
+                <XAxis
+                  dataKey="name"
+                  angle={-30}
+                  textAnchor="end"
+                  interval={0}
+                  height={70}
+                  tick={{ fontSize: 11 }}
+                />
+                <YAxis tick={{ fontSize: 11 }} tickFormatter={(v) => `${Math.round(v / 1000)}k`} />
+                <Tooltip
+                  formatter={(v: number) => [fmt(v), "En attente"]}
+                  cursor={{ fill: "hsl(var(--muted))", opacity: 0.4 }}
+                  contentStyle={{ background: "hsl(var(--card))", border: "1px solid hsl(var(--border))", borderRadius: 8, fontSize: 12 }}
+                />
+                <Bar dataKey="total" radius={[6, 6, 0, 0]}>
+                  {groups.slice(0, 12).map((_, i) => (
+                    <Cell key={i} fill={`hsl(${(i * 47) % 360} 70% 55%)`} />
+                  ))}
+                </Bar>
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
+      )}
 
       <div className="overflow-hidden rounded-xl border bg-card">
         {isLoading ? (
