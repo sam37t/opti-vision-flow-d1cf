@@ -73,9 +73,36 @@ function Dashboard() {
 
   const totalActifs = actifs.length;
   const totalDossiersAll = dossiers.length;
-  const actifsAvecDevis = actifs.filter((d) => Number(d.montant_devis) > 0);
-  const sansMontant = actifs.length - actifsAvecDevis.length;
-  const totalDevis = actifsAvecDevis.reduce((s, d) => s + Number(d.montant_devis), 0);
+
+  // Factures réellement émises et non encore réglées (aligné avec /factures)
+  const facturesEnAttente = dossiers.filter(
+    (d) =>
+      !d.paiement_recu &&
+      (d.facture_cosium || d.facture_client || d.transmis_mutuelle),
+  );
+  const computeDue = (d: typeof dossiers[number]) => {
+    const isLentilles = d.type_dossier === "lentilles";
+    const pec = Number(d.montant_pec) || 0;
+    const rac = Number(d.reste_a_charge) || 0;
+    const avoir = Number(d.avoir_commercial) || 0;
+    const mutuelleExpected = pec;
+    const mutuelleDue = d.paiement_mutuelle_recu ? 0 : mutuelleExpected;
+    let clientExpected = Math.max(0, rac - avoir);
+    if (clientExpected === 0 && pec === 0 && rac === 0 && (d.facture_client || isLentilles)) {
+      clientExpected = Math.max(0, (Number(d.montant_devis) || 0) - avoir);
+    }
+    const clientDue = d.paiement_client_recu ? 0 : clientExpected;
+    return { mutuelleExpected, mutuelleDue, clientExpected, clientDue };
+  };
+  const totalFacture = facturesEnAttente.reduce((s, d) => {
+    const due = computeDue(d);
+    return s + due.mutuelleExpected + due.clientExpected;
+  }, 0);
+  const totalEnAttente = facturesEnAttente.reduce((s, d) => {
+    const due = computeDue(d);
+    return s + due.mutuelleDue + due.clientDue;
+  }, 0);
+
   const totalDevisAll = dossiers.reduce((s, d) => s + (Number(d.montant_devis) || 0), 0);
   const totalAccorde = actifs.reduce((s, d) => s + (Number(d.montant_pec) || 0), 0);
   const totalRAC = actifs.reduce((s, d) => s + (Number(d.reste_a_charge) || 0), 0);
