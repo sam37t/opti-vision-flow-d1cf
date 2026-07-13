@@ -87,7 +87,7 @@ function Dashboard() {
     const avoir = Number(d.avoir_commercial) || 0;
     const mutuelleExpected = pec;
     const mutuelleDue = d.paiement_mutuelle_recu ? 0 : mutuelleExpected;
-    let clientExpected = Math.max(0, rac - avoir);
+    let clientExpected = Math.max(0, rac);
     if (clientExpected === 0 && pec === 0 && rac === 0 && (d.facture_client || isLentilles)) {
       clientExpected = Math.max(0, (Number(d.montant_devis) || 0) - avoir);
     }
