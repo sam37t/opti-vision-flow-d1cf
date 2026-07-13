@@ -21,7 +21,7 @@ function Dashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("dossiers")
-        .select("id, client_nom, client_prenom, mutuelle, status, montant_devis, montant_pec, reste_a_charge, probleme, last_status_change_at, created_at, facture_cosium_at, type_dossier")
+        .select("id, client_nom, client_prenom, mutuelle, status, montant_devis, montant_pec, reste_a_charge, avoir_commercial, probleme, last_status_change_at, created_at, facture_cosium, facture_cosium_at, facture_client, transmis_mutuelle, paiement_client_recu, paiement_mutuelle_recu, paiement_recu, type_dossier")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
