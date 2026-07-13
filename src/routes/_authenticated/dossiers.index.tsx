@@ -359,6 +359,8 @@ function ListView({ dossiers }: { dossiers: Dossier[] }) {
                     <StatusBadge status={d.status} className="text-[10px] px-1.5 py-0" />
                     <BillingBadges d={d} compact />
                     <AlertBadges d={d} compact />
+                    <AlertBadges d={d} compact />
+                    <ReminderBadge d={d} compact />
                     <RecentBadge d={d} compact />
                   </div>
                 </td>
