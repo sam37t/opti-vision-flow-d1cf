@@ -160,7 +160,10 @@ function FacturesPage() {
   const totalEnAttente = dossiers.reduce((acc, d) => acc + computeDue(d).total, 0);
   const totalMutuelle = dossiers.reduce((acc, d) => acc + computeDue(d).mutuelleDue, 0);
   const totalClient = dossiers.reduce((acc, d) => acc + computeDue(d).clientDue, 0);
-  const totalDevis = dossiers.reduce((acc, d) => acc + (Number(d.montant_devis) || 0), 0);
+  const totalFacture = dossiers.reduce((acc, d) => {
+    const due = computeDue(d);
+    return acc + due.mutuelleExpected + due.clientExpected;
+  }, 0);
   const totalAvoir = dossiers.reduce((acc, d) => acc + (Number(d.avoir_commercial) || 0), 0);
 
   const sortedDossiers = useMemo(() => {
