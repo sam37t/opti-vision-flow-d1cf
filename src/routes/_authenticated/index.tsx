@@ -288,6 +288,17 @@ function Dashboard() {
         />
       </div>
 
+      <ReminderSection
+        title="Rappels — dossiers inactifs depuis plus de 4 jours"
+        groups={[
+          { label: "À traiter mais pas traités", tone: "amber", items: rappelATraiter, status: "a_traiter" as DossierStatus },
+          { label: "Accordés mais pas facturés", tone: "orange", items: rappelAccordNonFacture, status: "accord_recu" as DossierStatus },
+          { label: "Facturés mais pas transmis", tone: "sky", items: rappelFactureNonTransmis, status: "facture" as DossierStatus },
+        ]}
+      />
+
+
+
 
       <section className="rounded-xl border bg-card p-5">
         <h2 className="mb-4 text-base font-semibold">Répartition par statut</h2>
