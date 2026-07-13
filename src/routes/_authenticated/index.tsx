@@ -57,6 +57,13 @@ function Dashboard() {
       now - new Date(d.last_status_change_at).getTime() > 48 * 3600 * 1000,
   );
 
+  const FOUR_DAYS = 4 * 24 * 3600 * 1000;
+  const isStale4 = (d: typeof dossiers[number]) =>
+    now - new Date(d.last_status_change_at).getTime() > FOUR_DAYS;
+  const rappelATraiter = dossiers.filter((d) => d.status === "a_traiter" && isStale4(d));
+  const rappelAccordNonFacture = dossiers.filter((d) => d.status === "accord_recu" && isStale4(d));
+  const rappelFactureNonTransmis = dossiers.filter((d) => d.status === "facture" && isStale4(d));
+
 
   const problemes = dossiers.filter((d) => d.probleme);
 
@@ -281,6 +288,17 @@ function Dashboard() {
         />
       </div>
 
+      <ReminderSection
+        title="Rappels — dossiers inactifs depuis plus de 4 jours"
+        groups={[
+          { label: "À traiter mais pas traités", tone: "amber", items: rappelATraiter, status: "a_traiter" as DossierStatus },
+          { label: "Accordés mais pas facturés", tone: "orange", items: rappelAccordNonFacture, status: "accord_recu" as DossierStatus },
+          { label: "Facturés mais pas transmis", tone: "sky", items: rappelFactureNonTransmis, status: "facture" as DossierStatus },
+        ]}
+      />
+
+
+
 
       <section className="rounded-xl border bg-card p-5">
         <h2 className="mb-4 text-base font-semibold">Répartition par statut</h2>
@@ -385,3 +403,89 @@ function LensBadge() {
     </span>
   );
 }
+
+type ReminderTone = "amber" | "orange" | "sky";
+type ReminderItem = {
+  id: string;
+  client_nom: string;
+  client_prenom: string;
+  mutuelle: string | null;
+  last_status_change_at: string;
+  type_dossier: string | null;
+};
+type ReminderGroup = {
+  label: string;
+  tone: ReminderTone;
+  items: ReminderItem[];
+  status: DossierStatus;
+};
+
+function daysAgo(date: string) {
+  return Math.floor((Date.now() - new Date(date).getTime()) / (24 * 3600 * 1000));
+}
+
+const TONE_STYLES: Record<ReminderTone, { card: string; badge: string; icon: string }> = {
+  amber: { card: "border-amber-200 bg-amber-50", badge: "bg-amber-100 text-amber-900 border-amber-300", icon: "text-amber-700" },
+  orange: { card: "border-orange-200 bg-orange-50", badge: "bg-orange-100 text-orange-900 border-orange-300", icon: "text-orange-700" },
+  sky: { card: "border-sky-200 bg-sky-50", badge: "bg-sky-100 text-sky-900 border-sky-300", icon: "text-sky-700" },
+};
+
+function ReminderSection({ title, groups }: { title: string; groups: ReminderGroup[] }) {
+  const total = groups.reduce((s, g) => s + g.items.length, 0);
+  if (total === 0) return null;
+  return (
+    <section className="rounded-xl border bg-card p-5">
+      <div className="mb-4 flex items-center gap-2">
+        <AlertTriangle className="h-5 w-5 text-amber-600" />
+        <h2 className="text-base font-semibold">{title}</h2>
+      </div>
+      <div className="grid gap-4 md:grid-cols-3">
+        {groups.map((g) => {
+          const styles = TONE_STYLES[g.tone];
+          return (
+            <div key={g.label} className={`rounded-lg border p-4 ${styles.card}`}>
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <span className="text-sm font-medium">{g.label}</span>
+                <span className={`inline-flex min-w-6 items-center justify-center rounded-full border px-2 py-0.5 text-xs font-bold tabular-nums ${styles.badge}`}>
+                  {g.items.length}
+                </span>
+              </div>
+              {g.items.length === 0 ? (
+                <p className="text-xs text-muted-foreground">Aucun dossier concerné.</p>
+              ) : (
+                <ul className="space-y-1.5">
+                  {g.items.slice(0, 5).map((d) => (
+                    <li key={d.id}>
+                      <Link
+                        to="/dossiers/$id"
+                        params={{ id: d.id }}
+                        className="flex items-center justify-between gap-2 rounded-md bg-background/70 px-2 py-1.5 text-xs hover:bg-background"
+                      >
+                        <span className="truncate font-medium">
+                          {(d.client_nom || "").toUpperCase()} {d.client_prenom}
+                        </span>
+                        <span className={`shrink-0 tabular-nums ${styles.icon}`}>{daysAgo(d.last_status_change_at)}j</span>
+                      </Link>
+                    </li>
+                  ))}
+                  {g.items.length > 5 && (
+                    <li>
+                      <Link
+                        to="/dossiers"
+                        search={{ status: g.status }}
+                        className="block px-2 py-1 text-xs text-muted-foreground hover:underline"
+                      >
+                        + {g.items.length - 5} autre{g.items.length - 5 > 1 ? "s" : ""}
+                      </Link>
+                    </li>
+                  )}
+                </ul>
+              )}
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  );
+}
+
