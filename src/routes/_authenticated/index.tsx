@@ -57,6 +57,13 @@ function Dashboard() {
       now - new Date(d.last_status_change_at).getTime() > 48 * 3600 * 1000,
   );
 
+  const FOUR_DAYS = 4 * 24 * 3600 * 1000;
+  const isStale4 = (d: typeof dossiers[number]) =>
+    now - new Date(d.last_status_change_at).getTime() > FOUR_DAYS;
+  const rappelATraiter = dossiers.filter((d) => d.status === "a_traiter" && isStale4(d));
+  const rappelAccordNonFacture = dossiers.filter((d) => d.status === "accord_recu" && isStale4(d));
+  const rappelFactureNonTransmis = dossiers.filter((d) => d.status === "facture" && isStale4(d));
+
 
   const problemes = dossiers.filter((d) => d.probleme);
 
