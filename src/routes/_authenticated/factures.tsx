@@ -137,8 +137,8 @@ function FacturesPage() {
     const mutuellePaid = !!d.paiement_mutuelle_recu;
     const mutuelleDue = mutuellePaid ? 0 : mutuelleExpected;
 
-    // Client: reste à charge - geste commercial
-    let clientExpected = Math.max(0, rac - avoir);
+    // Client: reste à charge (avoir déjà déduit par le trigger BD)
+    let clientExpected = Math.max(0, rac);
     // Cas facture client directe sans PEC ni RAC saisi
     if (clientExpected === 0 && pec === 0 && rac === 0 && (d.facture_client || isLentilles)) {
       clientExpected = Math.max(0, (Number(d.montant_devis) || 0) - avoir);
