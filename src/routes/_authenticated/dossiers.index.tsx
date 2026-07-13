@@ -131,6 +131,29 @@ function AlertBadges({ d, compact }: { d: Dossier; compact?: boolean }) {
   );
 }
 
+const REMINDER_META: Partial<Record<DossierStatus, { label: string; tone: string }>> = {
+  a_traiter: { label: "À traiter", tone: "bg-amber-100 text-amber-900 border-amber-300" },
+  accord_recu: { label: "À facturer", tone: "bg-orange-100 text-orange-900 border-orange-300" },
+  facture: { label: "À transmettre", tone: "bg-sky-100 text-sky-900 border-sky-300" },
+};
+
+function ReminderBadge({ d, compact }: { d: Dossier; compact?: boolean }) {
+  const meta = REMINDER_META[d.status];
+  if (!meta) return null;
+  const days = Math.floor((Date.now() - new Date(d.last_status_change_at).getTime()) / (24 * 3600 * 1000));
+  if (days < 4) return null;
+  const cls = compact ? "text-[10px] px-1.5 py-0.5" : "text-xs px-2 py-0.5";
+  const size = compact ? "h-3 w-3" : "h-3.5 w-3.5";
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-full border font-medium ${meta.tone} ${cls}`}
+      title={`${meta.label} — inactif depuis ${days} jours`}
+    >
+      <AlertTriangle className={size} /> {meta.label} · {days}j
+    </span>
+  );
+}
+
 const STATUS_RANK: Partial<Record<DossierStatus, number>> = {
   refuse: 10,
   a_traiter: 20,
