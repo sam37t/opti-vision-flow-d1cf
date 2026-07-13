@@ -2,7 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { daysSinceDevisSansRetour, daysSinceTransmisNonRegle } from "@/lib/dossier-alerts";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { AlertOctagon, Clock, LayoutGrid, List, Search, X } from "lucide-react";
+import { AlertOctagon, AlertTriangle, Clock, LayoutGrid, List, Search, X } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -128,6 +128,29 @@ function AlertBadges({ d, compact }: { d: Dossier; compact?: boolean }) {
         </span>
       )}
     </div>
+  );
+}
+
+const REMINDER_META: Partial<Record<DossierStatus, { label: string; tone: string }>> = {
+  a_traiter: { label: "À traiter", tone: "bg-amber-100 text-amber-900 border-amber-300" },
+  accord_recu: { label: "À facturer", tone: "bg-orange-100 text-orange-900 border-orange-300" },
+  facture: { label: "À transmettre", tone: "bg-sky-100 text-sky-900 border-sky-300" },
+};
+
+function ReminderBadge({ d, compact }: { d: Dossier; compact?: boolean }) {
+  const meta = REMINDER_META[d.status];
+  if (!meta) return null;
+  const days = Math.floor((Date.now() - new Date(d.last_status_change_at).getTime()) / (24 * 3600 * 1000));
+  if (days < 4) return null;
+  const cls = compact ? "text-[10px] px-1.5 py-0.5" : "text-xs px-2 py-0.5";
+  const size = compact ? "h-3 w-3" : "h-3.5 w-3.5";
+  return (
+    <span
+      className={`inline-flex items-center gap-1 rounded-full border font-medium ${meta.tone} ${cls}`}
+      title={`${meta.label} — inactif depuis ${days} jours`}
+    >
+      <AlertTriangle className={size} /> {meta.label} · {days}j
+    </span>
   );
 }
 
@@ -336,6 +359,7 @@ function ListView({ dossiers }: { dossiers: Dossier[] }) {
                     <StatusBadge status={d.status} className="text-[10px] px-1.5 py-0" />
                     <BillingBadges d={d} compact />
                     <AlertBadges d={d} compact />
+                    <ReminderBadge d={d} compact />
                     <RecentBadge d={d} compact />
                   </div>
                 </td>
@@ -396,7 +420,7 @@ function KanbanView({ dossiers }: { dossiers: Dossier[] }) {
                     {d.type_dossier === "lentilles" && <LensBadge />}
                   </div>
                   <div className="text-xs text-muted-foreground">{d.mutuelle || "—"}</div>
-                  <div className="mt-1 flex flex-wrap items-center gap-1"><StatusBadge status={d.status} className="text-[10px] px-1.5 py-0" /><BillingBadges d={d} compact /><AlertBadges d={d} compact /><RecentBadge d={d} compact /></div>
+                  <div className="mt-1 flex flex-wrap items-center gap-1"><StatusBadge status={d.status} className="text-[10px] px-1.5 py-0" /><BillingBadges d={d} compact /><AlertBadges d={d} compact /><ReminderBadge d={d} compact /><RecentBadge d={d} compact /></div>
                   <div className="mt-1 space-y-0.5 text-xs tabular-nums">
                     <div>Devis : <span className="font-medium">{Number(d.montant_devis ?? 0).toFixed(2)} €</span></div>
                     {d.montant_pec != null && <div>Accordé : <span className="font-medium">{Number(d.montant_pec).toFixed(2)} €</span></div>}
