@@ -9,6 +9,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { TERMINAL_STATUSES, type DossierStatus } from "@/lib/dossier-status";
+
+const isArchived = (d: { status: string | null }) =>
+  !!d.status && (TERMINAL_STATUSES as readonly string[]).includes(d.status);
 
 export const Route = createFileRoute("/_authenticated/import")({
   head: () => ({ meta: [{ title: "Import Excel — Optique Suivi" }] }),
