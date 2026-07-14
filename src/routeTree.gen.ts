@@ -14,6 +14,7 @@ import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
 import { Route as AuthenticatedParametresRouteImport } from './routes/_authenticated/parametres'
+import { Route as AuthenticatedImportRouteImport } from './routes/_authenticated/import'
 import { Route as AuthenticatedFacturesRouteImport } from './routes/_authenticated/factures'
 import { Route as AuthenticatedDossiersIndexRouteImport } from './routes/_authenticated/dossiers.index'
 import { Route as AuthenticatedDossiersNewRouteImport } from './routes/_authenticated/dossiers.new'
@@ -42,6 +43,11 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
 const AuthenticatedParametresRoute = AuthenticatedParametresRouteImport.update({
   id: '/parametres',
   path: '/parametres',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedImportRoute = AuthenticatedImportRouteImport.update({
+  id: '/import',
+  path: '/import',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedFacturesRoute = AuthenticatedFacturesRouteImport.update({
@@ -78,6 +84,7 @@ export interface FileRoutesByFullPath {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/factures': typeof AuthenticatedFacturesRoute
+  '/import': typeof AuthenticatedImportRoute
   '/parametres': typeof AuthenticatedParametresRoute
   '/dossiers/$id': typeof AuthenticatedDossiersIdRoute
   '/dossiers/archives': typeof AuthenticatedDossiersArchivesRoute
@@ -88,6 +95,7 @@ export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/factures': typeof AuthenticatedFacturesRoute
+  '/import': typeof AuthenticatedImportRoute
   '/parametres': typeof AuthenticatedParametresRoute
   '/': typeof AuthenticatedIndexRoute
   '/dossiers/$id': typeof AuthenticatedDossiersIdRoute
@@ -101,6 +109,7 @@ export interface FileRoutesById {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
   '/_authenticated/factures': typeof AuthenticatedFacturesRoute
+  '/_authenticated/import': typeof AuthenticatedImportRoute
   '/_authenticated/parametres': typeof AuthenticatedParametresRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/dossiers/$id': typeof AuthenticatedDossiersIdRoute
@@ -115,6 +124,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/factures'
+    | '/import'
     | '/parametres'
     | '/dossiers/$id'
     | '/dossiers/archives'
@@ -125,6 +135,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/factures'
+    | '/import'
     | '/parametres'
     | '/'
     | '/dossiers/$id'
@@ -137,6 +148,7 @@ export interface FileRouteTypes {
     | '/auth'
     | '/reset-password'
     | '/_authenticated/factures'
+    | '/_authenticated/import'
     | '/_authenticated/parametres'
     | '/_authenticated/'
     | '/_authenticated/dossiers/$id'
@@ -188,6 +200,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedParametresRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/import': {
+      id: '/_authenticated/import'
+      path: '/import'
+      fullPath: '/import'
+      preLoaderRoute: typeof AuthenticatedImportRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/factures': {
       id: '/_authenticated/factures'
       path: '/factures'
@@ -228,6 +247,7 @@ declare module '@tanstack/react-router' {
 
 interface AuthenticatedRouteRouteChildren {
   AuthenticatedFacturesRoute: typeof AuthenticatedFacturesRoute
+  AuthenticatedImportRoute: typeof AuthenticatedImportRoute
   AuthenticatedParametresRoute: typeof AuthenticatedParametresRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedDossiersIdRoute: typeof AuthenticatedDossiersIdRoute
@@ -238,6 +258,7 @@ interface AuthenticatedRouteRouteChildren {
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedFacturesRoute: AuthenticatedFacturesRoute,
+  AuthenticatedImportRoute: AuthenticatedImportRoute,
   AuthenticatedParametresRoute: AuthenticatedParametresRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedDossiersIdRoute: AuthenticatedDossiersIdRoute,

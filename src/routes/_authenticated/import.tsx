@@ -106,11 +106,8 @@ function ImportPage() {
       const payeX = (s.paye || "").toLowerCase() === "x";
       const isPasDeTP = (s.tp_status || "").toLowerCase().includes("pas");
 
-      const status = payeX && isPasDeTP
-        ? "regle"
-        : rbsmt > 0
-          ? "transmis_mutuelle"
-          : "a_traiter";
+      const status: "regle" | "transmis_mutuelle" | "a_traiter" =
+        payeX && isPasDeTP ? "regle" : rbsmt > 0 ? "transmis_mutuelle" : "a_traiter";
 
       const insert = {
         client_nom: s.client_nom || "?",
