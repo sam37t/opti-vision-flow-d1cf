@@ -231,6 +231,7 @@ export type Database = {
           source_row: number
           tp_facture: string | null
           tp_status: string | null
+          type_dossier: string
           type_reglement: string | null
           updated_at: string
         }
@@ -255,6 +256,7 @@ export type Database = {
           source_row: number
           tp_facture?: string | null
           tp_status?: string | null
+          type_dossier?: string
           type_reglement?: string | null
           updated_at?: string
         }
@@ -279,6 +281,7 @@ export type Database = {
           source_row?: number
           tp_facture?: string | null
           tp_status?: string | null
+          type_dossier?: string
           type_reglement?: string | null
           updated_at?: string
         }
