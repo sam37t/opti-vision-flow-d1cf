@@ -44,6 +44,11 @@ type Dossier = {
   montant_devis: number | null;
   montant_pec: number | null;
   reste_a_charge: number | null;
+  avoir_commercial: number | null;
+  reste_a_charge_payment_method: string | null;
+  paiement_client_recu: boolean | null;
+  paiement_mutuelle_recu: boolean | null;
+  transmis_mutuelle: boolean | null;
   status: string | null;
 };
 
