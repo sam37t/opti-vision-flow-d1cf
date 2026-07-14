@@ -34,6 +34,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             <NavLink to="/factures" icon={<Receipt className="h-4 w-4" />}>Factures en attente</NavLink>
             <NavLink to="/dossiers/archives" icon={<Archive className="h-4 w-4" />}>Archives</NavLink>
             <NavLink to="/parametres" icon={<Settings className="h-4 w-4" />}>Paramètres</NavLink>
+            <NavLink to="/import" icon={<Upload className="h-4 w-4" />}>Import Excel</NavLink>
           </nav>
           <div className="flex items-center gap-3">
             <Link to="/dossiers/new">
