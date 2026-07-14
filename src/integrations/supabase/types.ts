@@ -209,6 +209,96 @@ export type Database = {
         }
         Relationships: []
       }
+      dossiers_import_staging: {
+        Row: {
+          a_regler_papiers: number | null
+          client_nom: string
+          client_prenom: string
+          created_at: string
+          date_achat: string | null
+          decision: string
+          id: string
+          imported_at: string | null
+          imported_dossier_id: string | null
+          match_candidates: Json | null
+          matched_dossier_id: string | null
+          mutuelle: string | null
+          paye: string | null
+          rac: number | null
+          raw: Json | null
+          raw_nom_prenom: string
+          rbsmt_attente: number | null
+          source_row: number
+          tp_facture: string | null
+          tp_status: string | null
+          type_reglement: string | null
+          updated_at: string
+        }
+        Insert: {
+          a_regler_papiers?: number | null
+          client_nom: string
+          client_prenom: string
+          created_at?: string
+          date_achat?: string | null
+          decision?: string
+          id?: string
+          imported_at?: string | null
+          imported_dossier_id?: string | null
+          match_candidates?: Json | null
+          matched_dossier_id?: string | null
+          mutuelle?: string | null
+          paye?: string | null
+          rac?: number | null
+          raw?: Json | null
+          raw_nom_prenom: string
+          rbsmt_attente?: number | null
+          source_row: number
+          tp_facture?: string | null
+          tp_status?: string | null
+          type_reglement?: string | null
+          updated_at?: string
+        }
+        Update: {
+          a_regler_papiers?: number | null
+          client_nom?: string
+          client_prenom?: string
+          created_at?: string
+          date_achat?: string | null
+          decision?: string
+          id?: string
+          imported_at?: string | null
+          imported_dossier_id?: string | null
+          match_candidates?: Json | null
+          matched_dossier_id?: string | null
+          mutuelle?: string | null
+          paye?: string | null
+          rac?: number | null
+          raw?: Json | null
+          raw_nom_prenom?: string
+          rbsmt_attente?: number | null
+          source_row?: number
+          tp_facture?: string | null
+          tp_status?: string | null
+          type_reglement?: string | null
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dossiers_import_staging_imported_dossier_id_fkey"
+            columns: ["imported_dossier_id"]
+            isOneToOne: false
+            referencedRelation: "dossiers"
+            referencedColumns: ["id"]
+          },
+          {
+            foreignKeyName: "dossiers_import_staging_matched_dossier_id_fkey"
+            columns: ["matched_dossier_id"]
+            isOneToOne: false
+            referencedRelation: "dossiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       messages: {
         Row: {
           body: string
