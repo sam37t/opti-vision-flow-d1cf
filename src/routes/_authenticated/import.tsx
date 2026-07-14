@@ -402,7 +402,7 @@ function RowCard({ s, busy, match, matchFromImport, children }: { s: Staging; bu
   );
 }
 
-function MatchCandidate({ dossier, fromImport, onSelect }: { dossier: Dossier; fromImport: boolean; onSelect?: () => void }) {
+function MatchCandidate({ dossier, fromImport, onSelect, onMerge }: { dossier: Dossier; fromImport: boolean; onSelect?: () => void; onMerge?: () => void }) {
   return (
     <div className="rounded border bg-muted/30 p-2 text-sm">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -417,6 +417,11 @@ function MatchCandidate({ dossier, fromImport, onSelect }: { dossier: Dossier; f
           <Link to="/dossiers/$id" params={{ id: dossier.id }} target="_blank">
             <Button size="sm" variant="ghost">Voir le dossier ↗</Button>
           </Link>
+          {onMerge && (
+            <Button size="sm" onClick={onMerge}>
+              <GitMerge className="mr-1 h-3 w-3" /> Compléter
+            </Button>
+          )}
           {onSelect && (
             <Button size="sm" variant="outline" onClick={onSelect}>
               C'est celui-ci
