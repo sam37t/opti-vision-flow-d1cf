@@ -425,7 +425,6 @@ export type Database = {
         Returns: boolean
       }
       is_staff: { Args: { _user_id: string }; Returns: boolean }
-      unaccent: { Args: { "": string }; Returns: string }
     }
     Enums: {
       app_role: "gerante" | "employe"

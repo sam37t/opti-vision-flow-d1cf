@@ -19,6 +19,7 @@ export const Route = createFileRoute("/_authenticated/factures")({
 
 type Dossier = {
   id: string;
+  status: string;
   client_nom: string;
   client_prenom: string;
   mutuelle: string;
@@ -87,6 +88,34 @@ function LensBadge() {
 const fmt = (n: number) =>
   n.toLocaleString("fr-FR", { minimumFractionDigits: 2, maximumFractionDigits: 2 }) + " €";
 
+function computeDue(d: Dossier) {
+  const isLentilles = d.type_dossier === "lentilles";
+  const pec = Number(d.montant_pec) || 0;
+  const rac = Number(d.reste_a_charge) || 0;
+  const avoir = Number(d.avoir_commercial) || 0;
+
+  const mutuelleExpected = pec;
+  const mutuellePaid = !!d.paiement_mutuelle_recu;
+  const mutuelleDue = mutuellePaid ? 0 : mutuelleExpected;
+
+  let clientExpected = Math.max(0, rac);
+  if (clientExpected === 0 && pec === 0 && rac === 0 && (d.facture_client || isLentilles)) {
+    clientExpected = Math.max(0, (Number(d.montant_devis) || 0) - avoir);
+  }
+  const clientPaid = !!d.paiement_client_recu;
+  const clientDue = clientPaid ? 0 : clientExpected;
+
+  return {
+    mutuelleExpected,
+    mutuelleDue,
+    mutuellePaid,
+    clientExpected,
+    clientDue,
+    clientPaid,
+    total: mutuelleDue + clientDue,
+  };
+}
+
 function FacturesPage() {
   const qc = useQueryClient();
   const today = new Date().toISOString().slice(0, 10);
@@ -107,14 +136,15 @@ function FacturesPage() {
       const { data, error } = await supabase
         .from("dossiers")
         .select(
-          "id, client_nom, client_prenom, mutuelle, montant_pec, montant_devis, transmis_mutuelle, transmis_mutuelle_at, facture_cosium, facture_cosium_at, facture_client, facture_client_at, reste_a_charge, avoir_commercial, reste_a_charge_payment_method, type_dossier, paiement_client_recu, paiement_client_recu_at, paiement_mutuelle_recu, paiement_mutuelle_recu_at",
+          "id, status, client_nom, client_prenom, mutuelle, montant_pec, montant_devis, transmis_mutuelle, transmis_mutuelle_at, facture_cosium, facture_cosium_at, facture_client, facture_client_at, reste_a_charge, avoir_commercial, reste_a_charge_payment_method, type_dossier, paiement_client_recu, paiement_client_recu_at, paiement_mutuelle_recu, paiement_mutuelle_recu_at",
         )
         .or("facture_cosium.eq.true,transmis_mutuelle.eq.true,transmis_mutuelle_at.not.is.null,facture_client.eq.true")
-        .eq("paiement_recu", false)
         .order("transmis_mutuelle_at", { ascending: true, nullsFirst: false });
 
       if (error) throw error;
-      const result = (data ?? []) as Dossier[];
+      const result = ((data ?? []) as Dossier[]).filter(
+        (d) => d.status !== "regle" && computeDue(d).total > 0,
+      );
       const methods: Record<string, PaymentMethod | null> = {};
       result.forEach((d) => {
         if (d.reste_a_charge_payment_method) {
@@ -137,34 +167,6 @@ function FacturesPage() {
       supabase.removeChannel(channel);
     };
   }, [qc]);
-
-  const computeDue = (d: Dossier) => {
-    const isLentilles = d.type_dossier === "lentilles";
-    const pec = Number(d.montant_pec) || 0;
-    const rac = Number(d.reste_a_charge) || 0;
-    const avoir = Number(d.avoir_commercial) || 0;
-
-    const mutuelleExpected = pec;
-    const mutuellePaid = !!d.paiement_mutuelle_recu;
-    const mutuelleDue = mutuellePaid ? 0 : mutuelleExpected;
-
-    let clientExpected = Math.max(0, rac);
-    if (clientExpected === 0 && pec === 0 && rac === 0 && (d.facture_client || isLentilles)) {
-      clientExpected = Math.max(0, (Number(d.montant_devis) || 0) - avoir);
-    }
-    const clientPaid = !!d.paiement_client_recu;
-    const clientDue = clientPaid ? 0 : clientExpected;
-
-    return {
-      mutuelleExpected,
-      mutuelleDue,
-      mutuellePaid,
-      clientExpected,
-      clientDue,
-      clientPaid,
-      total: mutuelleDue + clientDue,
-    };
-  };
 
   const totalEnAttente = dossiers.reduce((acc, d) => acc + computeDue(d).total, 0);
   const totalMutuelle = dossiers.reduce((acc, d) => acc + computeDue(d).mutuelleDue, 0);
