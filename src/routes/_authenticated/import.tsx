@@ -633,6 +633,7 @@ function MatchCandidate({ dossier, fromImport, onSelect, onMerge }: { dossier: D
           <Badge variant="outline" className="text-xs">
             {fromImport ? "📥 Importé depuis Excel" : "✍️ Créé dans l'app"}
           </Badge>
+          {isArchived(dossier) && <Badge className="bg-green-600 text-white hover:bg-green-600 text-xs">Archivé — à jour</Badge>}
           {dossier.status && <Badge variant="secondary" className="text-xs">{dossier.status}</Badge>}
         </div>
         <div className="flex items-center gap-2">
