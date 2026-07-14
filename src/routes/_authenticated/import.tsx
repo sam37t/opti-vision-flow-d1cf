@@ -75,7 +75,7 @@ function ImportPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("dossiers")
-        .select("id, client_nom, client_prenom, created_at, mutuelle");
+        .select("id, client_nom, client_prenom, created_at, mutuelle, telephone, type_dossier, montant_devis, montant_pec, reste_a_charge, status");
       if (error) throw error;
       return data as Dossier[];
     },
