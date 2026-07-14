@@ -203,6 +203,37 @@ function ImportPage() {
     setBusy(null);
   };
 
+  const [mergeTarget, setMergeTarget] = useState<{ s: Staging; dossier: Dossier } | null>(null);
+
+  const applyMerge = async (patch: Record<string, unknown>) => {
+    if (!mergeTarget) return;
+    const { s, dossier } = mergeTarget;
+    setBusy(s.id);
+    try {
+      if (Object.keys(patch).length > 0) {
+        const { error } = await supabase.from("dossiers").update(patch).eq("id", dossier.id);
+        if (error) throw error;
+      }
+      await supabase
+        .from("dossiers_import_staging")
+        .update({
+          decision: "merged_existing",
+          matched_dossier_id: dossier.id,
+          imported_dossier_id: dossier.id,
+          imported_at: new Date().toISOString(),
+        })
+        .eq("id", s.id);
+      toast.success("Dossier existant complété avec les infos Excel");
+      setMergeTarget(null);
+      qc.invalidateQueries({ queryKey: ["import-staging"] });
+      qc.invalidateQueries({ queryKey: ["all-dossiers-for-match"] });
+    } catch (e: any) {
+      toast.error(e.message || "Erreur");
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const bulkImportNew = async () => {
     if (!confirm(`Créer ${nouveau.length} nouveaux dossiers ?`)) return;
     for (const e of nouveau) {
