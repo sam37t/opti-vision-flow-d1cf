@@ -1,6 +1,6 @@
 import { Link, useRouter } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { LayoutDashboard, FolderKanban, LogOut, Plus, Settings, Receipt, Archive } from "lucide-react";
+import { LayoutDashboard, FolderKanban, LogOut, Plus, Settings, Receipt, Archive, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logoAsset from "@/assets/optic-house-logo.jpg.asset.json";
 import { MessagesPanel } from "@/components/MessagesPanel";
@@ -34,6 +34,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             <NavLink to="/factures" icon={<Receipt className="h-4 w-4" />}>Factures en attente</NavLink>
             <NavLink to="/dossiers/archives" icon={<Archive className="h-4 w-4" />}>Archives</NavLink>
             <NavLink to="/parametres" icon={<Settings className="h-4 w-4" />}>Paramètres</NavLink>
+            <NavLink to="/import" icon={<Upload className="h-4 w-4" />}>Import Excel</NavLink>
           </nav>
           <div className="flex items-center gap-3">
             <Link to="/dossiers/new">
