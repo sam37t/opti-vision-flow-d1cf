@@ -581,7 +581,7 @@ function StatCard({ label, value, tone }: { label: string; value: number; tone?:
   );
 }
 
-function RowCard({ s, busy, match, matchFromImport, children }: { s: Staging; busy: boolean; match?: Dossier; matchFromImport?: boolean; children: React.ReactNode }) {
+function RowCard({ s, busy, match, matchFromImport, matchArchived, children }: { s: Staging; busy: boolean; match?: Dossier; matchFromImport?: boolean; matchArchived?: boolean; children: React.ReactNode }) {
   return (
     <div className="rounded-lg border bg-card p-3">
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -601,10 +601,17 @@ function RowCard({ s, busy, match, matchFromImport, children }: { s: Staging; bu
           </div>
           {match && (
             <div className="mt-2">
-              <div className="mb-1 flex items-center gap-1 text-xs text-amber-700">
-                <HelpCircle className="h-3 w-3" />
-                Dossier existant potentiellement identique :
-              </div>
+              {matchArchived ? (
+                <div className="mb-1 flex items-center gap-1 text-xs text-green-700">
+                  <CheckCircle2 className="h-3 w-3" />
+                  Dossier déjà archivé dans l'app — considéré à jour, aucune donnée à compléter :
+                </div>
+              ) : (
+                <div className="mb-1 flex items-center gap-1 text-xs text-amber-700">
+                  <HelpCircle className="h-3 w-3" />
+                  Dossier existant potentiellement identique :
+                </div>
+              )}
               <MatchCandidate dossier={match} fromImport={!!matchFromImport} />
             </div>
           )}
