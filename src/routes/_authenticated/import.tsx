@@ -135,7 +135,11 @@ function ImportPage() {
       const isPasDeTP = (s.tp_status || "").toLowerCase().includes("pas");
 
       const status: "regle" | "transmis_mutuelle" | "a_traiter" =
-        payeX && isPasDeTP ? "regle" : rbsmt > 0 ? "transmis_mutuelle" : "a_traiter";
+        payeX ? "regle" : rbsmt > 0 ? "transmis_mutuelle" : "a_traiter";
+
+      const paiementDate = s.date_achat
+        ? new Date(s.date_achat).toISOString()
+        : new Date().toISOString();
 
       const insert = {
         client_nom: s.client_nom || "?",
@@ -149,7 +153,9 @@ function ImportPage() {
         avoir_commercial: arp,
         reste_a_charge_payment_method: s.type_reglement,
         paiement_client_recu: rac === 0 || payeX,
-        paiement_mutuelle_recu: rbsmt === 0,
+        paiement_client_recu_at: (rac === 0 || payeX) ? paiementDate : null,
+        paiement_mutuelle_recu: rbsmt === 0 || payeX,
+        paiement_mutuelle_recu_at: (rbsmt === 0 || payeX) ? paiementDate : null,
         facture_cosium: true,
         transmis_mutuelle: rbsmt > 0,
         status,
