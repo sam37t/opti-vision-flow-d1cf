@@ -37,6 +37,12 @@ type Dossier = {
   client_prenom: string;
   created_at: string;
   mutuelle: string | null;
+  telephone: string | null;
+  type_dossier: string | null;
+  montant_devis: number | null;
+  montant_pec: number | null;
+  reste_a_charge: number | null;
+  status: string | null;
 };
 
 const normalize = (s: string) =>
