@@ -486,7 +486,7 @@ function FacturesPage() {
                                   type="date"
                                   value={mutuelleDates[d.id] ?? (d.paiement_mutuelle_recu_at ?? today)}
                                   onChange={(e) => setMutuelleDates((p) => ({ ...p, [d.id]: e.target.value }))}
-                                  onClick={(e) => e.currentTarget.showPicker?.()}
+                                  onClick={(e) => { try { e.currentTarget.showPicker?.(); } catch {} }}
                                   onBlur={(e) => {
                                     if (e.target.value && e.target.value !== d.paiement_mutuelle_recu_at) {
                                       updateMutuelleDate(d.id, e.target.value);
@@ -509,7 +509,7 @@ function FacturesPage() {
                                   type="date"
                                   value={mutuelleDates[d.id] ?? today}
                                   onChange={(e) => setMutuelleDates((p) => ({ ...p, [d.id]: e.target.value }))}
-                                  onClick={(e) => e.currentTarget.showPicker?.()}
+                                  onClick={(e) => { try { e.currentTarget.showPicker?.(); } catch {} }}
                                   max={today}
                                   aria-label={`Choisir la date du règlement mutuelle de ${d.client_prenom} ${d.client_nom}`}
                                   title="Choisir la date réelle d'encaissement"
@@ -554,7 +554,7 @@ function FacturesPage() {
                                   type="date"
                                   value={clientDates[d.id] ?? (d.paiement_client_recu_at ?? today)}
                                   onChange={(e) => setClientDates((p) => ({ ...p, [d.id]: e.target.value }))}
-                                  onClick={(e) => e.currentTarget.showPicker?.()}
+                                  onClick={(e) => { try { e.currentTarget.showPicker?.(); } catch {} }}
                                   onBlur={(e) => {
                                     if (e.target.value && e.target.value !== d.paiement_client_recu_at) {
                                       updateClientDate(d.id, e.target.value);
@@ -586,7 +586,7 @@ function FacturesPage() {
                                   type="date"
                                   value={clientDates[d.id] ?? today}
                                   onChange={(e) => setClientDates((p) => ({ ...p, [d.id]: e.target.value }))}
-                                  onClick={(e) => e.currentTarget.showPicker?.()}
+                                  onClick={(e) => { try { e.currentTarget.showPicker?.(); } catch {} }}
                                   max={today}
                                   aria-label={`Choisir la date d'encaissement client de ${d.client_prenom} ${d.client_nom}`}
                                   title="Choisir la date d'encaissement"
