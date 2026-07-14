@@ -331,6 +331,7 @@ function ImportPage() {
                     dossier={m}
                     fromImport={importedIds.has(m.id)}
                     onSelect={() => linkExisting(e.s, m.id)}
+                    onMerge={() => setMergeTarget({ s: e.s, dossier: m })}
                   />
                 ))}
                 <div className="flex gap-2 pt-1">
