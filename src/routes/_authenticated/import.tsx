@@ -281,18 +281,18 @@ function ImportPage() {
         <TabsContent value="multi" className="space-y-2">
           {multi.map((e) => (
             <RowCard key={e.s.id} s={e.s} busy={busy === e.s.id}>
-              <div className="w-full space-y-1">
-                <div className="text-xs text-muted-foreground">Correspondances possibles :</div>
+              <div className="w-full space-y-2">
+                <div className="text-xs text-muted-foreground">Correspondances possibles — compare et choisis :</div>
                 {e.matches.map((m) => (
-                  <div key={m.id} className="flex items-center justify-between rounded border px-2 py-1 text-sm">
-                    <span>{m.client_nom} {m.client_prenom} — {new Date(m.created_at).toLocaleDateString("fr-FR")}</span>
-                    <Button size="sm" variant="outline" onClick={() => linkExisting(e.s, m.id)}>
-                      C'est celui-ci
-                    </Button>
-                  </div>
+                  <MatchCandidate
+                    key={m.id}
+                    dossier={m}
+                    fromImport={importedIds.has(m.id)}
+                    onSelect={() => linkExisting(e.s, m.id)}
+                  />
                 ))}
                 <div className="flex gap-2 pt-1">
-                  <Button size="sm" variant="secondary" onClick={() => importAsNew(e.s)}>Créer un nouveau</Button>
+                  <Button size="sm" variant="secondary" onClick={() => importAsNew(e.s)}>Aucun ne correspond — Créer un nouveau</Button>
                   <Button size="sm" variant="ghost" onClick={() => skip(e.s)}>Ignorer</Button>
                 </div>
               </div>
