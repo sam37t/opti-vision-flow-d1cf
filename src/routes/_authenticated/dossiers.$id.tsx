@@ -562,15 +562,20 @@ function DossierDetail() {
               <DateField
                 label="Date de règlement reçu"
                 value={d.paiement_recu_at ? new Date(d.paiement_recu_at).toISOString().slice(0, 10) : null}
-                onChange={(v) =>
+                onChange={(v) => {
+                  const iso = v ? new Date(v).toISOString() : null;
                   updateDossier(
                     {
-                      paiement_recu_at: v ? new Date(v).toISOString() : null,
+                      paiement_recu_at: iso,
                       paiement_recu: !!v,
+                      paiement_client_recu: !!v,
+                      paiement_client_recu_at: v ? iso : null,
+                      paiement_mutuelle_recu: !!v,
+                      paiement_mutuelle_recu_at: v ? iso : null,
                     },
                     v ? "Règlement confirmé" : "Règlement annulé",
-                  )
-                }
+                  );
+                }}
               />
             </div>
             {d.status === "facture" && !d.facture_client && (
