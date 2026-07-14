@@ -9,6 +9,10 @@ import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
 import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
+import { TERMINAL_STATUSES } from "@/lib/dossier-status";
+
+const isArchived = (d: { status: string | null }) =>
+  !!d.status && (TERMINAL_STATUSES as readonly string[]).includes(d.status);
 
 export const Route = createFileRoute("/_authenticated/import")({
   head: () => ({ meta: [{ title: "Import Excel — Optique Suivi" }] }),
@@ -302,22 +306,29 @@ function ImportPage() {
               Marquer les {unique.length} comme déjà présents
             </Button>
           )}
-          {unique.map((e) => (
-            <RowCard key={e.s.id} s={e.s} busy={busy === e.s.id} match={e.matches[0]} matchFromImport={importedIds.has(e.matches[0].id)}>
-              <Button size="sm" onClick={() => setMergeTarget({ s: e.s, dossier: e.matches[0] })} disabled={busy === e.s.id}>
-                <GitMerge className="mr-1 h-3 w-3" /> Compléter
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => linkExisting(e.s, e.matches[0].id)} disabled={busy === e.s.id}>
-                Déjà présent
-              </Button>
-              <Button size="sm" variant="secondary" onClick={() => importAsNew(e.s)} disabled={busy === e.s.id}>
-                Créer quand même
-              </Button>
-              <Button size="sm" variant="ghost" onClick={() => skip(e.s)} disabled={busy === e.s.id}>
-                Ignorer
-              </Button>
-            </RowCard>
-          ))}
+          {unique.map((e) => {
+            const archived = isArchived(e.matches[0]);
+            return (
+              <RowCard key={e.s.id} s={e.s} busy={busy === e.s.id} match={e.matches[0]} matchFromImport={importedIds.has(e.matches[0].id)} matchArchived={archived}>
+                {!archived && (
+                  <Button size="sm" onClick={() => setMergeTarget({ s: e.s, dossier: e.matches[0] })} disabled={busy === e.s.id}>
+                    <GitMerge className="mr-1 h-3 w-3" /> Compléter
+                  </Button>
+                )}
+                <Button size="sm" variant={archived ? "default" : "outline"} onClick={() => linkExisting(e.s, e.matches[0].id)} disabled={busy === e.s.id}>
+                  Déjà présent{archived ? " (archivé)" : ""}
+                </Button>
+                {!archived && (
+                  <Button size="sm" variant="secondary" onClick={() => importAsNew(e.s)} disabled={busy === e.s.id}>
+                    Créer quand même
+                  </Button>
+                )}
+                <Button size="sm" variant="ghost" onClick={() => skip(e.s)} disabled={busy === e.s.id}>
+                  Ignorer
+                </Button>
+              </RowCard>
+            );
+          })}
         </TabsContent>
 
         <TabsContent value="multi" className="space-y-2">
@@ -331,7 +342,7 @@ function ImportPage() {
                     dossier={m}
                     fromImport={importedIds.has(m.id)}
                     onSelect={() => linkExisting(e.s, m.id)}
-                    onMerge={() => setMergeTarget({ s: e.s, dossier: m })}
+                    onMerge={isArchived(m) ? undefined : () => setMergeTarget({ s: e.s, dossier: m })}
                   />
                 ))}
                 <div className="flex gap-2 pt-1">
@@ -570,7 +581,7 @@ function StatCard({ label, value, tone }: { label: string; value: number; tone?:
   );
 }
 
-function RowCard({ s, busy, match, matchFromImport, children }: { s: Staging; busy: boolean; match?: Dossier; matchFromImport?: boolean; children: React.ReactNode }) {
+function RowCard({ s, busy, match, matchFromImport, matchArchived, children }: { s: Staging; busy: boolean; match?: Dossier; matchFromImport?: boolean; matchArchived?: boolean; children: React.ReactNode }) {
   return (
     <div className="rounded-lg border bg-card p-3">
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -590,10 +601,17 @@ function RowCard({ s, busy, match, matchFromImport, children }: { s: Staging; bu
           </div>
           {match && (
             <div className="mt-2">
-              <div className="mb-1 flex items-center gap-1 text-xs text-amber-700">
-                <HelpCircle className="h-3 w-3" />
-                Dossier existant potentiellement identique :
-              </div>
+              {matchArchived ? (
+                <div className="mb-1 flex items-center gap-1 text-xs text-green-700">
+                  <CheckCircle2 className="h-3 w-3" />
+                  Dossier déjà archivé dans l'app — considéré à jour, aucune donnée à compléter :
+                </div>
+              ) : (
+                <div className="mb-1 flex items-center gap-1 text-xs text-amber-700">
+                  <HelpCircle className="h-3 w-3" />
+                  Dossier existant potentiellement identique :
+                </div>
+              )}
               <MatchCandidate dossier={match} fromImport={!!matchFromImport} />
             </div>
           )}
@@ -615,6 +633,7 @@ function MatchCandidate({ dossier, fromImport, onSelect, onMerge }: { dossier: D
           <Badge variant="outline" className="text-xs">
             {fromImport ? "📥 Importé depuis Excel" : "✍️ Créé dans l'app"}
           </Badge>
+          {isArchived(dossier) && <Badge className="bg-green-600 text-white hover:bg-green-600 text-xs">Archivé — à jour</Badge>}
           {dossier.status && <Badge variant="secondary" className="text-xs">{dossier.status}</Badge>}
         </div>
         <div className="flex items-center gap-2">
