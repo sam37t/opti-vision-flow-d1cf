@@ -1,6 +1,6 @@
 import { Link, useRouter } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { LayoutDashboard, FolderKanban, LogOut, Plus, Settings, Receipt, Archive } from "lucide-react";
+import { LayoutDashboard, FolderKanban, LogOut, Plus, Settings, Receipt, Archive, Upload } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logoAsset from "@/assets/optic-house-logo.jpg.asset.json";
 import { MessagesPanel } from "@/components/MessagesPanel";
