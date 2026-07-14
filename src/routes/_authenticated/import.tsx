@@ -303,6 +303,9 @@ function ImportPage() {
           )}
           {unique.map((e) => (
             <RowCard key={e.s.id} s={e.s} busy={busy === e.s.id} match={e.matches[0]} matchFromImport={importedIds.has(e.matches[0].id)}>
+              <Button size="sm" onClick={() => setMergeTarget({ s: e.s, dossier: e.matches[0] })} disabled={busy === e.s.id}>
+                <GitMerge className="mr-1 h-3 w-3" /> Compléter
+              </Button>
               <Button size="sm" variant="outline" onClick={() => linkExisting(e.s, e.matches[0].id)} disabled={busy === e.s.id}>
                 Déjà présent
               </Button>
