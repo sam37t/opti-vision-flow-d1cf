@@ -35,6 +35,7 @@ type Staging = {
   tp_status: string | null;
   decision: string;
   imported_dossier_id: string | null;
+  type_dossier: string | null;
 };
 
 type Dossier = {
