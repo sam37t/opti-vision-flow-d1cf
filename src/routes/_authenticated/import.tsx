@@ -1,11 +1,13 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useMemo, useState } from "react";
-import { ArrowLeft, CheckCircle2, AlertTriangle, HelpCircle, Loader2 } from "lucide-react";
+import { useMemo, useState, useEffect } from "react";
+import { ArrowLeft, CheckCircle2, AlertTriangle, HelpCircle, Loader2, GitMerge } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsList, TabsTrigger, TabsContent } from "@/components/ui/tabs";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription, DialogFooter } from "@/components/ui/dialog";
+import { Checkbox } from "@/components/ui/checkbox";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/import")({
@@ -42,6 +44,11 @@ type Dossier = {
   montant_devis: number | null;
   montant_pec: number | null;
   reste_a_charge: number | null;
+  avoir_commercial: number | null;
+  reste_a_charge_payment_method: string | null;
+  paiement_client_recu: boolean | null;
+  paiement_mutuelle_recu: boolean | null;
+  transmis_mutuelle: boolean | null;
   status: string | null;
 };
 
@@ -75,7 +82,7 @@ function ImportPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("dossiers")
-        .select("id, client_nom, client_prenom, created_at, mutuelle, telephone, type_dossier, montant_devis, montant_pec, reste_a_charge, status");
+        .select("id, client_nom, client_prenom, created_at, mutuelle, telephone, type_dossier, montant_devis, montant_pec, reste_a_charge, avoir_commercial, reste_a_charge_payment_method, paiement_client_recu, paiement_mutuelle_recu, transmis_mutuelle, status");
       if (error) throw error;
       return data as Dossier[];
     },
@@ -196,6 +203,37 @@ function ImportPage() {
     setBusy(null);
   };
 
+  const [mergeTarget, setMergeTarget] = useState<{ s: Staging; dossier: Dossier } | null>(null);
+
+  const applyMerge = async (patch: Record<string, unknown>) => {
+    if (!mergeTarget) return;
+    const { s, dossier } = mergeTarget;
+    setBusy(s.id);
+    try {
+      if (Object.keys(patch).length > 0) {
+        const { error } = await supabase.from("dossiers").update(patch as never).eq("id", dossier.id);
+        if (error) throw error;
+      }
+      await supabase
+        .from("dossiers_import_staging")
+        .update({
+          decision: "merged_existing",
+          matched_dossier_id: dossier.id,
+          imported_dossier_id: dossier.id,
+          imported_at: new Date().toISOString(),
+        })
+        .eq("id", s.id);
+      toast.success("Dossier existant complété avec les infos Excel");
+      setMergeTarget(null);
+      qc.invalidateQueries({ queryKey: ["import-staging"] });
+      qc.invalidateQueries({ queryKey: ["all-dossiers-for-match"] });
+    } catch (e: any) {
+      toast.error(e.message || "Erreur");
+    } finally {
+      setBusy(null);
+    }
+  };
+
   const bulkImportNew = async () => {
     if (!confirm(`Créer ${nouveau.length} nouveaux dossiers ?`)) return;
     for (const e of nouveau) {
@@ -255,8 +293,9 @@ function ImportPage() {
         <TabsContent value="unique" className="space-y-2">
           <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
             <AlertTriangle className="mr-1 inline h-4 w-4" />
-            Ces lignes correspondent à un dossier déjà présent. Par défaut, on ne modifie rien —
-            clique <strong>« Déjà présent »</strong> pour les marquer comme traités sans toucher aux données existantes.
+            Ces lignes correspondent à un dossier déjà présent. Trois options :{" "}
+            <strong>« Compléter »</strong> pour enrichir le dossier existant avec les infos Excel (TP réglé, mutuelle, etc.),{" "}
+            <strong>« Déjà présent »</strong> pour ne rien toucher, ou <strong>« Créer quand même »</strong> si c'est un dossier différent.
           </div>
           {unique.length > 0 && (
             <Button onClick={bulkLinkUnique} variant="outline" className="mb-2">
@@ -265,6 +304,9 @@ function ImportPage() {
           )}
           {unique.map((e) => (
             <RowCard key={e.s.id} s={e.s} busy={busy === e.s.id} match={e.matches[0]} matchFromImport={importedIds.has(e.matches[0].id)}>
+              <Button size="sm" onClick={() => setMergeTarget({ s: e.s, dossier: e.matches[0] })} disabled={busy === e.s.id}>
+                <GitMerge className="mr-1 h-3 w-3" /> Compléter
+              </Button>
               <Button size="sm" variant="outline" onClick={() => linkExisting(e.s, e.matches[0].id)} disabled={busy === e.s.id}>
                 Déjà présent
               </Button>
@@ -289,6 +331,7 @@ function ImportPage() {
                     dossier={m}
                     fromImport={importedIds.has(m.id)}
                     onSelect={() => linkExisting(e.s, m.id)}
+                    onMerge={() => setMergeTarget({ s: e.s, dossier: m })}
                   />
                 ))}
                 <div className="flex gap-2 pt-1">
@@ -309,7 +352,211 @@ function ImportPage() {
           ))}
         </TabsContent>
       </Tabs>
+
+      <MergeDialog
+        target={mergeTarget}
+        onClose={() => setMergeTarget(null)}
+        onApply={applyMerge}
+      />
     </div>
+  );
+}
+
+type MergeField = {
+  key: string;
+  label: string;
+  current: unknown;
+  incoming: unknown;
+  display: (v: unknown) => string;
+  patchValue: unknown;
+};
+
+function buildMergeFields(s: Staging, d: Dossier): MergeField[] {
+  const fmtNum = (v: unknown) => (v == null || v === "" ? "—" : `${Number(v).toFixed(2)} €`);
+  const fmtBool = (v: unknown) => (v === true ? "✅ Oui" : v === false ? "❌ Non" : "—");
+  const fmtText = (v: unknown) => (v == null || v === "" ? "—" : String(v));
+
+  const rbsmt = s.rbsmt_attente ?? 0;
+  const rac = s.rac ?? 0;
+  const arp = s.a_regler_papiers ?? 0;
+  const payeX = (s.paye || "").toLowerCase() === "x";
+  const isPasDeTP = (s.tp_status || "").toLowerCase().includes("pas");
+
+  const fields: MergeField[] = [];
+
+  if (s.mutuelle) {
+    fields.push({
+      key: "mutuelle",
+      label: "Mutuelle",
+      current: d.mutuelle,
+      incoming: s.mutuelle,
+      display: fmtText,
+      patchValue: s.mutuelle,
+    });
+  }
+
+  if (s.rbsmt_attente != null) {
+    fields.push({
+      key: "montant_pec",
+      label: "Montant PEC (Rbsmt attente)",
+      current: d.montant_pec,
+      incoming: rbsmt,
+      display: fmtNum,
+      patchValue: rbsmt,
+    });
+  }
+
+  if (s.a_regler_papiers != null && arp > 0) {
+    fields.push({
+      key: "avoir_commercial",
+      label: "Avoir commercial (Papiers à régler)",
+      current: d.avoir_commercial,
+      incoming: arp,
+      display: fmtNum,
+      patchValue: arp,
+    });
+  }
+
+  if (s.type_reglement) {
+    fields.push({
+      key: "reste_a_charge_payment_method",
+      label: "Type de règlement",
+      current: d.reste_a_charge_payment_method,
+      incoming: s.type_reglement,
+      display: fmtText,
+      patchValue: s.type_reglement,
+    });
+  }
+
+  // TP mutuelle transmis
+  if (rbsmt > 0) {
+    fields.push({
+      key: "transmis_mutuelle",
+      label: "Transmis à la mutuelle",
+      current: d.transmis_mutuelle,
+      incoming: true,
+      display: fmtBool,
+      patchValue: true,
+    });
+  }
+
+  // Paiement mutuelle reçu (si Rbsmt = 0 dans Excel, ça veut dire soit pas de TP, soit déjà réglé)
+  // On propose uniquement si l'Excel indique clairement "Payé"
+  if (payeX && rbsmt > 0) {
+    fields.push({
+      key: "paiement_mutuelle_recu",
+      label: "TP mutuelle réglé",
+      current: d.paiement_mutuelle_recu,
+      incoming: true,
+      display: fmtBool,
+      patchValue: true,
+    });
+  }
+
+  // Paiement client reçu (si RAC = 0 ou marqué payé)
+  if (payeX || rac === 0) {
+    fields.push({
+      key: "paiement_client_recu",
+      label: "Paiement client reçu (RAC)",
+      current: d.paiement_client_recu,
+      incoming: true,
+      display: fmtBool,
+      patchValue: true,
+    });
+  }
+
+  return fields;
+}
+
+function MergeDialog({
+  target,
+  onClose,
+  onApply,
+}: {
+  target: { s: Staging; dossier: Dossier } | null;
+  onClose: () => void;
+  onApply: (patch: Record<string, unknown>) => void;
+}) {
+  const fields = useMemo(() => (target ? buildMergeFields(target.s, target.dossier) : []), [target]);
+  const [selected, setSelected] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    // Par défaut : cocher uniquement les champs où la valeur actuelle est vide/null
+    const init: Record<string, boolean> = {};
+    for (const f of fields) {
+      const isEmpty = f.current == null || f.current === "" || f.current === false;
+      const isDifferent = f.current !== f.incoming;
+      init[f.key] = isEmpty && isDifferent;
+    }
+    setSelected(init);
+  }, [fields]);
+
+  if (!target) return null;
+
+  const toggle = (k: string) => setSelected((p) => ({ ...p, [k]: !p[k] }));
+
+  const submit = () => {
+    const patch: Record<string, unknown> = {};
+    for (const f of fields) {
+      if (selected[f.key]) patch[f.key] = f.patchValue;
+    }
+    onApply(patch);
+  };
+
+  return (
+    <Dialog open={!!target} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Compléter le dossier existant</DialogTitle>
+          <DialogDescription>
+            Coche les infos Excel que tu veux appliquer au dossier <strong>{target.dossier.client_nom} {target.dossier.client_prenom}</strong>.
+            Les champs déjà remplis dans l'app sont laissés décochés par défaut — coche-les seulement si tu veux les écraser.
+          </DialogDescription>
+        </DialogHeader>
+
+        {fields.length === 0 ? (
+          <div className="rounded border bg-muted/40 p-4 text-sm text-muted-foreground">
+            Aucune donnée exploitable dans cette ligne Excel pour enrichir le dossier.
+          </div>
+        ) : (
+          <div className="space-y-2 max-h-[50vh] overflow-y-auto">
+            <div className="grid grid-cols-[auto,1fr,1fr,1fr] items-center gap-2 border-b pb-1 text-xs font-medium text-muted-foreground">
+              <span></span>
+              <span>Champ</span>
+              <span>Valeur actuelle (app)</span>
+              <span>Valeur Excel</span>
+            </div>
+            {fields.map((f) => {
+              const same = f.current === f.incoming;
+              return (
+                <label
+                  key={f.key}
+                  className={`grid grid-cols-[auto,1fr,1fr,1fr] items-center gap-2 rounded border p-2 text-sm ${same ? "opacity-50" : "cursor-pointer hover:bg-muted/40"}`}
+                >
+                  <Checkbox
+                    checked={!!selected[f.key]}
+                    onCheckedChange={() => toggle(f.key)}
+                    disabled={same}
+                  />
+                  <span className="font-medium">{f.label}</span>
+                  <span className="text-muted-foreground">{f.display(f.current)}</span>
+                  <span className={same ? "text-muted-foreground" : "font-medium text-green-700"}>
+                    {f.display(f.incoming)}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        )}
+
+        <DialogFooter>
+          <Button variant="ghost" onClick={onClose}>Annuler</Button>
+          <Button onClick={submit} disabled={fields.length === 0 || Object.values(selected).every((v) => !v)}>
+            <CheckCircle2 className="mr-1 h-4 w-4" /> Appliquer les changements cochés
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
@@ -359,7 +606,7 @@ function RowCard({ s, busy, match, matchFromImport, children }: { s: Staging; bu
   );
 }
 
-function MatchCandidate({ dossier, fromImport, onSelect }: { dossier: Dossier; fromImport: boolean; onSelect?: () => void }) {
+function MatchCandidate({ dossier, fromImport, onSelect, onMerge }: { dossier: Dossier; fromImport: boolean; onSelect?: () => void; onMerge?: () => void }) {
   return (
     <div className="rounded border bg-muted/30 p-2 text-sm">
       <div className="flex flex-wrap items-center justify-between gap-2">
@@ -374,6 +621,11 @@ function MatchCandidate({ dossier, fromImport, onSelect }: { dossier: Dossier; f
           <Link to="/dossiers/$id" params={{ id: dossier.id }} target="_blank">
             <Button size="sm" variant="ghost">Voir le dossier ↗</Button>
           </Link>
+          {onMerge && (
+            <Button size="sm" onClick={onMerge}>
+              <GitMerge className="mr-1 h-3 w-3" /> Compléter
+            </Button>
+          )}
           {onSelect && (
             <Button size="sm" variant="outline" onClick={onSelect}>
               C'est celui-ci
