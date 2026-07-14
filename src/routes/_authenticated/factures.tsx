@@ -90,16 +90,21 @@ const fmt = (n: number) =>
 
 function computeDue(d: Dossier) {
   const isLentilles = d.type_dossier === "lentilles";
+  // "Papiers" = pas de TP mutuelle : le client règle tout, aucun paiement mutuelle attendu.
+  const isPapiers = (d.mutuelle ?? "").trim().toLowerCase() === "papiers";
   const pec = Number(d.montant_pec) || 0;
   const rac = Number(d.reste_a_charge) || 0;
   const avoir = Number(d.avoir_commercial) || 0;
 
-  const mutuelleExpected = pec;
-  const mutuellePaid = !!d.paiement_mutuelle_recu;
+  const mutuelleExpected = isPapiers ? 0 : pec;
+  const mutuellePaid = isPapiers ? true : !!d.paiement_mutuelle_recu;
   const mutuelleDue = mutuellePaid ? 0 : mutuelleExpected;
 
   let clientExpected = Math.max(0, rac);
-  if (clientExpected === 0 && pec === 0 && rac === 0 && (d.facture_client || isLentilles)) {
+  if (isPapiers) {
+    // Sans TP, le client doit l'intégralité (devis - avoir), pas seulement le reste à charge.
+    clientExpected = Math.max(0, (Number(d.montant_devis) || 0) - avoir);
+  } else if (clientExpected === 0 && pec === 0 && rac === 0 && (d.facture_client || isLentilles)) {
     clientExpected = Math.max(0, (Number(d.montant_devis) || 0) - avoir);
   }
   const clientPaid = !!d.paiement_client_recu;
