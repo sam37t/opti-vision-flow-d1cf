@@ -143,7 +143,7 @@ function ImportPage() {
         telephone: "",
         mutuelle: s.mutuelle || "",
         type_verres: "",
-        type_dossier: "lunettes",
+        type_dossier: s.type_dossier || "lunettes",
         montant_devis: montantDevis,
         montant_pec: rbsmt,
         avoir_commercial: arp,
