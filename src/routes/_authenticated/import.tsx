@@ -104,13 +104,15 @@ function ImportPage() {
   const enriched = useMemo(() => {
     const idx = new Map<string, Dossier[]>();
     for (const d of dossiers) {
-      const key = normalize(d.client_nom) + "|" + normalize(d.client_prenom);
+      const type = (d.type_dossier || "lunettes").toLowerCase();
+      const key = normalize(d.client_nom) + "|" + normalize(d.client_prenom) + "|" + type;
       const arr = idx.get(key) || [];
       arr.push(d);
       idx.set(key, arr);
     }
     return staging.map((s) => {
-      const key = normalize(s.client_nom) + "|" + normalize(s.client_prenom);
+      const type = (s.type_dossier || "lunettes").toLowerCase();
+      const key = normalize(s.client_nom) + "|" + normalize(s.client_prenom) + "|" + type;
       const matches = idx.get(key) || [];
       return { s, matches };
     });
