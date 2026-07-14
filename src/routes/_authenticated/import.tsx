@@ -37,6 +37,12 @@ type Dossier = {
   client_prenom: string;
   created_at: string;
   mutuelle: string | null;
+  telephone: string | null;
+  type_dossier: string | null;
+  montant_devis: number | null;
+  montant_pec: number | null;
+  reste_a_charge: number | null;
+  status: string | null;
 };
 
 const normalize = (s: string) =>
@@ -69,11 +75,19 @@ function ImportPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("dossiers")
-        .select("id, client_nom, client_prenom, created_at, mutuelle");
+        .select("id, client_nom, client_prenom, created_at, mutuelle, telephone, type_dossier, montant_devis, montant_pec, reste_a_charge, status");
       if (error) throw error;
       return data as Dossier[];
     },
   });
+
+  const importedIds = useMemo(() => {
+    const set = new Set<string>();
+    for (const s of staging) {
+      if (s.imported_dossier_id) set.add(s.imported_dossier_id);
+    }
+    return set;
+  }, [staging]);
 
   const enriched = useMemo(() => {
     const idx = new Map<string, Dossier[]>();
@@ -250,7 +264,7 @@ function ImportPage() {
             </Button>
           )}
           {unique.map((e) => (
-            <RowCard key={e.s.id} s={e.s} busy={busy === e.s.id} match={e.matches[0]}>
+            <RowCard key={e.s.id} s={e.s} busy={busy === e.s.id} match={e.matches[0]} matchFromImport={importedIds.has(e.matches[0].id)}>
               <Button size="sm" variant="outline" onClick={() => linkExisting(e.s, e.matches[0].id)} disabled={busy === e.s.id}>
                 Déjà présent
               </Button>
@@ -267,18 +281,18 @@ function ImportPage() {
         <TabsContent value="multi" className="space-y-2">
           {multi.map((e) => (
             <RowCard key={e.s.id} s={e.s} busy={busy === e.s.id}>
-              <div className="w-full space-y-1">
-                <div className="text-xs text-muted-foreground">Correspondances possibles :</div>
+              <div className="w-full space-y-2">
+                <div className="text-xs text-muted-foreground">Correspondances possibles — compare et choisis :</div>
                 {e.matches.map((m) => (
-                  <div key={m.id} className="flex items-center justify-between rounded border px-2 py-1 text-sm">
-                    <span>{m.client_nom} {m.client_prenom} — {new Date(m.created_at).toLocaleDateString("fr-FR")}</span>
-                    <Button size="sm" variant="outline" onClick={() => linkExisting(e.s, m.id)}>
-                      C'est celui-ci
-                    </Button>
-                  </div>
+                  <MatchCandidate
+                    key={m.id}
+                    dossier={m}
+                    fromImport={importedIds.has(m.id)}
+                    onSelect={() => linkExisting(e.s, m.id)}
+                  />
                 ))}
                 <div className="flex gap-2 pt-1">
-                  <Button size="sm" variant="secondary" onClick={() => importAsNew(e.s)}>Créer un nouveau</Button>
+                  <Button size="sm" variant="secondary" onClick={() => importAsNew(e.s)}>Aucun ne correspond — Créer un nouveau</Button>
                   <Button size="sm" variant="ghost" onClick={() => skip(e.s)}>Ignorer</Button>
                 </div>
               </div>
@@ -309,7 +323,7 @@ function StatCard({ label, value, tone }: { label: string; value: number; tone?:
   );
 }
 
-function RowCard({ s, busy, match, children }: { s: Staging; busy: boolean; match?: Dossier; children: React.ReactNode }) {
+function RowCard({ s, busy, match, matchFromImport, children }: { s: Staging; busy: boolean; match?: Dossier; matchFromImport?: boolean; children: React.ReactNode }) {
   return (
     <div className="rounded-lg border bg-card p-3">
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -328,15 +342,53 @@ function RowCard({ s, busy, match, children }: { s: Staging; busy: boolean; matc
             {s.paye && <span className="text-green-700">Payé</span>}
           </div>
           {match && (
-            <div className="mt-1 flex items-center gap-1 text-xs text-amber-700">
-              <HelpCircle className="h-3 w-3" />
-              Existe déjà : {match.client_nom} {match.client_prenom} ({new Date(match.created_at).toLocaleDateString("fr-FR")})
+            <div className="mt-2">
+              <div className="mb-1 flex items-center gap-1 text-xs text-amber-700">
+                <HelpCircle className="h-3 w-3" />
+                Dossier existant potentiellement identique :
+              </div>
+              <MatchCandidate dossier={match} fromImport={!!matchFromImport} />
             </div>
           )}
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : children}
         </div>
+      </div>
+    </div>
+  );
+}
+
+function MatchCandidate({ dossier, fromImport, onSelect }: { dossier: Dossier; fromImport: boolean; onSelect?: () => void }) {
+  return (
+    <div className="rounded border bg-muted/30 p-2 text-sm">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-medium">{dossier.client_nom} {dossier.client_prenom}</span>
+          <Badge variant="outline" className="text-xs">
+            {fromImport ? "📥 Importé depuis Excel" : "✍️ Créé dans l'app"}
+          </Badge>
+          {dossier.status && <Badge variant="secondary" className="text-xs">{dossier.status}</Badge>}
+        </div>
+        <div className="flex items-center gap-2">
+          <Link to="/dossiers/$id" params={{ id: dossier.id }} target="_blank">
+            <Button size="sm" variant="ghost">Voir le dossier ↗</Button>
+          </Link>
+          {onSelect && (
+            <Button size="sm" variant="outline" onClick={onSelect}>
+              C'est celui-ci
+            </Button>
+          )}
+        </div>
+      </div>
+      <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+        <span>Créé le {new Date(dossier.created_at).toLocaleDateString("fr-FR")}</span>
+        {dossier.type_dossier && <span>Type : {dossier.type_dossier}</span>}
+        {dossier.mutuelle && <span>Mutuelle : <strong>{dossier.mutuelle}</strong></span>}
+        {dossier.telephone && <span>Tél : {dossier.telephone}</span>}
+        {dossier.montant_devis != null && <span>Devis : {Number(dossier.montant_devis).toFixed(2)} €</span>}
+        {dossier.montant_pec != null && <span>PEC : {Number(dossier.montant_pec).toFixed(2)} €</span>}
+        {dossier.reste_a_charge != null && <span>RAC : {Number(dossier.reste_a_charge).toFixed(2)} €</span>}
       </div>
     </div>
   );
