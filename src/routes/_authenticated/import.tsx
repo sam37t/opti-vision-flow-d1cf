@@ -81,6 +81,14 @@ function ImportPage() {
     },
   });
 
+  const importedIds = useMemo(() => {
+    const set = new Set<string>();
+    for (const s of staging) {
+      if (s.imported_dossier_id) set.add(s.imported_dossier_id);
+    }
+    return set;
+  }, [staging]);
+
   const enriched = useMemo(() => {
     const idx = new Map<string, Dossier[]>();
     for (const d of dossiers) {
