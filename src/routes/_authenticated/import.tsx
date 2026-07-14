@@ -323,7 +323,7 @@ function StatCard({ label, value, tone }: { label: string; value: number; tone?:
   );
 }
 
-function RowCard({ s, busy, match, children }: { s: Staging; busy: boolean; match?: Dossier; children: React.ReactNode }) {
+function RowCard({ s, busy, match, matchFromImport, children }: { s: Staging; busy: boolean; match?: Dossier; matchFromImport?: boolean; children: React.ReactNode }) {
   return (
     <div className="rounded-lg border bg-card p-3">
       <div className="flex flex-wrap items-start justify-between gap-2">
@@ -342,15 +342,53 @@ function RowCard({ s, busy, match, children }: { s: Staging; busy: boolean; matc
             {s.paye && <span className="text-green-700">Payé</span>}
           </div>
           {match && (
-            <div className="mt-1 flex items-center gap-1 text-xs text-amber-700">
-              <HelpCircle className="h-3 w-3" />
-              Existe déjà : {match.client_nom} {match.client_prenom} ({new Date(match.created_at).toLocaleDateString("fr-FR")})
+            <div className="mt-2">
+              <div className="mb-1 flex items-center gap-1 text-xs text-amber-700">
+                <HelpCircle className="h-3 w-3" />
+                Dossier existant potentiellement identique :
+              </div>
+              <MatchCandidate dossier={match} fromImport={!!matchFromImport} />
             </div>
           )}
         </div>
         <div className="flex flex-wrap items-center gap-2">
           {busy ? <Loader2 className="h-4 w-4 animate-spin" /> : children}
         </div>
+      </div>
+    </div>
+  );
+}
+
+function MatchCandidate({ dossier, fromImport, onSelect }: { dossier: Dossier; fromImport: boolean; onSelect?: () => void }) {
+  return (
+    <div className="rounded border bg-muted/30 p-2 text-sm">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+        <div className="flex flex-wrap items-center gap-2">
+          <span className="font-medium">{dossier.client_nom} {dossier.client_prenom}</span>
+          <Badge variant="outline" className="text-xs">
+            {fromImport ? "📥 Importé depuis Excel" : "✍️ Créé dans l'app"}
+          </Badge>
+          {dossier.status && <Badge variant="secondary" className="text-xs">{dossier.status}</Badge>}
+        </div>
+        <div className="flex items-center gap-2">
+          <Link to="/dossiers/$id" params={{ id: dossier.id }} target="_blank">
+            <Button size="sm" variant="ghost">Voir le dossier ↗</Button>
+          </Link>
+          {onSelect && (
+            <Button size="sm" variant="outline" onClick={onSelect}>
+              C'est celui-ci
+            </Button>
+          )}
+        </div>
+      </div>
+      <div className="mt-1 flex flex-wrap gap-x-3 gap-y-0.5 text-xs text-muted-foreground">
+        <span>Créé le {new Date(dossier.created_at).toLocaleDateString("fr-FR")}</span>
+        {dossier.type_dossier && <span>Type : {dossier.type_dossier}</span>}
+        {dossier.mutuelle && <span>Mutuelle : <strong>{dossier.mutuelle}</strong></span>}
+        {dossier.telephone && <span>Tél : {dossier.telephone}</span>}
+        {dossier.montant_devis != null && <span>Devis : {Number(dossier.montant_devis).toFixed(2)} €</span>}
+        {dossier.montant_pec != null && <span>PEC : {Number(dossier.montant_pec).toFixed(2)} €</span>}
+        {dossier.reste_a_charge != null && <span>RAC : {Number(dossier.reste_a_charge).toFixed(2)} €</span>}
       </div>
     </div>
   );
