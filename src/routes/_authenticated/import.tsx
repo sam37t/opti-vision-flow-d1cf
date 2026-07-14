@@ -306,22 +306,29 @@ function ImportPage() {
               Marquer les {unique.length} comme déjà présents
             </Button>
           )}
-          {unique.map((e) => (
-            <RowCard key={e.s.id} s={e.s} busy={busy === e.s.id} match={e.matches[0]} matchFromImport={importedIds.has(e.matches[0].id)}>
-              <Button size="sm" onClick={() => setMergeTarget({ s: e.s, dossier: e.matches[0] })} disabled={busy === e.s.id}>
-                <GitMerge className="mr-1 h-3 w-3" /> Compléter
-              </Button>
-              <Button size="sm" variant="outline" onClick={() => linkExisting(e.s, e.matches[0].id)} disabled={busy === e.s.id}>
-                Déjà présent
-              </Button>
-              <Button size="sm" variant="secondary" onClick={() => importAsNew(e.s)} disabled={busy === e.s.id}>
-                Créer quand même
-              </Button>
-              <Button size="sm" variant="ghost" onClick={() => skip(e.s)} disabled={busy === e.s.id}>
-                Ignorer
-              </Button>
-            </RowCard>
-          ))}
+          {unique.map((e) => {
+            const archived = isArchived(e.matches[0]);
+            return (
+              <RowCard key={e.s.id} s={e.s} busy={busy === e.s.id} match={e.matches[0]} matchFromImport={importedIds.has(e.matches[0].id)} matchArchived={archived}>
+                {!archived && (
+                  <Button size="sm" onClick={() => setMergeTarget({ s: e.s, dossier: e.matches[0] })} disabled={busy === e.s.id}>
+                    <GitMerge className="mr-1 h-3 w-3" /> Compléter
+                  </Button>
+                )}
+                <Button size="sm" variant={archived ? "default" : "outline"} onClick={() => linkExisting(e.s, e.matches[0].id)} disabled={busy === e.s.id}>
+                  Déjà présent{archived ? " (archivé)" : ""}
+                </Button>
+                {!archived && (
+                  <Button size="sm" variant="secondary" onClick={() => importAsNew(e.s)} disabled={busy === e.s.id}>
+                    Créer quand même
+                  </Button>
+                )}
+                <Button size="sm" variant="ghost" onClick={() => skip(e.s)} disabled={busy === e.s.id}>
+                  Ignorer
+                </Button>
+              </RowCard>
+            );
+          })}
         </TabsContent>
 
         <TabsContent value="multi" className="space-y-2">
