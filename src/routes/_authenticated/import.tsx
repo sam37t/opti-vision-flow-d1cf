@@ -293,8 +293,9 @@ function ImportPage() {
         <TabsContent value="unique" className="space-y-2">
           <div className="rounded-md border border-amber-200 bg-amber-50 p-3 text-sm text-amber-900">
             <AlertTriangle className="mr-1 inline h-4 w-4" />
-            Ces lignes correspondent à un dossier déjà présent. Par défaut, on ne modifie rien —
-            clique <strong>« Déjà présent »</strong> pour les marquer comme traités sans toucher aux données existantes.
+            Ces lignes correspondent à un dossier déjà présent. Trois options :{" "}
+            <strong>« Compléter »</strong> pour enrichir le dossier existant avec les infos Excel (TP réglé, mutuelle, etc.),{" "}
+            <strong>« Déjà présent »</strong> pour ne rien toucher, ou <strong>« Créer quand même »</strong> si c'est un dossier différent.
           </div>
           {unique.length > 0 && (
             <Button onClick={bulkLinkUnique} variant="outline" className="mb-2">
