@@ -211,7 +211,7 @@ function ImportPage() {
     setBusy(s.id);
     try {
       if (Object.keys(patch).length > 0) {
-        const { error } = await supabase.from("dossiers").update(patch).eq("id", dossier.id);
+        const { error } = await supabase.from("dossiers").update(patch as never).eq("id", dossier.id);
         if (error) throw error;
       }
       await supabase
