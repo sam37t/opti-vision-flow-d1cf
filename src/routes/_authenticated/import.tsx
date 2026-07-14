@@ -352,7 +352,211 @@ function ImportPage() {
           ))}
         </TabsContent>
       </Tabs>
+
+      <MergeDialog
+        target={mergeTarget}
+        onClose={() => setMergeTarget(null)}
+        onApply={applyMerge}
+      />
     </div>
+  );
+}
+
+type MergeField = {
+  key: string;
+  label: string;
+  current: unknown;
+  incoming: unknown;
+  display: (v: unknown) => string;
+  patchValue: unknown;
+};
+
+function buildMergeFields(s: Staging, d: Dossier): MergeField[] {
+  const fmtNum = (v: unknown) => (v == null || v === "" ? "—" : `${Number(v).toFixed(2)} €`);
+  const fmtBool = (v: unknown) => (v === true ? "✅ Oui" : v === false ? "❌ Non" : "—");
+  const fmtText = (v: unknown) => (v == null || v === "" ? "—" : String(v));
+
+  const rbsmt = s.rbsmt_attente ?? 0;
+  const rac = s.rac ?? 0;
+  const arp = s.a_regler_papiers ?? 0;
+  const payeX = (s.paye || "").toLowerCase() === "x";
+  const isPasDeTP = (s.tp_status || "").toLowerCase().includes("pas");
+
+  const fields: MergeField[] = [];
+
+  if (s.mutuelle) {
+    fields.push({
+      key: "mutuelle",
+      label: "Mutuelle",
+      current: d.mutuelle,
+      incoming: s.mutuelle,
+      display: fmtText,
+      patchValue: s.mutuelle,
+    });
+  }
+
+  if (s.rbsmt_attente != null) {
+    fields.push({
+      key: "montant_pec",
+      label: "Montant PEC (Rbsmt attente)",
+      current: d.montant_pec,
+      incoming: rbsmt,
+      display: fmtNum,
+      patchValue: rbsmt,
+    });
+  }
+
+  if (s.a_regler_papiers != null && arp > 0) {
+    fields.push({
+      key: "avoir_commercial",
+      label: "Avoir commercial (Papiers à régler)",
+      current: d.avoir_commercial,
+      incoming: arp,
+      display: fmtNum,
+      patchValue: arp,
+    });
+  }
+
+  if (s.type_reglement) {
+    fields.push({
+      key: "reste_a_charge_payment_method",
+      label: "Type de règlement",
+      current: d.reste_a_charge_payment_method,
+      incoming: s.type_reglement,
+      display: fmtText,
+      patchValue: s.type_reglement,
+    });
+  }
+
+  // TP mutuelle transmis
+  if (rbsmt > 0) {
+    fields.push({
+      key: "transmis_mutuelle",
+      label: "Transmis à la mutuelle",
+      current: d.transmis_mutuelle,
+      incoming: true,
+      display: fmtBool,
+      patchValue: true,
+    });
+  }
+
+  // Paiement mutuelle reçu (si Rbsmt = 0 dans Excel, ça veut dire soit pas de TP, soit déjà réglé)
+  // On propose uniquement si l'Excel indique clairement "Payé"
+  if (payeX && rbsmt > 0) {
+    fields.push({
+      key: "paiement_mutuelle_recu",
+      label: "TP mutuelle réglé",
+      current: d.paiement_mutuelle_recu,
+      incoming: true,
+      display: fmtBool,
+      patchValue: true,
+    });
+  }
+
+  // Paiement client reçu (si RAC = 0 ou marqué payé)
+  if (payeX || rac === 0) {
+    fields.push({
+      key: "paiement_client_recu",
+      label: "Paiement client reçu (RAC)",
+      current: d.paiement_client_recu,
+      incoming: true,
+      display: fmtBool,
+      patchValue: true,
+    });
+  }
+
+  return fields;
+}
+
+function MergeDialog({
+  target,
+  onClose,
+  onApply,
+}: {
+  target: { s: Staging; dossier: Dossier } | null;
+  onClose: () => void;
+  onApply: (patch: Record<string, unknown>) => void;
+}) {
+  const fields = useMemo(() => (target ? buildMergeFields(target.s, target.dossier) : []), [target]);
+  const [selected, setSelected] = useState<Record<string, boolean>>({});
+
+  useEffect(() => {
+    // Par défaut : cocher uniquement les champs où la valeur actuelle est vide/null
+    const init: Record<string, boolean> = {};
+    for (const f of fields) {
+      const isEmpty = f.current == null || f.current === "" || f.current === false;
+      const isDifferent = f.current !== f.incoming;
+      init[f.key] = isEmpty && isDifferent;
+    }
+    setSelected(init);
+  }, [fields]);
+
+  if (!target) return null;
+
+  const toggle = (k: string) => setSelected((p) => ({ ...p, [k]: !p[k] }));
+
+  const submit = () => {
+    const patch: Record<string, unknown> = {};
+    for (const f of fields) {
+      if (selected[f.key]) patch[f.key] = f.patchValue;
+    }
+    onApply(patch);
+  };
+
+  return (
+    <Dialog open={!!target} onOpenChange={(o) => !o && onClose()}>
+      <DialogContent className="max-w-2xl">
+        <DialogHeader>
+          <DialogTitle>Compléter le dossier existant</DialogTitle>
+          <DialogDescription>
+            Coche les infos Excel que tu veux appliquer au dossier <strong>{target.dossier.client_nom} {target.dossier.client_prenom}</strong>.
+            Les champs déjà remplis dans l'app sont laissés décochés par défaut — coche-les seulement si tu veux les écraser.
+          </DialogDescription>
+        </DialogHeader>
+
+        {fields.length === 0 ? (
+          <div className="rounded border bg-muted/40 p-4 text-sm text-muted-foreground">
+            Aucune donnée exploitable dans cette ligne Excel pour enrichir le dossier.
+          </div>
+        ) : (
+          <div className="space-y-2 max-h-[50vh] overflow-y-auto">
+            <div className="grid grid-cols-[auto,1fr,1fr,1fr] items-center gap-2 border-b pb-1 text-xs font-medium text-muted-foreground">
+              <span></span>
+              <span>Champ</span>
+              <span>Valeur actuelle (app)</span>
+              <span>Valeur Excel</span>
+            </div>
+            {fields.map((f) => {
+              const same = f.current === f.incoming;
+              return (
+                <label
+                  key={f.key}
+                  className={`grid grid-cols-[auto,1fr,1fr,1fr] items-center gap-2 rounded border p-2 text-sm ${same ? "opacity-50" : "cursor-pointer hover:bg-muted/40"}`}
+                >
+                  <Checkbox
+                    checked={!!selected[f.key]}
+                    onCheckedChange={() => toggle(f.key)}
+                    disabled={same}
+                  />
+                  <span className="font-medium">{f.label}</span>
+                  <span className="text-muted-foreground">{f.display(f.current)}</span>
+                  <span className={same ? "text-muted-foreground" : "font-medium text-green-700"}>
+                    {f.display(f.incoming)}
+                  </span>
+                </label>
+              );
+            })}
+          </div>
+        )}
+
+        <DialogFooter>
+          <Button variant="ghost" onClick={onClose}>Annuler</Button>
+          <Button onClick={submit} disabled={fields.length === 0 || Object.values(selected).every((v) => !v)}>
+            <CheckCircle2 className="mr-1 h-4 w-4" /> Appliquer les changements cochés
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 
