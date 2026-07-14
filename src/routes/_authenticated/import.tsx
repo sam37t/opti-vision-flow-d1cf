@@ -82,7 +82,7 @@ function ImportPage() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("dossiers")
-        .select("id, client_nom, client_prenom, created_at, mutuelle, telephone, type_dossier, montant_devis, montant_pec, reste_a_charge, status");
+        .select("id, client_nom, client_prenom, created_at, mutuelle, telephone, type_dossier, montant_devis, montant_pec, reste_a_charge, avoir_commercial, reste_a_charge_payment_method, paiement_client_recu, paiement_mutuelle_recu, transmis_mutuelle, status");
       if (error) throw error;
       return data as Dossier[];
     },
