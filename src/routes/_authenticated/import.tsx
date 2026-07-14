@@ -264,7 +264,7 @@ function ImportPage() {
             </Button>
           )}
           {unique.map((e) => (
-            <RowCard key={e.s.id} s={e.s} busy={busy === e.s.id} match={e.matches[0]}>
+            <RowCard key={e.s.id} s={e.s} busy={busy === e.s.id} match={e.matches[0]} matchFromImport={importedIds.has(e.matches[0].id)}>
               <Button size="sm" variant="outline" onClick={() => linkExisting(e.s, e.matches[0].id)} disabled={busy === e.s.id}>
                 Déjà présent
               </Button>
