@@ -30,6 +30,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
           <nav className="hidden items-center gap-1 md:flex">
             <NavLink to="/" icon={<LayoutDashboard className="h-4 w-4" />}>Tableau de bord</NavLink>
+            <NavLink to="/recap" icon={<CalendarClock className="h-4 w-4" />}>Récapitulatif</NavLink>
             <NavLink to="/dossiers" icon={<FolderKanban className="h-4 w-4" />}>Dossiers</NavLink>
             <NavLink to="/factures" icon={<Receipt className="h-4 w-4" />}>Factures en attente</NavLink>
             <NavLink to="/dossiers/archives" icon={<Archive className="h-4 w-4" />}>Archives</NavLink>

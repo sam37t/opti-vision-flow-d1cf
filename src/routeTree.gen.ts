@@ -13,6 +13,7 @@ import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
+import { Route as AuthenticatedRecapRouteImport } from './routes/_authenticated/recap'
 import { Route as AuthenticatedParametresRouteImport } from './routes/_authenticated/parametres'
 import { Route as AuthenticatedImportRouteImport } from './routes/_authenticated/import'
 import { Route as AuthenticatedFacturesRouteImport } from './routes/_authenticated/factures'
@@ -39,6 +40,11 @@ const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   id: '/',
   path: '/',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedRecapRoute = AuthenticatedRecapRouteImport.update({
+  id: '/recap',
+  path: '/recap',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedParametresRoute = AuthenticatedParametresRouteImport.update({
@@ -93,6 +99,7 @@ export interface FileRoutesByFullPath {
   '/factures': typeof AuthenticatedFacturesRoute
   '/import': typeof AuthenticatedImportRoute
   '/parametres': typeof AuthenticatedParametresRoute
+  '/recap': typeof AuthenticatedRecapRoute
   '/dossiers/$id': typeof AuthenticatedDossiersIdRoute
   '/dossiers/archives': typeof AuthenticatedDossiersArchivesRoute
   '/dossiers/new': typeof AuthenticatedDossiersNewRoute
@@ -105,6 +112,7 @@ export interface FileRoutesByTo {
   '/factures': typeof AuthenticatedFacturesRoute
   '/import': typeof AuthenticatedImportRoute
   '/parametres': typeof AuthenticatedParametresRoute
+  '/recap': typeof AuthenticatedRecapRoute
   '/': typeof AuthenticatedIndexRoute
   '/dossiers/$id': typeof AuthenticatedDossiersIdRoute
   '/dossiers/archives': typeof AuthenticatedDossiersArchivesRoute
@@ -120,6 +128,7 @@ export interface FileRoutesById {
   '/_authenticated/factures': typeof AuthenticatedFacturesRoute
   '/_authenticated/import': typeof AuthenticatedImportRoute
   '/_authenticated/parametres': typeof AuthenticatedParametresRoute
+  '/_authenticated/recap': typeof AuthenticatedRecapRoute
   '/_authenticated/': typeof AuthenticatedIndexRoute
   '/_authenticated/dossiers/$id': typeof AuthenticatedDossiersIdRoute
   '/_authenticated/dossiers/archives': typeof AuthenticatedDossiersArchivesRoute
@@ -136,6 +145,7 @@ export interface FileRouteTypes {
     | '/factures'
     | '/import'
     | '/parametres'
+    | '/recap'
     | '/dossiers/$id'
     | '/dossiers/archives'
     | '/dossiers/new'
@@ -148,6 +158,7 @@ export interface FileRouteTypes {
     | '/factures'
     | '/import'
     | '/parametres'
+    | '/recap'
     | '/'
     | '/dossiers/$id'
     | '/dossiers/archives'
@@ -162,6 +173,7 @@ export interface FileRouteTypes {
     | '/_authenticated/factures'
     | '/_authenticated/import'
     | '/_authenticated/parametres'
+    | '/_authenticated/recap'
     | '/_authenticated/'
     | '/_authenticated/dossiers/$id'
     | '/_authenticated/dossiers/archives'
@@ -203,6 +215,13 @@ declare module '@tanstack/react-router' {
       path: '/'
       fullPath: '/'
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/recap': {
+      id: '/_authenticated/recap'
+      path: '/recap'
+      fullPath: '/recap'
+      preLoaderRoute: typeof AuthenticatedRecapRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/parametres': {
@@ -269,6 +288,7 @@ interface AuthenticatedRouteRouteChildren {
   AuthenticatedFacturesRoute: typeof AuthenticatedFacturesRoute
   AuthenticatedImportRoute: typeof AuthenticatedImportRoute
   AuthenticatedParametresRoute: typeof AuthenticatedParametresRoute
+  AuthenticatedRecapRoute: typeof AuthenticatedRecapRoute
   AuthenticatedIndexRoute: typeof AuthenticatedIndexRoute
   AuthenticatedDossiersIdRoute: typeof AuthenticatedDossiersIdRoute
   AuthenticatedDossiersArchivesRoute: typeof AuthenticatedDossiersArchivesRoute
@@ -281,6 +301,7 @@ const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
   AuthenticatedFacturesRoute: AuthenticatedFacturesRoute,
   AuthenticatedImportRoute: AuthenticatedImportRoute,
   AuthenticatedParametresRoute: AuthenticatedParametresRoute,
+  AuthenticatedRecapRoute: AuthenticatedRecapRoute,
   AuthenticatedIndexRoute: AuthenticatedIndexRoute,
   AuthenticatedDossiersIdRoute: AuthenticatedDossiersIdRoute,
   AuthenticatedDossiersArchivesRoute: AuthenticatedDossiersArchivesRoute,
