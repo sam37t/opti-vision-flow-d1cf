@@ -63,7 +63,16 @@ type Dossier = {
   updated_at: string;
   last_status_change_at: string;
   type_dossier: string | null;
+  pec_a_demander_le: string | null;
 };
+
+// Dossier « À traiter » dont la demande de PEC est planifiée dans le futur → à ne pas traiter maintenant
+function isPecFuture(d: Dossier): boolean {
+  if (!d.pec_a_demander_le) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return new Date(d.pec_a_demander_le).getTime() > today.getTime();
+}
 
 function LensBadge() {
   return (
@@ -353,8 +362,9 @@ function ListView({ dossiers }: { dossiers: Dossier[] }) {
             const stale =
               !TERMINAL_STATUSES.includes(d.status) &&
               Date.now() - new Date(d.last_status_change_at).getTime() > 48 * 3600 * 1000;
+            const gris = isPecFuture(d);
             return (
-              <tr key={d.id} className={`border-t hover:bg-accent/50 ${d.probleme ? "bg-destructive/5" : ""}`}>
+              <tr key={d.id} className={`border-t hover:bg-accent/50 ${d.probleme ? "bg-destructive/5" : ""} ${gris ? "opacity-40" : ""}`}>
                 <td className="px-4 py-3">
                   <Link to="/dossiers/$id" params={{ id: d.id }} className="flex items-center gap-2 font-medium hover:underline">
                     {d.probleme && <AlertOctagon className="h-4 w-4 text-destructive" />}
@@ -368,6 +378,11 @@ function ListView({ dossiers }: { dossiers: Dossier[] }) {
                     <AlertBadges d={d} compact />
                     <ReminderBadge d={d} compact />
                     <RecentBadge d={d} compact />
+                    {gris && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-500" title={`Demande de PEC à partir du ${new Date(d.pec_a_demander_le!).toLocaleDateString("fr-FR")}`}>
+                        <Clock className="h-3 w-3" /> PEC {new Date(d.pec_a_demander_le!).toLocaleDateString("fr-FR")}
+                      </span>
+                    )}
                   </div>
                 </td>
                 <td className="px-4 py-3">{d.mutuelle || "—"}</td>
@@ -419,7 +434,7 @@ function KanbanView({ dossiers }: { dossiers: Dossier[] }) {
                   params={{ id: d.id }}
                   className={`block rounded-md border p-3 transition-colors hover:bg-accent ${
                     d.probleme ? "border-destructive/40 bg-destructive/5" : "bg-background"
-                  }`}
+                  } ${isPecFuture(d) ? "opacity-40" : ""}`}
                 >
                   <div className="flex items-center gap-1.5 text-sm font-medium">
                     {d.probleme && <AlertOctagon className="h-3.5 w-3.5 text-destructive" />}
