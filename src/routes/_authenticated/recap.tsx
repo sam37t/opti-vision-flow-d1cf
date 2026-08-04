@@ -82,7 +82,7 @@ function RecapJour() {
         .gte("changed_at", start)
         .lte("changed_at", end)
         .order("changed_at", { ascending: false });
-      if (onlyMe && user) q = q.eq("changed_by", user.id);
+      if (onlyMe && user) q = q.or(`changed_by.eq.${user.id},changed_by.is.null`);
       const { data, error } = await q;
       if (error) throw error;
       return data ?? [];
