@@ -511,6 +511,11 @@ function DossierDetail() {
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
               <DateField
+                label="PEC à demander à partir du"
+                value={d.pec_a_demander_le}
+                onChange={(v) => updateDossier({ pec_a_demander_le: v }, "Date de demande PEC mise à jour")}
+              />
+              <DateField
                 label="Date d'envoi du devis"
                 value={d.pec_demande_at}
                 onChange={(v) => updateDossier({ pec_demande_at: v }, "Date d'envoi du devis mise à jour")}
