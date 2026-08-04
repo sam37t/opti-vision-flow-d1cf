@@ -188,6 +188,12 @@ function DossiersPage() {
   const navigate = Route.useNavigate();
   const qc = useQueryClient();
   const [view, setView] = useState<"list" | "kanban">("list");
+  const listHref = useRouterState({ select: (s) => s.location.href });
+
+  useEffect(() => {
+    rememberListLocation(listHref);
+  }, [listHref]);
+
 
   useEffect(() => {
     const channel = supabase
