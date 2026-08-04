@@ -260,6 +260,7 @@ function RecapJour() {
                   <span className="flex items-center gap-1.5 font-medium">
                     {(d.client_nom || "").toUpperCase()} {d.client_prenom}
                     {d.type_dossier === "lentilles" && <LensBadge />}
+                    <Who name={nameOf((d as any).created_by)} />
                   </span>
                   <span className="flex items-center gap-3 text-muted-foreground">
                     <span className="hidden sm:inline truncate max-w-[12rem]">{d.mutuelle || "—"}</span>
@@ -291,6 +292,7 @@ function RecapJour() {
                       ) : (
                         <span className="text-muted-foreground">Dossier supprimé</span>
                       )}
+                      <Who name={nameOf(h.changed_by)} />
                     </span>
                     <span className="flex items-center gap-2">
                       {h.old_status && (
@@ -330,6 +332,7 @@ function RecapJour() {
                       ) : (
                         <span className="text-muted-foreground">Dossier supprimé</span>
                       )}
+                      <Who name={nameOf((p as any).created_by)} />
                     </span>
                     <span className="flex items-center gap-3 text-muted-foreground">
                       <span className="rounded-full border px-2 py-0.5 text-xs">{partLabel}</span>
@@ -365,7 +368,8 @@ function RecapJour() {
                       <span className="font-medium">
                         {dossier ? `${(dossier.client_nom || "").toUpperCase()} ${dossier.client_prenom}` : "Dossier supprimé"}
                       </span>
-                      <span className="text-xs text-muted-foreground">
+                      <span className="flex items-center gap-2 text-xs text-muted-foreground">
+                        <Who name={nameOf((n as any).author_id)} />
                         {new Date(n.created_at).toLocaleTimeString("fr-FR", { hour: "2-digit", minute: "2-digit" })}
                       </span>
                     </div>
@@ -429,6 +433,11 @@ function RecapSection({
       {children}
     </section>
   );
+}
+
+function Who({ name }: { name: string }) {
+  if (!name || name === "—") return null;
+  return <span className="text-xs font-normal text-muted-foreground">· {name}</span>;
 }
 
 function LensBadge() {
