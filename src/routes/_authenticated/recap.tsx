@@ -436,7 +436,12 @@ function RecapSection({
 }
 
 function Who({ name }: { name: string }) {
-  if (!name || name === "—") return null;
+  if (!name) return null;
+  if (name === "sys") {
+    return (
+      <span className="rounded border px-1 text-[10px] font-normal uppercase text-muted-foreground">sys</span>
+    );
+  }
   return <span className="text-xs font-normal text-muted-foreground">· {name}</span>;
 }
 
