@@ -340,6 +340,45 @@ export type Database = {
           },
         ]
       }
+      mutuelle_credentials: {
+        Row: {
+          contact: string
+          created_at: string
+          created_by: string | null
+          id: string
+          mutuelle: string
+          notes: string
+          password: string
+          site_url: string
+          updated_at: string
+          username: string
+        }
+        Insert: {
+          contact?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          mutuelle: string
+          notes?: string
+          password?: string
+          site_url?: string
+          updated_at?: string
+          username?: string
+        }
+        Update: {
+          contact?: string
+          created_at?: string
+          created_by?: string | null
+          id?: string
+          mutuelle?: string
+          notes?: string
+          password?: string
+          site_url?: string
+          updated_at?: string
+          username?: string
+        }
+        Relationships: []
+      }
       mutuelles: {
         Row: {
           created_at: string
