@@ -362,8 +362,9 @@ function ListView({ dossiers }: { dossiers: Dossier[] }) {
             const stale =
               !TERMINAL_STATUSES.includes(d.status) &&
               Date.now() - new Date(d.last_status_change_at).getTime() > 48 * 3600 * 1000;
+            const gris = isPecFuture(d);
             return (
-              <tr key={d.id} className={`border-t hover:bg-accent/50 ${d.probleme ? "bg-destructive/5" : ""}`}>
+              <tr key={d.id} className={`border-t hover:bg-accent/50 ${d.probleme ? "bg-destructive/5" : ""} ${gris ? "opacity-40" : ""}`}>
                 <td className="px-4 py-3">
                   <Link to="/dossiers/$id" params={{ id: d.id }} className="flex items-center gap-2 font-medium hover:underline">
                     {d.probleme && <AlertOctagon className="h-4 w-4 text-destructive" />}
