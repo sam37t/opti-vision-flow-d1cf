@@ -154,7 +154,7 @@ function FacturesPage() {
         .select(
           "id, status, client_nom, client_prenom, mutuelle, montant_pec, montant_devis, transmis_mutuelle, transmis_mutuelle_at, facture_cosium, facture_cosium_at, facture_client, facture_client_at, reste_a_charge, avoir_commercial, reste_a_charge_payment_method, type_dossier, paiement_client_recu, paiement_client_recu_at, paiement_mutuelle_recu, paiement_mutuelle_recu_at",
         )
-        .or("facture_cosium.eq.true,transmis_mutuelle.eq.true,transmis_mutuelle_at.not.is.null,facture_client.eq.true")
+        .or("facture_cosium.eq.true,transmis_mutuelle.eq.true,transmis_mutuelle_at.not.is.null,facture_client.eq.true,status.eq.regle_partiel")
         .order("transmis_mutuelle_at", { ascending: true, nullsFirst: false });
 
       if (error) throw error;
