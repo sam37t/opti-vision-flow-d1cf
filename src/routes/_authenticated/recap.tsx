@@ -50,7 +50,7 @@ function RecapJour() {
   });
   const nameOf = useMemo(() => {
     const map = new Map(profiles.map((p) => [p.id, p.full_name]));
-    return (id: string | null | undefined) => (id ? map.get(id) ?? "—" : "—");
+    return (id: string | null | undefined) => (id ? map.get(id) ?? "sys" : "sys");
   }, [profiles]);
 
   // --- Queries ---
