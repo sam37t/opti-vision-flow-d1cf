@@ -2,6 +2,7 @@ import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { ArrowLeft } from "lucide-react";
+import { BackToListLink } from "@/components/BackToListLink";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -92,9 +93,7 @@ function NewDossierPage() {
 
   return (
     <div className="mx-auto max-w-2xl space-y-5">
-      <Link to="/dossiers" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="h-4 w-4" /> Retour à la liste
-      </Link>
+      <BackToListLink />
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Nouveau dossier</h1>
         <p className="text-sm text-muted-foreground">Saisir les informations du dossier client</p>
