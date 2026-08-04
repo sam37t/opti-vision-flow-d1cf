@@ -39,6 +39,8 @@ type Dossier = {
   paiement_client_recu_at: string | null;
   paiement_mutuelle_recu: boolean | null;
   paiement_mutuelle_recu_at: string | null;
+  paid_client?: number;
+  paid_mutuelle?: number;
 };
 
 function daysSince(iso: string | null): number | null {
