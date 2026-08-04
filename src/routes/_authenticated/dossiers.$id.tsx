@@ -20,6 +20,7 @@ import { getTpPlatform, isDifferentPlatform } from "@/lib/tp-platforms";
 import { daysSinceTransmisNonRegle } from "@/lib/dossier-alerts";
 import { PaymentMethodSelect } from "@/components/PaymentMethodSelect";
 import { PaymentMethodBadge } from "@/components/PaymentMethodBadge";
+import { DossierPaiements } from "@/components/DossierPaiements";
 import type { PaymentMethod } from "@/lib/payment-methods";
 import { toast } from "sonner";
 
