@@ -280,9 +280,7 @@ function DossierDetail() {
 
   return (
     <div className="space-y-5">
-      <Link to="/dossiers" className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground">
-        <ArrowLeft className="h-4 w-4" /> Retour à la liste
-      </Link>
+      <BackToListLink />
 
       {d.probleme && (
         <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
