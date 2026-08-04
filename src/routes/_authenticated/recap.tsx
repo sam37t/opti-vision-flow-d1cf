@@ -64,7 +64,7 @@ function RecapJour() {
         .gte("created_at", start)
         .lte("created_at", end)
         .order("created_at", { ascending: false });
-      if (onlyMe && user) q = q.eq("created_by", user.id);
+      if (onlyMe && user) q = q.or(`created_by.eq.${user.id},created_by.is.null`);
       const { data, error } = await q;
       if (error) throw error;
       return data ?? [];
@@ -82,7 +82,7 @@ function RecapJour() {
         .gte("changed_at", start)
         .lte("changed_at", end)
         .order("changed_at", { ascending: false });
-      if (onlyMe && user) q = q.eq("changed_by", user.id);
+      if (onlyMe && user) q = q.or(`changed_by.eq.${user.id},changed_by.is.null`);
       const { data, error } = await q;
       if (error) throw error;
       return data ?? [];
@@ -100,7 +100,7 @@ function RecapJour() {
         .gte("created_at", start)
         .lte("created_at", end)
         .order("created_at", { ascending: false });
-      if (onlyMe && user) q = q.eq("created_by", user.id);
+      if (onlyMe && user) q = q.or(`created_by.eq.${user.id},created_by.is.null`);
       const { data, error } = await q;
       if (error) throw error;
       return data ?? [];
@@ -118,7 +118,7 @@ function RecapJour() {
         .gte("created_at", start)
         .lte("created_at", end)
         .order("created_at", { ascending: false });
-      if (onlyMe && user) q = q.eq("author_id", user.id);
+      if (onlyMe && user) q = q.or(`author_id.eq.${user.id},author_id.is.null`);
       const { data, error } = await q;
       if (error) throw error;
       return data ?? [];
