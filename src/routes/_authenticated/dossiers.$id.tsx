@@ -3,6 +3,7 @@ import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 import { useState, useEffect } from "react";
 import { ArrowLeft, ExternalLink, Phone, History, MessageSquare, Trash2, AlertOctagon, Receipt, CheckCircle2 } from "lucide-react";
 import { BackToListLink } from "@/components/BackToListLink";
+import { getListSearch } from "@/lib/last-list-location";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -275,7 +276,7 @@ function DossierDetail() {
     if (error) toast.error(error.message);
     else {
       toast.success("Dossier supprimé");
-      router.navigate({ to: "/dossiers" });
+      router.navigate({ to: "/dossiers", search: getListSearch() });
     }
   };
 

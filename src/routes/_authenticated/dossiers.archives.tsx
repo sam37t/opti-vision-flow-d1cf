@@ -1,4 +1,5 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
+import { BackToListLink } from "@/components/BackToListLink";
 import { useQuery } from "@tanstack/react-query";
 import { useMemo, useState } from "react";
 import { Archive, Search } from "lucide-react";
@@ -82,9 +83,7 @@ function ArchivesPage() {
             {filtered.length > 1 ? "s" : ""} (réglés, refusés, sans suite, sans TP)
           </p>
         </div>
-        <Link to="/dossiers">
-          <Button variant="outline" size="sm">Retour aux dossiers actifs</Button>
-        </Link>
+        <BackToListLink label="Retour aux dossiers actifs" variant="outline" size="sm" />
       </div>
 
       <div className="rounded-xl border bg-card p-4">
