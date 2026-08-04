@@ -95,6 +95,53 @@ export type Database = {
           },
         ]
       }
+      dossier_paiements: {
+        Row: {
+          created_at: string
+          created_by: string | null
+          date_paiement: string
+          dossier_id: string
+          id: string
+          methode: string
+          montant: number
+          note: string
+          part: string
+          updated_at: string
+        }
+        Insert: {
+          created_at?: string
+          created_by?: string | null
+          date_paiement?: string
+          dossier_id: string
+          id?: string
+          methode?: string
+          montant?: number
+          note?: string
+          part?: string
+          updated_at?: string
+        }
+        Update: {
+          created_at?: string
+          created_by?: string | null
+          date_paiement?: string
+          dossier_id?: string
+          id?: string
+          methode?: string
+          montant?: number
+          note?: string
+          part?: string
+          updated_at?: string
+        }
+        Relationships: [
+          {
+            foreignKeyName: "dossier_paiements_dossier_id_fkey"
+            columns: ["dossier_id"]
+            isOneToOne: false
+            referencedRelation: "dossiers"
+            referencedColumns: ["id"]
+          },
+        ]
+      }
       dossiers: {
         Row: {
           avoir_commercial: number | null
