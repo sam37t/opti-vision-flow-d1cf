@@ -146,7 +146,7 @@ function NewDossierPage() {
 
         </div>
         <div className="flex justify-end gap-2">
-          <Link to="/dossiers"><Button type="button" variant="ghost">Annuler</Button></Link>
+          <BackToListLink label="Annuler" variant="ghost" showIcon={false} />
           <Button disabled={loading}>{loading ? "Création..." : "Créer le dossier"}</Button>
         </div>
       </form>
