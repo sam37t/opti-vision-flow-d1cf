@@ -3,17 +3,34 @@ import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { getListSearch } from "@/lib/last-list-location";
 
-export function BackToListLink({ label = "Retour à la liste" }: { label?: string }) {
+type Props = {
+  label?: string;
+  variant?: "link" | "ghost" | "outline";
+  size?: "default" | "sm";
+  showIcon?: boolean;
+};
+
+export function BackToListLink({
+  label = "Retour à la liste",
+  variant = "link",
+  size = "default",
+  showIcon = true,
+}: Props) {
   const navigate = useNavigate();
 
   return (
     <Button
       type="button"
-      variant="link"
+      variant={variant}
+      size={size}
       onClick={() => navigate({ to: "/dossiers", search: getListSearch() })}
-      className="h-auto gap-1 p-0 text-sm font-normal text-muted-foreground hover:text-foreground"
+      className={
+        variant === "link"
+          ? "h-auto gap-1 p-0 text-sm font-normal text-muted-foreground hover:text-foreground"
+          : "gap-1"
+      }
     >
-      <ArrowLeft className="h-4 w-4" /> {label}
+      {showIcon && <ArrowLeft className="h-4 w-4" />} {label}
     </Button>
   );
 }
