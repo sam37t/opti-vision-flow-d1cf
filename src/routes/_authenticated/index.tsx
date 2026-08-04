@@ -64,6 +64,12 @@ function Dashboard() {
   const rappelAccordNonFacture = dossiers.filter((d) => d.status === "accord_recu" && isStale4(d));
   const rappelFactureNonTransmis = dossiers.filter((d) => d.status === "facture" && isStale4(d));
 
+  // Dossiers avec une date de demande PEC future ou arrivée
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const rappelPecAVenir = dossiers
+    .filter((d: any) => d.pec_a_demander_le && d.pec_a_demander_le <= todayStr && d.status === "a_traiter")
+    .sort((a: any, b: any) => (a.pec_a_demander_le ?? "").localeCompare(b.pec_a_demander_le ?? ""));
+
 
   const problemes = dossiers.filter((d) => d.probleme);
 
