@@ -1,7 +1,6 @@
 import { createFileRoute, useRouter, Link } from "@tanstack/react-router";
 import { useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { ArrowLeft } from "lucide-react";
 import { BackToListLink } from "@/components/BackToListLink";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
