@@ -63,7 +63,16 @@ type Dossier = {
   updated_at: string;
   last_status_change_at: string;
   type_dossier: string | null;
+  pec_a_demander_le: string | null;
 };
+
+// Dossier « À traiter » dont la demande de PEC est planifiée dans le futur → à ne pas traiter maintenant
+function isPecFuture(d: Dossier): boolean {
+  if (!d.pec_a_demander_le) return false;
+  const today = new Date();
+  today.setHours(0, 0, 0, 0);
+  return new Date(d.pec_a_demander_le).getTime() > today.getTime();
+}
 
 function LensBadge() {
   return (
