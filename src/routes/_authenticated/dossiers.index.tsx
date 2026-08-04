@@ -429,7 +429,7 @@ function KanbanView({ dossiers }: { dossiers: Dossier[] }) {
                   params={{ id: d.id }}
                   className={`block rounded-md border p-3 transition-colors hover:bg-accent ${
                     d.probleme ? "border-destructive/40 bg-destructive/5" : "bg-background"
-                  }`}
+                  } ${isPecFuture(d) ? "opacity-40" : ""}`}
                 >
                   <div className="flex items-center gap-1.5 text-sm font-medium">
                     {d.probleme && <AlertOctagon className="h-3.5 w-3.5 text-destructive" />}
