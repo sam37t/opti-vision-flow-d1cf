@@ -21,7 +21,7 @@ function Dashboard() {
     queryFn: async () => {
       const { data, error } = await supabase
         .from("dossiers")
-        .select("id, client_nom, client_prenom, mutuelle, status, montant_devis, montant_pec, reste_a_charge, avoir_commercial, probleme, last_status_change_at, created_at, facture_cosium, facture_cosium_at, facture_client, transmis_mutuelle, paiement_client_recu, paiement_mutuelle_recu, paiement_recu, type_dossier")
+        .select("id, client_nom, client_prenom, mutuelle, status, montant_devis, montant_pec, reste_a_charge, avoir_commercial, probleme, last_status_change_at, created_at, facture_cosium, facture_cosium_at, facture_client, transmis_mutuelle, paiement_client_recu, paiement_mutuelle_recu, paiement_recu, type_dossier, pec_a_demander_le")
         .order("created_at", { ascending: false });
       if (error) throw error;
       return data;
@@ -63,6 +63,12 @@ function Dashboard() {
   const rappelATraiter = dossiers.filter((d) => d.status === "a_traiter" && isStale4(d));
   const rappelAccordNonFacture = dossiers.filter((d) => d.status === "accord_recu" && isStale4(d));
   const rappelFactureNonTransmis = dossiers.filter((d) => d.status === "facture" && isStale4(d));
+
+  // Dossiers avec une date de demande PEC future ou arrivée
+  const todayStr = new Date().toISOString().slice(0, 10);
+  const rappelPecAVenir = dossiers
+    .filter((d: any) => d.pec_a_demander_le && d.pec_a_demander_le <= todayStr && d.status === "a_traiter")
+    .sort((a: any, b: any) => (a.pec_a_demander_le ?? "").localeCompare(b.pec_a_demander_le ?? ""));
 
 
   const problemes = dossiers.filter((d) => d.probleme);
@@ -324,6 +330,42 @@ function Dashboard() {
           { label: "Facturés mais pas transmis", tone: "sky", items: rappelFactureNonTransmis, status: "facture" as DossierStatus },
         ]}
       />
+
+      {rappelPecAVenir.length > 0 && (
+        <section className="rounded-xl border border-indigo-200 bg-indigo-50 p-5">
+          <div className="mb-3 flex items-center gap-2 text-indigo-900">
+            <AlertOctagon className="h-5 w-5" />
+            <h2 className="font-semibold">PEC à demander — date atteinte</h2>
+            <span className="inline-flex min-w-6 items-center justify-center rounded-full border border-indigo-300 bg-indigo-100 px-2 py-0.5 text-xs font-bold tabular-nums text-indigo-700">
+              {rappelPecAVenir.length}
+            </span>
+          </div>
+          <ul className="divide-y divide-indigo-200">
+            {rappelPecAVenir.slice(0, 10).map((d: any) => {
+              const daysLate = Math.floor((Date.now() - new Date(d.pec_a_demander_le).getTime()) / (24 * 3600 * 1000));
+              return (
+                <li key={d.id} className="py-2">
+                  <Link to="/dossiers/$id" params={{ id: d.id }} className="flex items-center justify-between text-sm hover:underline">
+                    <span className="font-medium flex items-center gap-1.5">
+                      {d.client_nom.toUpperCase()} {d.client_prenom}
+                      {d.type_dossier === "lentilles" && <LensBadge />}
+                    </span>
+                    <span className="text-muted-foreground">
+                      {d.mutuelle || "—"} · PEC depuis le {new Date(d.pec_a_demander_le).toLocaleDateString("fr-FR")}
+                      {daysLate > 0 && <span className="ml-1 font-medium text-indigo-700">({daysLate}j)</span>}
+                    </span>
+                  </Link>
+                </li>
+              );
+            })}
+            {rappelPecAVenir.length > 10 && (
+              <li className="pt-2 text-xs text-muted-foreground">
+                + {rappelPecAVenir.length - 10} autre{rappelPecAVenir.length - 10 > 1 ? "s" : ""} dossier{rappelPecAVenir.length - 10 > 1 ? "s" : ""}
+              </li>
+            )}
+          </ul>
+        </section>
+      )}
 
 
 

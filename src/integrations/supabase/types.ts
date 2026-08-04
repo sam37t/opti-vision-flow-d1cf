@@ -167,6 +167,7 @@ export type Database = {
           paiement_mutuelle_recu_at: string | null
           paiement_recu: boolean
           paiement_recu_at: string | null
+          pec_a_demander_le: string | null
           pec_demande_at: string | null
           probleme: boolean
           remboursement_attendu: number | null
@@ -204,6 +205,7 @@ export type Database = {
           paiement_mutuelle_recu_at?: string | null
           paiement_recu?: boolean
           paiement_recu_at?: string | null
+          pec_a_demander_le?: string | null
           pec_demande_at?: string | null
           probleme?: boolean
           remboursement_attendu?: number | null
@@ -241,6 +243,7 @@ export type Database = {
           paiement_mutuelle_recu_at?: string | null
           paiement_recu?: boolean
           paiement_recu_at?: string | null
+          pec_a_demander_le?: string | null
           pec_demande_at?: string | null
           probleme?: boolean
           remboursement_attendu?: number | null

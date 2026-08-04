@@ -297,6 +297,31 @@ function DossierDetail() {
           <span className="font-medium">{daysNonRegle} jours non réglé — dossier transmis à la mutuelle en attente de règlement</span>
         </div>
       )}
+      {d.pec_a_demander_le && (
+        (() => {
+          const target = new Date(d.pec_a_demander_le).getTime();
+          const todayTs = Date.now();
+          const daysUntil = Math.ceil((target - todayTs) / (24 * 3600 * 1000));
+          if (daysUntil > 0) {
+            return (
+              <div className="flex items-center gap-2 rounded-lg border border-blue-300 bg-blue-50 px-4 py-3 text-sm text-blue-700">
+                <AlertOctagon className="h-4 w-4" />
+                <span className="font-medium">
+                  Demande de PEC à faire à partir du {new Date(d.pec_a_demander_le).toLocaleDateString("fr-FR")} (dans {daysUntil} jour{daysUntil > 1 ? "s" : ""})
+                </span>
+              </div>
+            );
+          }
+          return (
+            <div className="flex items-center gap-2 rounded-lg border border-amber-300 bg-amber-50 px-4 py-3 text-sm text-amber-700">
+              <AlertOctagon className="h-4 w-4" />
+              <span className="font-medium">
+                Demande de PEC à faire depuis le {new Date(d.pec_a_demander_le).toLocaleDateString("fr-FR")} {daysUntil < -1 ? `(${Math.abs(daysUntil)} jours de retard)` : ""}
+              </span>
+            </div>
+          );
+        })()
+      )}
 
       <div className="flex flex-wrap items-start justify-between gap-4">
         <div>
@@ -510,6 +535,11 @@ function DossierDetail() {
               Le statut du dossier évolue automatiquement à mesure que vous saisissez les dates ci-dessous. Vous pouvez forcer un statut manuellement dans la carte « Statut » : il sera respecté tant qu'aucun champ plus avancé n'est rempli.
             </p>
             <div className="grid gap-3 sm:grid-cols-2">
+              <DateField
+                label="PEC à demander à partir du"
+                value={d.pec_a_demander_le}
+                onChange={(v) => updateDossier({ pec_a_demander_le: v }, "Date de demande PEC mise à jour")}
+              />
               <DateField
                 label="Date d'envoi du devis"
                 value={d.pec_demande_at}

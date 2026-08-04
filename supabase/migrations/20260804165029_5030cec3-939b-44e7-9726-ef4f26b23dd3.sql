@@ -1,0 +1,1 @@
+ALTER TABLE public.dossiers ADD COLUMN IF NOT EXISTS pec_a_demander_le date;
