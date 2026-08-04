@@ -38,6 +38,21 @@ function RecapJour() {
 
   const { start, end } = useMemo(() => dayRange(date), [date]);
 
+  // Noms des collaborateurs (léger : 1 requête mise en cache)
+  const { data: profiles = [] } = useQuery({
+    queryKey: ["recap-profiles"],
+    queryFn: async () => {
+      const { data, error } = await supabase.from("profiles").select("id, full_name");
+      if (error) throw error;
+      return data ?? [];
+    },
+    staleTime: 30 * 60 * 1000,
+  });
+  const nameOf = useMemo(() => {
+    const map = new Map(profiles.map((p) => [p.id, p.full_name]));
+    return (id: string | null | undefined) => (id ? map.get(id) ?? "—" : "—");
+  }, [profiles]);
+
   // --- Queries ---
   // 1. Dossiers créés ce jour
   const { data: createdDossiers = [] } = useQuery({
@@ -45,7 +60,7 @@ function RecapJour() {
     queryFn: async () => {
       let q = supabase
         .from("dossiers")
-        .select("id, client_nom, client_prenom, mutuelle, status, type_dossier, created_at, montant_devis")
+        .select("id, client_nom, client_prenom, mutuelle, status, type_dossier, created_at, montant_devis, created_by")
         .gte("created_at", start)
         .lte("created_at", end)
         .order("created_at", { ascending: false });
@@ -81,7 +96,7 @@ function RecapJour() {
     queryFn: async () => {
       let q = supabase
         .from("dossier_paiements")
-        .select("id, dossier_id, part, montant, methode, date_paiement, note, created_at, dossier:dossiers!dossier_paiements_dossier_id_fkey(client_nom, client_prenom, mutuelle)")
+        .select("id, dossier_id, part, montant, methode, date_paiement, note, created_at, created_by, dossier:dossiers!dossier_paiements_dossier_id_fkey(client_nom, client_prenom, mutuelle)")
         .gte("created_at", start)
         .lte("created_at", end)
         .order("created_at", { ascending: false });
@@ -99,7 +114,7 @@ function RecapJour() {
     queryFn: async () => {
       let q = supabase
         .from("dossier_notes")
-        .select("id, dossier_id, content, created_at, dossier:dossiers!dossier_notes_dossier_id_fkey(client_nom, client_prenom)")
+        .select("id, dossier_id, content, created_at, author_id, dossier:dossiers!dossier_notes_dossier_id_fkey(client_nom, client_prenom)")
         .gte("created_at", start)
         .lte("created_at", end)
         .order("created_at", { ascending: false });
