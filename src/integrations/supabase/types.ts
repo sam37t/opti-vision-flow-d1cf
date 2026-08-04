@@ -529,6 +529,7 @@ export type Database = {
         | "facture"
         | "transmis_mutuelle"
         | "regle"
+        | "regle_partiel"
     }
     CompositeTypes: {
       [_ in never]: never
@@ -672,6 +673,7 @@ export const Constants = {
         "facture",
         "transmis_mutuelle",
         "regle",
+        "regle_partiel",
       ],
     },
   },

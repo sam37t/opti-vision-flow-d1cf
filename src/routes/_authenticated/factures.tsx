@@ -39,6 +39,8 @@ type Dossier = {
   paiement_client_recu_at: string | null;
   paiement_mutuelle_recu: boolean | null;
   paiement_mutuelle_recu_at: string | null;
+  paid_client?: number;
+  paid_mutuelle?: number;
 };
 
 function daysSince(iso: string | null): number | null {
@@ -95,10 +97,15 @@ function computeDue(d: Dossier) {
   const pec = Number(d.montant_pec) || 0;
   const rac = Number(d.reste_a_charge) || 0;
   const avoir = Number(d.avoir_commercial) || 0;
+  // Acomptes déjà encaissés (règlements partiels)
+  const paidMutuelle = Number(d.paid_mutuelle) || 0;
+  const paidClient = Number(d.paid_client) || 0;
 
   const mutuelleExpected = isPapiers ? 0 : pec;
   const mutuellePaid = isPapiers ? true : !!d.paiement_mutuelle_recu;
-  const mutuelleDue = mutuellePaid ? 0 : mutuelleExpected;
+  const mutuelleDue = mutuellePaid
+    ? 0
+    : Math.max(0, Math.round((mutuelleExpected - paidMutuelle) * 100) / 100);
 
   let clientExpected = Math.max(0, rac);
   if (isPapiers) {
@@ -108,15 +115,19 @@ function computeDue(d: Dossier) {
     clientExpected = Math.max(0, (Number(d.montant_devis) || 0) - avoir);
   }
   const clientPaid = !!d.paiement_client_recu;
-  const clientDue = clientPaid ? 0 : clientExpected;
+  const clientDue = clientPaid
+    ? 0
+    : Math.max(0, Math.round((clientExpected - paidClient) * 100) / 100);
 
   return {
     mutuelleExpected,
     mutuelleDue,
     mutuellePaid,
+    paidMutuelle,
     clientExpected,
     clientDue,
     clientPaid,
+    paidClient,
     total: mutuelleDue + clientDue,
   };
 }
@@ -147,9 +158,25 @@ function FacturesPage() {
         .order("transmis_mutuelle_at", { ascending: true, nullsFirst: false });
 
       if (error) throw error;
-      const result = ((data ?? []) as Dossier[]).filter(
-        (d) => d.status !== "regle" && computeDue(d).total > 0,
-      );
+
+      // Acomptes déjà encaissés par dossier (règlements partiels)
+      const { data: paiements } = await (supabase as any)
+        .from("dossier_paiements")
+        .select("dossier_id, part, montant");
+      const paid: Record<string, { client: number; mutuelle: number }> = {};
+      ((paiements ?? []) as any[]).forEach((p) => {
+        const e = (paid[p.dossier_id] ??= { client: 0, mutuelle: 0 });
+        if (p.part === "mutuelle") e.mutuelle += Number(p.montant) || 0;
+        else e.client += Number(p.montant) || 0;
+      });
+
+      const result = ((data ?? []) as Dossier[])
+        .map((d) => ({
+          ...d,
+          paid_client: paid[d.id]?.client ?? 0,
+          paid_mutuelle: paid[d.id]?.mutuelle ?? 0,
+        }))
+        .filter((d) => d.status !== "regle" && computeDue(d).total > 0);
       const methods: Record<string, PaymentMethod | null> = {};
       result.forEach((d) => {
         if (d.reste_a_charge_payment_method) {
