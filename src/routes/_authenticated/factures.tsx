@@ -158,9 +158,25 @@ function FacturesPage() {
         .order("transmis_mutuelle_at", { ascending: true, nullsFirst: false });
 
       if (error) throw error;
-      const result = ((data ?? []) as Dossier[]).filter(
-        (d) => d.status !== "regle" && computeDue(d).total > 0,
-      );
+
+      // Acomptes déjà encaissés par dossier (règlements partiels)
+      const { data: paiements } = await (supabase as any)
+        .from("dossier_paiements")
+        .select("dossier_id, part, montant");
+      const paid: Record<string, { client: number; mutuelle: number }> = {};
+      ((paiements ?? []) as any[]).forEach((p) => {
+        const e = (paid[p.dossier_id] ??= { client: 0, mutuelle: 0 });
+        if (p.part === "mutuelle") e.mutuelle += Number(p.montant) || 0;
+        else e.client += Number(p.montant) || 0;
+      });
+
+      const result = ((data ?? []) as Dossier[])
+        .map((d) => ({
+          ...d,
+          paid_client: paid[d.id]?.client ?? 0,
+          paid_mutuelle: paid[d.id]?.mutuelle ?? 0,
+        }))
+        .filter((d) => d.status !== "regle" && computeDue(d).total > 0);
       const methods: Record<string, PaymentMethod | null> = {};
       result.forEach((d) => {
         if (d.reste_a_charge_payment_method) {
