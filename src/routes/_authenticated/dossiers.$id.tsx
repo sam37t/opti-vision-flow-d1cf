@@ -337,14 +337,14 @@ function DossierDetail() {
         </div>
       </div>
 
-      <Card title="Règlement du reste à charge" icon={<Receipt className="h-4 w-4" />}>
+      <Card title="Règlements du dossier" icon={<Receipt className="h-4 w-4" />}>
         <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(220px,320px)] sm:items-end">
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">Reste à charge</Label>
             <div className="text-2xl font-semibold">{racLive.toFixed(2)} €</div>
           </div>
           <div className="space-y-2">
-            <Label>Mode de règlement</Label>
+            <Label>Mode de règlement principal</Label>
             <PaymentMethodSelect
               value={paymentMethod}
               onChange={(method) => {
@@ -356,7 +356,16 @@ function DossierDetail() {
             />
           </div>
         </div>
+        <div className="mt-4 border-t pt-4">
+          <DossierPaiements
+            dossierId={id}
+            resteACharge={racLive}
+            montantPec={pecNum}
+            enabled={authReady}
+          />
+        </div>
       </Card>
+
 
       {notes.length > 0 && (
         <Card title="Notes internes" icon={<MessageSquare className="h-4 w-4" />}>
