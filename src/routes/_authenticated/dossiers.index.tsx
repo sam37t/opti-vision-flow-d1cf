@@ -378,6 +378,11 @@ function ListView({ dossiers }: { dossiers: Dossier[] }) {
                     <AlertBadges d={d} compact />
                     <ReminderBadge d={d} compact />
                     <RecentBadge d={d} compact />
+                    {gris && (
+                      <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-500" title={`Demande de PEC à partir du ${new Date(d.pec_a_demander_le!).toLocaleDateString("fr-FR")}`}>
+                        <Clock className="h-3 w-3" /> PEC {new Date(d.pec_a_demander_le!).toLocaleDateString("fr-FR")}
+                      </span>
+                    )}
                   </div>
                 </td>
                 <td className="px-4 py-3">{d.mutuelle || "—"}</td>
