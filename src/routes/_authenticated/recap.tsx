@@ -64,7 +64,7 @@ function RecapJour() {
         .gte("created_at", start)
         .lte("created_at", end)
         .order("created_at", { ascending: false });
-      if (onlyMe && user) q = q.eq("created_by", user.id);
+      if (onlyMe && user) q = q.or(`created_by.eq.${user.id},created_by.is.null`);
       const { data, error } = await q;
       if (error) throw error;
       return data ?? [];
