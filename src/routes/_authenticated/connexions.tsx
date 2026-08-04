@@ -9,6 +9,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { toast } from "sonner";
 
 export const Route = createFileRoute("/_authenticated/connexions")({
@@ -156,49 +157,51 @@ function ConnexionsPage() {
         />
       </div>
 
-      {form && (
-        <div className="rounded-lg border bg-card p-4 shadow-sm">
-          <div className="mb-3 flex items-center justify-between">
-            <h2 className="font-medium">{form.id ? "Modifier l'accès" : "Nouvel accès"}</h2>
-            <Button variant="ghost" size="icon" onClick={() => setForm(null)} aria-label="Fermer">
-              <X className="h-4 w-4" />
-            </Button>
-          </div>
-          <div className="grid gap-3 sm:grid-cols-2">
-            <Field label="Mutuelle *">
-              <Input value={form.mutuelle} onChange={(e) => setForm({ ...form, mutuelle: e.target.value })} />
-            </Field>
-            <Field label="Site de connexion">
-              <Input
-                value={form.site_url}
-                placeholder="portail.mutuelle.fr"
-                onChange={(e) => setForm({ ...form, site_url: e.target.value })}
-              />
-            </Field>
-            <Field label="Identifiant">
-              <Input value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
-            </Field>
-            <Field label="Mot de passe">
-              <Input value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
-            </Field>
-            <Field label="Contact (tél. / email)">
-              <Input value={form.contact} onChange={(e) => setForm({ ...form, contact: e.target.value })} />
-            </Field>
-            <Field label="Notes">
-              <Textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
-            </Field>
-          </div>
-          <div className="mt-4 flex gap-2">
-            <Button
-              disabled={!form.mutuelle.trim() || save.isPending}
-              onClick={() => save.mutate(form)}
-            >
-              Enregistrer
-            </Button>
-            <Button variant="outline" onClick={() => setForm(null)}>Annuler</Button>
-          </div>
-        </div>
-      )}
+      <Dialog open={!!form} onOpenChange={(o) => !o && setForm(null)}>
+        <DialogContent className="max-h-[85vh] overflow-y-auto sm:max-w-2xl">
+          <DialogHeader>
+            <DialogTitle>{form?.id ? "Modifier l'accès" : "Nouvel accès"}</DialogTitle>
+          </DialogHeader>
+          {form && (
+            <>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <Field label="Mutuelle *">
+                  <Input value={form.mutuelle} onChange={(e) => setForm({ ...form, mutuelle: e.target.value })} />
+                </Field>
+                <Field label="Site de connexion">
+                  <Input
+                    value={form.site_url}
+                    placeholder="portail.mutuelle.fr"
+                    onChange={(e) => setForm({ ...form, site_url: e.target.value })}
+                  />
+                </Field>
+                <Field label="Identifiant">
+                  <Input value={form.username} onChange={(e) => setForm({ ...form, username: e.target.value })} />
+                </Field>
+                <Field label="Mot de passe">
+                  <Input value={form.password} onChange={(e) => setForm({ ...form, password: e.target.value })} />
+                </Field>
+                <Field label="Contact (tél. / email)">
+                  <Input value={form.contact} onChange={(e) => setForm({ ...form, contact: e.target.value })} />
+                </Field>
+                <Field label="Notes">
+                  <Textarea rows={2} value={form.notes} onChange={(e) => setForm({ ...form, notes: e.target.value })} />
+                </Field>
+              </div>
+              <div className="mt-4 flex gap-2">
+                <Button
+                  disabled={!form.mutuelle.trim() || save.isPending}
+                  onClick={() => save.mutate(form)}
+                >
+                  Enregistrer
+                </Button>
+                <Button variant="outline" onClick={() => setForm(null)}>Annuler</Button>
+              </div>
+            </>
+          )}
+        </DialogContent>
+      </Dialog>
+
 
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Chargement…</p>
