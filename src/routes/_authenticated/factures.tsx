@@ -95,10 +95,15 @@ function computeDue(d: Dossier) {
   const pec = Number(d.montant_pec) || 0;
   const rac = Number(d.reste_a_charge) || 0;
   const avoir = Number(d.avoir_commercial) || 0;
+  // Acomptes déjà encaissés (règlements partiels)
+  const paidMutuelle = Number(d.paid_mutuelle) || 0;
+  const paidClient = Number(d.paid_client) || 0;
 
   const mutuelleExpected = isPapiers ? 0 : pec;
   const mutuellePaid = isPapiers ? true : !!d.paiement_mutuelle_recu;
-  const mutuelleDue = mutuellePaid ? 0 : mutuelleExpected;
+  const mutuelleDue = mutuellePaid
+    ? 0
+    : Math.max(0, Math.round((mutuelleExpected - paidMutuelle) * 100) / 100);
 
   let clientExpected = Math.max(0, rac);
   if (isPapiers) {
@@ -108,15 +113,19 @@ function computeDue(d: Dossier) {
     clientExpected = Math.max(0, (Number(d.montant_devis) || 0) - avoir);
   }
   const clientPaid = !!d.paiement_client_recu;
-  const clientDue = clientPaid ? 0 : clientExpected;
+  const clientDue = clientPaid
+    ? 0
+    : Math.max(0, Math.round((clientExpected - paidClient) * 100) / 100);
 
   return {
     mutuelleExpected,
     mutuelleDue,
     mutuellePaid,
+    paidMutuelle,
     clientExpected,
     clientDue,
     clientPaid,
+    paidClient,
     total: mutuelleDue + clientDue,
   };
 }
