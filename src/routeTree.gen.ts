@@ -16,6 +16,7 @@ import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/
 import { Route as AuthenticatedParametresRouteImport } from './routes/_authenticated/parametres'
 import { Route as AuthenticatedImportRouteImport } from './routes/_authenticated/import'
 import { Route as AuthenticatedFacturesRouteImport } from './routes/_authenticated/factures'
+import { Route as AuthenticatedConnexionsRouteImport } from './routes/_authenticated/connexions'
 import { Route as AuthenticatedDossiersIndexRouteImport } from './routes/_authenticated/dossiers.index'
 import { Route as AuthenticatedDossiersNewRouteImport } from './routes/_authenticated/dossiers.new'
 import { Route as AuthenticatedDossiersArchivesRouteImport } from './routes/_authenticated/dossiers.archives'
@@ -55,6 +56,11 @@ const AuthenticatedFacturesRoute = AuthenticatedFacturesRouteImport.update({
   path: '/factures',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
+const AuthenticatedConnexionsRoute = AuthenticatedConnexionsRouteImport.update({
+  id: '/connexions',
+  path: '/connexions',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDossiersIndexRoute =
   AuthenticatedDossiersIndexRouteImport.update({
     id: '/dossiers/',
@@ -83,6 +89,7 @@ export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/connexions': typeof AuthenticatedConnexionsRoute
   '/factures': typeof AuthenticatedFacturesRoute
   '/import': typeof AuthenticatedImportRoute
   '/parametres': typeof AuthenticatedParametresRoute
@@ -94,6 +101,7 @@ export interface FileRoutesByFullPath {
 export interface FileRoutesByTo {
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/connexions': typeof AuthenticatedConnexionsRoute
   '/factures': typeof AuthenticatedFacturesRoute
   '/import': typeof AuthenticatedImportRoute
   '/parametres': typeof AuthenticatedParametresRoute
@@ -108,6 +116,7 @@ export interface FileRoutesById {
   '/_authenticated': typeof AuthenticatedRouteRouteWithChildren
   '/auth': typeof AuthRoute
   '/reset-password': typeof ResetPasswordRoute
+  '/_authenticated/connexions': typeof AuthenticatedConnexionsRoute
   '/_authenticated/factures': typeof AuthenticatedFacturesRoute
   '/_authenticated/import': typeof AuthenticatedImportRoute
   '/_authenticated/parametres': typeof AuthenticatedParametresRoute
@@ -123,6 +132,7 @@ export interface FileRouteTypes {
     | '/'
     | '/auth'
     | '/reset-password'
+    | '/connexions'
     | '/factures'
     | '/import'
     | '/parametres'
@@ -134,6 +144,7 @@ export interface FileRouteTypes {
   to:
     | '/auth'
     | '/reset-password'
+    | '/connexions'
     | '/factures'
     | '/import'
     | '/parametres'
@@ -147,6 +158,7 @@ export interface FileRouteTypes {
     | '/_authenticated'
     | '/auth'
     | '/reset-password'
+    | '/_authenticated/connexions'
     | '/_authenticated/factures'
     | '/_authenticated/import'
     | '/_authenticated/parametres'
@@ -214,6 +226,13 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFacturesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
+    '/_authenticated/connexions': {
+      id: '/_authenticated/connexions'
+      path: '/connexions'
+      fullPath: '/connexions'
+      preLoaderRoute: typeof AuthenticatedConnexionsRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
     '/_authenticated/dossiers/': {
       id: '/_authenticated/dossiers/'
       path: '/dossiers'
@@ -246,6 +265,7 @@ declare module '@tanstack/react-router' {
 }
 
 interface AuthenticatedRouteRouteChildren {
+  AuthenticatedConnexionsRoute: typeof AuthenticatedConnexionsRoute
   AuthenticatedFacturesRoute: typeof AuthenticatedFacturesRoute
   AuthenticatedImportRoute: typeof AuthenticatedImportRoute
   AuthenticatedParametresRoute: typeof AuthenticatedParametresRoute
@@ -257,6 +277,7 @@ interface AuthenticatedRouteRouteChildren {
 }
 
 const AuthenticatedRouteRouteChildren: AuthenticatedRouteRouteChildren = {
+  AuthenticatedConnexionsRoute: AuthenticatedConnexionsRoute,
   AuthenticatedFacturesRoute: AuthenticatedFacturesRoute,
   AuthenticatedImportRoute: AuthenticatedImportRoute,
   AuthenticatedParametresRoute: AuthenticatedParametresRoute,
@@ -278,13 +299,3 @@ const rootRouteChildren: RootRouteChildren = {
 export const routeTree = rootRouteImport
   ._addFileChildren(rootRouteChildren)
   ._addFileTypes<FileRouteTypes>()
-
-import type { getRouter } from './router.tsx'
-import type { startInstance } from './start.ts'
-declare module '@tanstack/react-start' {
-  interface Register {
-    ssr: true
-    router: Awaited<ReturnType<typeof getRouter>>
-    config: Awaited<ReturnType<typeof startInstance.getOptions>>
-  }
-}
