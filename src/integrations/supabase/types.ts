@@ -144,6 +144,7 @@ export type Database = {
       }
       dossiers: {
         Row: {
+          appeler_mutuelle: boolean
           avoir_commercial: number | null
           client_nom: string
           client_prenom: string
@@ -182,6 +183,7 @@ export type Database = {
           updated_at: string
         }
         Insert: {
+          appeler_mutuelle?: boolean
           avoir_commercial?: number | null
           client_nom: string
           client_prenom: string
@@ -220,6 +222,7 @@ export type Database = {
           updated_at?: string
         }
         Update: {
+          appeler_mutuelle?: boolean
           avoir_commercial?: number | null
           client_nom?: string
           client_prenom?: string

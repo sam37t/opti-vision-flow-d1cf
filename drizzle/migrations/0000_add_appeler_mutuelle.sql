@@ -1,0 +1,1 @@
+alter table public.dossiers add column if not exists appeler_mutuelle boolean not null default false;

@@ -53,6 +53,7 @@ type Dossier = {
   reste_a_charge: number | null;
   remboursement_attendu: number | null;
   probleme: boolean;
+  appeler_mutuelle: boolean;
   facture_cosium: boolean;
   transmis_mutuelle: boolean;
   paiement_recu: boolean;
@@ -72,6 +73,15 @@ function isPecFuture(d: Dossier): boolean {
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   return new Date(d.pec_a_demander_le).getTime() > today.getTime();
+}
+
+function CallMutuelleBadge({ compact }: { compact?: boolean }) {
+  const cls = compact ? "text-[10px] px-1.5 py-0.5" : "text-xs px-2 py-0.5";
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full border border-pink-300 bg-pink-100 font-bold uppercase tracking-wide text-pink-700 ${cls}`}>
+      Appeler la mutuelle
+    </span>
+  );
 }
 
 function LensBadge() {
@@ -237,6 +247,7 @@ function DossiersPage() {
 
   const sortedDossiers = useMemo(() => {
     return [...dossiers].sort((a, b) => {
+      if (!!a.appeler_mutuelle !== !!b.appeler_mutuelle) return a.appeler_mutuelle ? -1 : 1;
       const nomA = `${a.client_nom} ${a.client_prenom}`.toLocaleLowerCase("fr-FR");
       const nomB = `${b.client_nom} ${b.client_prenom}`.toLocaleLowerCase("fr-FR");
       return nomA.localeCompare(nomB, "fr-FR");
@@ -340,7 +351,7 @@ function DossiersPage() {
       ) : view === "list" ? (
         <ListView dossiers={sortedDossiers} />
       ) : (
-        <KanbanView dossiers={dossiers} />
+        <KanbanView dossiers={sortedDossiers} />
       )}
 
     </div>
@@ -364,7 +375,7 @@ function ListView({ dossiers }: { dossiers: Dossier[] }) {
               Date.now() - new Date(d.last_status_change_at).getTime() > 48 * 3600 * 1000;
             const gris = isPecFuture(d);
             return (
-              <tr key={d.id} className={`border-t hover:bg-accent/50 ${d.probleme ? "bg-destructive/5" : ""} ${gris ? "opacity-40" : ""}`}>
+              <tr key={d.id} className={`border-t hover:bg-accent/50 ${d.appeler_mutuelle ? "bg-pink-50" : d.probleme ? "bg-destructive/5" : ""} ${gris ? "opacity-40" : ""}`}>
                 <td className="px-4 py-3">
                   <Link to="/dossiers/$id" params={{ id: d.id }} className="flex items-center gap-2 font-medium hover:underline">
                     {d.probleme && <AlertOctagon className="h-4 w-4 text-destructive" />}
@@ -376,6 +387,7 @@ function ListView({ dossiers }: { dossiers: Dossier[] }) {
                     <StatusBadge status={d.status} className="text-[10px] px-1.5 py-0" />
                     <BillingBadges d={d} compact />
                     <AlertBadges d={d} compact />
+                    {d.appeler_mutuelle && <CallMutuelleBadge compact />}
                     <ReminderBadge d={d} compact />
                     <RecentBadge d={d} compact />
                     {gris && (
@@ -433,7 +445,7 @@ function KanbanView({ dossiers }: { dossiers: Dossier[] }) {
                   to="/dossiers/$id"
                   params={{ id: d.id }}
                   className={`block rounded-md border p-3 transition-colors hover:bg-accent ${
-                    d.probleme ? "border-destructive/40 bg-destructive/5" : "bg-background"
+                    d.appeler_mutuelle ? "border-pink-300 bg-pink-50" : d.probleme ? "border-destructive/40 bg-destructive/5" : "bg-background"
                   } ${isPecFuture(d) ? "opacity-40" : ""}`}
                 >
                   <div className="flex items-center gap-1.5 text-sm font-medium">
@@ -442,7 +454,7 @@ function KanbanView({ dossiers }: { dossiers: Dossier[] }) {
                     {d.type_dossier === "lentilles" && <LensBadge />}
                   </div>
                   <div className="text-xs text-muted-foreground">{d.mutuelle || "—"}</div>
-                  <div className="mt-1 flex flex-wrap items-center gap-1"><StatusBadge status={d.status} className="text-[10px] px-1.5 py-0" /><BillingBadges d={d} compact /><AlertBadges d={d} compact /><ReminderBadge d={d} compact /><RecentBadge d={d} compact /></div>
+                  <div className="mt-1 flex flex-wrap items-center gap-1">{d.appeler_mutuelle && <CallMutuelleBadge compact />}<StatusBadge status={d.status} className="text-[10px] px-1.5 py-0" /><BillingBadges d={d} compact /><AlertBadges d={d} compact /><ReminderBadge d={d} compact /><RecentBadge d={d} compact /></div>
                   <div className="mt-1 space-y-0.5 text-xs tabular-nums">
                     <div>Devis : <span className="font-medium">{Number(d.montant_devis ?? 0).toFixed(2)} €</span></div>
                     {d.montant_pec != null && <div>Accordé : <span className="font-medium">{Number(d.montant_pec).toFixed(2)} €</span></div>}

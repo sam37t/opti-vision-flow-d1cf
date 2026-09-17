@@ -217,6 +217,18 @@ function DossierDetail() {
     else toast.success("Statut mis à jour");
   };
 
+  const toggleAppelerMutuelle = async () => {
+    const { error } = await supabase
+      .from("dossiers")
+      .update({ appeler_mutuelle: !d.appeler_mutuelle } as any)
+      .eq("id", id);
+    if (error) toast.error(error.message);
+    else {
+      qc.invalidateQueries({ queryKey: ["dossiers"] });
+      toast.success(d.appeler_mutuelle ? "Rappel retiré" : "Dossier signalé : appeler la mutuelle");
+    }
+  };
+
   const toggleProbleme = async () => {
     const { error } = await supabase.from("dossiers").update({ probleme: !d.probleme }).eq("id", id);
     if (error) toast.error(error.message);
@@ -285,6 +297,12 @@ function DossierDetail() {
     <div className="space-y-5">
       <BackToListLink />
 
+      {d.appeler_mutuelle && (
+        <div className="flex items-center gap-2 rounded-lg border border-pink-300 bg-pink-50 px-4 py-3 text-sm text-pink-700">
+          <Phone className="h-4 w-4" />
+          <span className="font-bold uppercase tracking-wide">Appeler la mutuelle</span>
+        </div>
+      )}
       {d.probleme && (
         <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           <AlertOctagon className="h-4 w-4" />
@@ -348,6 +366,15 @@ function DossierDetail() {
         </div>
         <div className="flex items-center gap-2">
           <StatusBadge status={d.status} />
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={toggleAppelerMutuelle}
+            className={`gap-1.5 ${d.appeler_mutuelle ? "border-pink-400 bg-pink-100 text-pink-700 hover:bg-pink-200" : ""}`}
+          >
+            <Phone className="h-4 w-4" />
+            {d.appeler_mutuelle ? "Retirer « Appeler la mutuelle »" : "Appeler la mutuelle"}
+          </Button>
           <Button
             variant={d.probleme ? "destructive" : "outline"}
             size="sm"
