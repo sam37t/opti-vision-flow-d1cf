@@ -297,6 +297,12 @@ function DossierDetail() {
     <div className="space-y-5">
       <BackToListLink />
 
+      {d.appeler_mutuelle && (
+        <div className="flex items-center gap-2 rounded-lg border border-pink-300 bg-pink-50 px-4 py-3 text-sm text-pink-700">
+          <Phone className="h-4 w-4" />
+          <span className="font-bold uppercase tracking-wide">Appeler la mutuelle</span>
+        </div>
+      )}
       {d.probleme && (
         <div className="flex items-center gap-2 rounded-lg border border-destructive/30 bg-destructive/10 px-4 py-3 text-sm text-destructive">
           <AlertOctagon className="h-4 w-4" />
