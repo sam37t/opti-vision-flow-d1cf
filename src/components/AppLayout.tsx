@@ -1,4 +1,4 @@
-import { Link, useRouter } from "@tanstack/react-router";
+import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { LayoutDashboard, FolderKanban, LogOut, Plus, Settings, Receipt, Archive, KeyRound, PhoneCall } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { MessagesPanel } from "@/components/MessagesPanel";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { cn } from "@/lib/utils";
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -20,27 +21,15 @@ export function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-30 border-b bg-card/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
-          <Link to="/" className="flex items-center gap-2.5 font-semibold text-foreground" aria-label="Optic House">
-            <img src={logoAsset.url} alt="Optic House" className="h-11 w-11 rounded-md object-cover ring-1 ring-accent/50" />
-            <span className="hidden text-base font-semibold tracking-wide sm:inline">OPTIC HOUSE</span>
+        <div className="mx-auto grid max-w-7xl grid-cols-[minmax(0,1fr)_auto] items-center gap-3 px-3 py-2.5 sm:px-6">
+          <Link to="/" className="flex min-w-0 items-center gap-2.5 font-semibold text-foreground" aria-label="Optic House">
+            <img src={logoAsset.url} alt="Optic House" className="h-10 w-10 shrink-0 rounded-md object-cover ring-1 ring-accent/50" />
+            <span className="truncate text-base font-semibold tracking-wide">OPTIC HOUSE</span>
           </Link>
-
-
-
-          <nav className="hidden min-w-0 items-center gap-1 2xl:flex">
-            <NavLink to="/" icon={<LayoutDashboard className="h-4 w-4" />}>Accueil</NavLink>
-            <NavLink to="/dossiers" icon={<FolderKanban className="h-4 w-4" />}>Dossiers</NavLink>
-            <NavLink to="/dossiers" search={{ appeler: "1" }} icon={<PhoneCall className="h-4 w-4" />}>Appeler Mutuelle</NavLink>
-            <NavLink to="/factures" icon={<Receipt className="h-4 w-4" />}>Factures</NavLink>
-            <NavLink to="/dossiers/archives" icon={<Archive className="h-4 w-4" />}>Archives</NavLink>
-            <NavLink to="/connexions" icon={<KeyRound className="h-4 w-4" />}>Connexion</NavLink>
-            <NavLink to="/parametres" icon={<Settings className="h-4 w-4" />}>Paramètres</NavLink>
-          </nav>
-          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
+          <div className="flex shrink-0 items-center gap-1.5 sm:gap-2">
             <Link to="/dossiers/new">
-              <Button size="sm" className="gap-1.5 whitespace-nowrap">
-                <Plus className="h-4 w-4" /> Nouveau dossier
+              <Button size="sm" className="gap-1.5 whitespace-nowrap px-2.5 sm:px-3">
+                <Plus className="h-4 w-4" /> <span className="hidden sm:inline">Nouveau dossier</span>
               </Button>
             </Link>
             <div className="hidden text-right text-sm leading-tight sm:block">
@@ -53,7 +42,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             </Button>
           </div>
         </div>
-        <nav className="flex gap-1 overflow-x-auto border-t px-4 py-2 2xl:hidden">
+        <nav className="mx-auto flex max-w-7xl gap-1 overflow-x-auto border-t px-3 py-2 sm:px-6">
           <NavLink to="/" icon={<LayoutDashboard className="h-4 w-4" />}>Accueil</NavLink>
           <NavLink to="/dossiers" icon={<FolderKanban className="h-4 w-4" />}>Dossiers</NavLink>
           <NavLink to="/dossiers" search={{ appeler: "1" }} icon={<PhoneCall className="h-4 w-4" />}>Appeler Mutuelle</NavLink>
@@ -69,15 +58,30 @@ export function AppLayout({ children }: { children: ReactNode }) {
 }
 
 function NavLink({ to, search, icon, children }: { to: string; search?: Record<string, string | undefined>; icon: ReactNode; children: ReactNode }) {
+  const location = useRouterState({ select: (s) => s.location });
+  const callerSearchValue = String(location.search.appeler ?? "").replace(/["']/g, "");
+  const isCallerLink = to === "/dossiers" && search?.appeler === "1";
+  const isPlainDossiersLink = to === "/dossiers" && !search?.appeler;
+  const isActive = to === "/"
+    ? location.pathname === "/"
+    : isCallerLink
+      ? location.pathname === "/dossiers" && callerSearchValue === "1"
+      : isPlainDossiersLink
+        ? location.pathname === "/dossiers" && callerSearchValue !== "1"
+        : location.pathname === to;
+
   return (
     <Link
       to={to}
       search={search}
-      activeOptions={{ exact: to === "/" }}
-      className="flex items-center gap-1.5 rounded-md px-3 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground [&.active]:bg-accent [&.active]:text-accent-foreground"
+      activeOptions={{ exact: true }}
+      className={cn(
+        "flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground sm:px-3",
+        isActive && "bg-accent text-accent-foreground",
+      )}
     >
-      {icon}
-      {children}
+      <span className="shrink-0">{icon}</span>
+      <span className="whitespace-nowrap">{children}</span>
     </Link>
   );
 }
