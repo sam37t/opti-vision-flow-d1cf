@@ -247,6 +247,7 @@ function DossiersPage() {
 
   const sortedDossiers = useMemo(() => {
     return [...dossiers].sort((a, b) => {
+      if (!!a.appeler_mutuelle !== !!b.appeler_mutuelle) return a.appeler_mutuelle ? -1 : 1;
       const nomA = `${a.client_nom} ${a.client_prenom}`.toLocaleLowerCase("fr-FR");
       const nomB = `${b.client_nom} ${b.client_prenom}`.toLocaleLowerCase("fr-FR");
       return nomA.localeCompare(nomB, "fr-FR");
