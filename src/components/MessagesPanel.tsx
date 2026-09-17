@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { MessageCircle, Send, FolderOpen, Trash2, ChevronsUpDown, Check, Search } from "lucide-react";
+import { MessageCircle, Send, FolderOpen, Trash2, ChevronsUpDown, Check } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 
