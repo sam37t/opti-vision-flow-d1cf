@@ -367,6 +367,15 @@ function DossierDetail() {
         <div className="flex items-center gap-2">
           <StatusBadge status={d.status} />
           <Button
+            variant="outline"
+            size="sm"
+            onClick={toggleAppelerMutuelle}
+            className={`gap-1.5 ${d.appeler_mutuelle ? "border-pink-400 bg-pink-100 text-pink-700 hover:bg-pink-200" : ""}`}
+          >
+            <Phone className="h-4 w-4" />
+            {d.appeler_mutuelle ? "Retirer « Appeler la mutuelle »" : "Appeler la mutuelle"}
+          </Button>
+          <Button
             variant={d.probleme ? "destructive" : "outline"}
             size="sm"
             onClick={toggleProbleme}
