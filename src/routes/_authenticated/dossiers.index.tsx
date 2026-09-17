@@ -445,7 +445,7 @@ function ListView({ dossiers }: { dossiers: Dossier[] }) {
                   {d.montant_pec != null ? `${Number(d.montant_pec).toFixed(2)} €` : "—"}
                 </td>
                 <td className="px-4 py-3 tabular-nums">
-                  {d.reste_a_charge != null ? `${Number(d.reste_a_charge).toFixed(2)} €` : "—"}
+                  {racRestant(d) != null ? `${racRestant(d)!.toFixed(2)} €` : "—"}
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
@@ -502,7 +502,7 @@ function KanbanView({ dossiers }: { dossiers: Dossier[] }) {
                     <div className="mt-1 space-y-0.5 text-xs tabular-nums">
                       <div>Devis : <span className="font-medium">{Number(d.montant_devis ?? 0).toFixed(2)} €</span></div>
                       {d.montant_pec != null && <div>Accordé : <span className="font-medium">{Number(d.montant_pec).toFixed(2)} €</span></div>}
-                      {d.reste_a_charge != null && <div>Reste à charge : <span className="font-medium">{Number(d.reste_a_charge).toFixed(2)} €</span></div>}
+                      {racRestant(d) != null && <div>Reste à charge : <span className="font-medium">{racRestant(d)!.toFixed(2)} €</span></div>}
                     </div>
                   </Link>
                 ))}
