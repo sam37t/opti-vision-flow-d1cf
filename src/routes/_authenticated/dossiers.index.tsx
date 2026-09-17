@@ -221,7 +221,7 @@ function DossiersPage() {
   const navigate = Route.useNavigate();
   const qc = useQueryClient();
   const appelerFilterActive = search.appeler?.replace(/["']/g, "") === "1";
-  const [view, setView] = useState<"list" | "kanban">(() => (appelerFilterActive ? "kanban" : "list"));
+  const [view, setView] = useState<"list" | "kanban">("kanban");
   const listHref = useRouterState({ select: (s) => s.location.href });
 
   useEffect(() => {
@@ -296,20 +296,22 @@ function DossiersPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
+      <div className="space-y-3">
+        <div className="text-center">
           <h1 className="text-2xl font-semibold tracking-tight">Dossiers</h1>
           <p className="text-sm text-muted-foreground">
             {dossiers.length} dossier{dossiers.length > 1 ? "s" : ""}
           </p>
         </div>
-        <div className="grid w-full grid-cols-2 gap-1 rounded-md border bg-card p-1 sm:w-auto">
-          <Button variant={view === "list" ? "secondary" : "ghost"} size="sm" onClick={() => setView("list")} className="gap-1.5">
-            <List className="h-4 w-4" /> Liste
-          </Button>
-          <Button variant={view === "kanban" ? "secondary" : "ghost"} size="sm" onClick={() => setView("kanban")} className="gap-1.5">
-            <LayoutGrid className="h-4 w-4" /> Kanban
-          </Button>
+        <div className="flex justify-center">
+          <div className="grid grid-cols-2 gap-1 rounded-lg border bg-card p-1 shadow-sm">
+            <Button variant={view === "list" ? "secondary" : "ghost"} size="sm" onClick={() => setView("list")} className="gap-1.5 px-6">
+              <List className="h-4 w-4" /> Liste
+            </Button>
+            <Button variant={view === "kanban" ? "secondary" : "ghost"} size="sm" onClick={() => setView("kanban")} className="gap-1.5 px-6">
+              <LayoutGrid className="h-4 w-4" /> Kanban
+            </Button>
+          </div>
         </div>
       </div>
 
@@ -375,7 +377,7 @@ function DossiersPage() {
       ) : view === "list" ? (
         <ListView dossiers={sortedDossiers} />
       ) : (
-        <KanbanView dossiers={sortedDossiers} appelerMutuelleDossiers={appelerMutuelleDossiers} />
+        <KanbanView dossiers={sortedDossiers} />
       )}
 
     </div>
@@ -450,36 +452,9 @@ function ListView({ dossiers }: { dossiers: Dossier[] }) {
   );
 }
 
-function KanbanView({ dossiers, appelerMutuelleDossiers }: { dossiers: Dossier[]; appelerMutuelleDossiers: Dossier[] }) {
+function KanbanView({ dossiers }: { dossiers: Dossier[] }) {
   return (
     <div className="space-y-4">
-      {appelerMutuelleDossiers.length > 0 && (
-        <section className="rounded-lg border border-pink-300 bg-pink-50 p-3 sm:p-4">
-          <div className="mb-3 flex flex-wrap items-center gap-2 text-pink-800">
-            <Phone className="h-5 w-5" />
-            <h2 className="text-base font-semibold">Dossiers à appeler mutuelle</h2>
-            <span className="inline-flex min-w-6 items-center justify-center rounded-full border border-pink-300 bg-pink-100 px-2 py-0.5 text-xs font-bold tabular-nums text-pink-700">
-              {appelerMutuelleDossiers.length}
-            </span>
-          </div>
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-            {appelerMutuelleDossiers.slice(0, 9).map((d) => (
-              <Link
-                key={d.id}
-                to="/dossiers/$id"
-                params={{ id: d.id }}
-                className="grid min-w-0 grid-cols-[1fr_auto] items-center gap-2 rounded-md border border-pink-200 bg-background/80 px-3 py-2 text-xs hover:bg-background"
-              >
-                <span className="min-w-0 truncate font-medium">{d.client_nom.toUpperCase()} {d.client_prenom}</span>
-                <span className="max-w-28 truncate text-pink-700 sm:max-w-36">{d.mutuelle || "—"}</span>
-              </Link>
-            ))}
-          </div>
-          {appelerMutuelleDossiers.length > 9 && (
-            <p className="mt-2 text-xs text-pink-700">+ {appelerMutuelleDossiers.length - 9} autre{appelerMutuelleDossiers.length - 9 > 1 ? "s" : ""} dossier{appelerMutuelleDossiers.length - 9 > 1 ? "s" : ""}</p>
-          )}
-        </section>
-      )}
       <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         {SELECTABLE_STATUSES.map((s) => {
           const items = dossiers.filter((d) => d.status === s);
