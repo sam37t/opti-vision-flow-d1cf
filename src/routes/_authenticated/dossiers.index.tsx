@@ -267,7 +267,17 @@ function DossiersPage() {
       }
       const { data, error } = await q;
       if (error) throw error;
-      return data as unknown as Dossier[];
+      const rows = (data ?? []) as unknown as Dossier[];
+      // Règlements déjà encaissés côté client (paiements partiels)
+      const { data: paiements } = await (supabase as any)
+        .from("dossier_paiements")
+        .select("dossier_id, part, montant");
+      const paid: Record<string, number> = {};
+      ((paiements ?? []) as any[]).forEach((p) => {
+        if (p.part === "mutuelle") return;
+        paid[p.dossier_id] = (paid[p.dossier_id] ?? 0) + (Number(p.montant) || 0);
+      });
+      return rows.map((d) => ({ ...d, paid_client: paid[d.id] ?? 0 }));
     },
   });
 
