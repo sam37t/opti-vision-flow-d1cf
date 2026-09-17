@@ -20,7 +20,7 @@ import { getTpPlatform, isDifferentPlatform } from "@/lib/tp-platforms";
 import { daysSinceTransmisNonRegle } from "@/lib/dossier-alerts";
 import { PaymentMethodSelect } from "@/components/PaymentMethodSelect";
 import { PaymentMethodBadge } from "@/components/PaymentMethodBadge";
-import { DossierPaiements } from "@/components/DossierPaiements";
+import { DossierPaiements, useDossierPaiements } from "@/components/DossierPaiements";
 import type { PaymentMethod } from "@/lib/payment-methods";
 import { toast } from "sonner";
 
@@ -176,6 +176,11 @@ function DossierDetail() {
   const ssNum = parseAmount(ss) ?? 0;
   const avoirNum = parseAmount(avoir) ?? 0;
   const racLive = Math.max(0, devisNum - ssNum - pecNum - avoirNum);
+  const { data: paiementsDossier = [] } = useDossierPaiements(id, authReady);
+  const clientPaidTotal = paiementsDossier
+    .filter((p) => p.part === "client")
+    .reduce((s, p) => s + (Number(p.montant) || 0), 0);
+  const racRestant = Math.max(0, Math.round((racLive - clientPaidTotal) * 100) / 100);
 
 
   const saveInfos = async () => {
@@ -394,7 +399,12 @@ function DossierDetail() {
         <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(220px,320px)] sm:items-end">
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">Reste à charge</Label>
-            <div className="text-2xl font-semibold">{racLive.toFixed(2)} €</div>
+            <div className="text-2xl font-semibold">{racRestant.toFixed(2)} €</div>
+            {clientPaidTotal > 0 && (
+              <div className="text-xs text-muted-foreground">
+                {racLive.toFixed(2)} € − {clientPaidTotal.toFixed(2)} € déjà réglés par le client
+              </div>
+            )}
           </div>
           <div className="space-y-2">
             <Label>Mode de règlement principal</Label>

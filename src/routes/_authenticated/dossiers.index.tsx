@@ -75,7 +75,14 @@ type Dossier = {
   last_status_change_at: string;
   type_dossier: string | null;
   pec_a_demander_le: string | null;
+  paid_client?: number;
 };
+
+// Reste à charge restant = reste à charge − règlements déjà encaissés côté client
+function racRestant(d: Dossier): number | null {
+  if (d.reste_a_charge == null) return null;
+  return Math.max(0, Math.round((Number(d.reste_a_charge) - (Number(d.paid_client) || 0)) * 100) / 100);
+}
 
 // Dossier « À traiter » dont la demande de PEC est planifiée dans le futur → à ne pas traiter maintenant
 function isPecFuture(d: Dossier): boolean {
@@ -260,7 +267,17 @@ function DossiersPage() {
       }
       const { data, error } = await q;
       if (error) throw error;
-      return data as unknown as Dossier[];
+      const rows = (data ?? []) as unknown as Dossier[];
+      // Règlements déjà encaissés côté client (paiements partiels)
+      const { data: paiements } = await (supabase as any)
+        .from("dossier_paiements")
+        .select("dossier_id, part, montant");
+      const paid: Record<string, number> = {};
+      ((paiements ?? []) as any[]).forEach((p) => {
+        if (p.part === "mutuelle") return;
+        paid[p.dossier_id] = (paid[p.dossier_id] ?? 0) + (Number(p.montant) || 0);
+      });
+      return rows.map((d) => ({ ...d, paid_client: paid[d.id] ?? 0 }));
     },
   });
 
@@ -428,7 +445,7 @@ function ListView({ dossiers }: { dossiers: Dossier[] }) {
                   {d.montant_pec != null ? `${Number(d.montant_pec).toFixed(2)} €` : "—"}
                 </td>
                 <td className="px-4 py-3 tabular-nums">
-                  {d.reste_a_charge != null ? `${Number(d.reste_a_charge).toFixed(2)} €` : "—"}
+                  {racRestant(d) != null ? `${racRestant(d)!.toFixed(2)} €` : "—"}
                 </td>
                 <td className="px-4 py-3">
                   <div className="flex items-center gap-2">
@@ -485,7 +502,7 @@ function KanbanView({ dossiers }: { dossiers: Dossier[] }) {
                     <div className="mt-1 space-y-0.5 text-xs tabular-nums">
                       <div>Devis : <span className="font-medium">{Number(d.montant_devis ?? 0).toFixed(2)} €</span></div>
                       {d.montant_pec != null && <div>Accordé : <span className="font-medium">{Number(d.montant_pec).toFixed(2)} €</span></div>}
-                      {d.reste_a_charge != null && <div>Reste à charge : <span className="font-medium">{Number(d.reste_a_charge).toFixed(2)} €</span></div>}
+                      {racRestant(d) != null && <div>Reste à charge : <span className="font-medium">{racRestant(d)!.toFixed(2)} €</span></div>}
                     </div>
                   </Link>
                 ))}

@@ -28,6 +28,23 @@ function Dashboard() {
     },
   });
 
+  // Règlements déjà encaissés côté client (déduits du reste à charge)
+  const { data: paidClientByDossier = {} } = useQuery({
+    queryKey: ["paiements-clients-dashboard"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("dossier_paiements")
+        .select("dossier_id, part, montant");
+      if (error) throw error;
+      const paid: Record<string, number> = {};
+      ((data ?? []) as any[]).forEach((p) => {
+        if (p.part === "mutuelle") return;
+        paid[p.dossier_id] = (paid[p.dossier_id] ?? 0) + (Number(p.montant) || 0);
+      });
+      return paid;
+    },
+  });
+
   useEffect(() => {
     const channel = supabase
       .channel("dossiers-dashboard-rt")
@@ -111,7 +128,10 @@ function Dashboard() {
 
   const totalDevisAll = dossiers.reduce((s, d) => s + (Number(d.montant_devis) || 0), 0);
   const totalAccorde = actifs.reduce((s, d) => s + (Number(d.montant_pec) || 0), 0);
-  const totalRAC = actifs.reduce((s, d) => s + (Number(d.reste_a_charge) || 0), 0);
+  const totalRAC = actifs.reduce(
+    (s, d) => s + Math.max(0, (Number(d.reste_a_charge) || 0) - (paidClientByDossier[d.id] ?? 0)),
+    0,
+  );
   const totalEncaisse = dossiers
     .filter((d) => d.status === "regle")
     .reduce((s, d) => s + (Number(d.montant_pec) || 0), 0);
