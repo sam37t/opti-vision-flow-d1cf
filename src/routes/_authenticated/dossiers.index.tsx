@@ -15,17 +15,26 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { SELECTABLE_STATUSES, STATUS_LABELS, TERMINAL_STATUSES, type DossierStatus } from "@/lib/dossier-status";
 
 const searchSchema = z.object({
-  status: z.string().optional(),
-  mutuelle: z.string().optional(),
-  from: z.string().optional(),
-  to: z.string().optional(),
-  q: z.string().optional(),
-  probleme: z.string().optional(),
-  appeler: z.string().optional(),
+  status: z.coerce.string().optional(),
+  mutuelle: z.coerce.string().optional(),
+  from: z.coerce.string().optional(),
+  to: z.coerce.string().optional(),
+  q: z.coerce.string().optional(),
+  probleme: z.coerce.string().optional(),
+  appeler: z.coerce.string().optional(),
 });
 
 export const Route = createFileRoute("/_authenticated/dossiers/")({
-  head: () => ({ meta: [{ title: "Dossiers — Optique Suivi" }] }),
+  head: () => ({
+    meta: [
+      { title: "Dossiers — Optique Suivi" },
+      { name: "description", content: "Liste, recherche et suivi des dossiers optiques du cabinet." },
+      { property: "og:title", content: "Dossiers — Optique Suivi" },
+      { property: "og:description", content: "Liste, recherche et suivi des dossiers optiques du cabinet." },
+      { property: "og:type", content: "website" },
+      { name: "twitter:card", content: "summary" },
+    ],
+  }),
   validateSearch: (s) => searchSchema.parse(s),
   component: DossiersPage,
 });
@@ -79,11 +88,11 @@ function isPecFuture(d: Dossier): boolean {
 function CallMutuelleBadge() {
   return (
     <span
-      className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-pink-300 bg-pink-100 text-pink-700"
+      className="inline-flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-pink-300 bg-pink-100 text-pink-700"
       title="Appeler la mutuelle"
       aria-label="Appeler la mutuelle"
     >
-      <Phone className="h-3.5 w-3.5" />
+      <Phone className="h-3 w-3" />
     </span>
   );
 }
@@ -282,14 +291,14 @@ function DossiersPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-semibold tracking-tight">Dossiers</h1>
           <p className="text-sm text-muted-foreground">
             {dossiers.length} dossier{dossiers.length > 1 ? "s" : ""}
           </p>
         </div>
-        <div className="flex items-center gap-1 rounded-md border bg-card p-1">
+        <div className="grid w-full grid-cols-2 gap-1 rounded-md border bg-card p-1 sm:w-auto">
           <Button variant={view === "list" ? "secondary" : "ghost"} size="sm" onClick={() => setView("list")} className="gap-1.5">
             <List className="h-4 w-4" /> Liste
           </Button>
@@ -299,7 +308,7 @@ function DossiersPage() {
         </div>
       </div>
 
-      <div className="space-y-3 rounded-xl border bg-card p-4">
+      <div className="space-y-3 rounded-lg border bg-card p-3 sm:p-4">
         <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-5">
           <div className="relative lg:col-span-2">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
@@ -328,7 +337,7 @@ function DossiersPage() {
               ))}
             </SelectContent>
           </Select>
-          <div className="flex items-center gap-2">
+          <div className="flex flex-wrap items-center gap-2 lg:col-span-1">
             <Button
               variant={search.probleme === "1" ? "destructive" : "outline"}
               size="sm"
@@ -371,8 +380,8 @@ function DossiersPage() {
 function ListView({ dossiers }: { dossiers: Dossier[] }) {
   if (dossiers.length === 0) return <EmptyState />;
   return (
-    <div className="overflow-hidden rounded-xl border bg-card">
-      <table className="w-full text-sm">
+    <div className="overflow-x-auto rounded-lg border bg-card">
+      <table className="min-w-[980px] w-full text-sm">
         <thead className="bg-muted/50 text-left text-muted-foreground">
           <tr>
             <Th>Client</Th><Th>Mutuelle</Th><Th>Devis</Th><Th>Accordé</Th><Th>Reste à charge</Th><Th>Statut</Th><Th>Créé le</Th>
@@ -440,7 +449,7 @@ function KanbanView({ dossiers, appelerMutuelleDossiers }: { dossiers: Dossier[]
   return (
     <div className="space-y-4">
       {appelerMutuelleDossiers.length > 0 && (
-        <section className="rounded-xl border border-pink-300 bg-pink-50 p-4">
+        <section className="rounded-lg border border-pink-300 bg-pink-50 p-3 sm:p-4">
           <div className="mb-3 flex flex-wrap items-center gap-2 text-pink-800">
             <Phone className="h-5 w-5" />
             <h2 className="text-base font-semibold">Dossiers à appeler mutuelle</h2>
@@ -448,16 +457,16 @@ function KanbanView({ dossiers, appelerMutuelleDossiers }: { dossiers: Dossier[]
               {appelerMutuelleDossiers.length}
             </span>
           </div>
-          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
             {appelerMutuelleDossiers.slice(0, 9).map((d) => (
               <Link
                 key={d.id}
                 to="/dossiers/$id"
                 params={{ id: d.id }}
-                className="flex min-w-0 items-center justify-between gap-2 rounded-md border border-pink-200 bg-background/80 px-3 py-2 text-xs hover:bg-background"
+                className="grid min-w-0 grid-cols-[1fr_auto] items-center gap-2 rounded-md border border-pink-200 bg-background/80 px-3 py-2 text-xs hover:bg-background"
               >
                 <span className="min-w-0 truncate font-medium">{d.client_nom.toUpperCase()} {d.client_prenom}</span>
-                <span className="shrink-0 truncate text-pink-700">{d.mutuelle || "—"}</span>
+                <span className="max-w-28 truncate text-pink-700 sm:max-w-36">{d.mutuelle || "—"}</span>
               </Link>
             ))}
           </div>
@@ -466,11 +475,11 @@ function KanbanView({ dossiers, appelerMutuelleDossiers }: { dossiers: Dossier[]
           )}
         </section>
       )}
-      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
         {SELECTABLE_STATUSES.map((s) => {
           const items = dossiers.filter((d) => d.status === s);
           return (
-            <div key={s} className="rounded-xl border bg-card p-3">
+            <div key={s} className="min-w-0 rounded-lg border bg-card p-3">
               <div className="mb-3 flex items-center justify-between gap-2">
                 <StatusBadge status={s} />
                 <span className="text-xs font-medium text-muted-foreground">{items.length}</span>
@@ -485,10 +494,10 @@ function KanbanView({ dossiers, appelerMutuelleDossiers }: { dossiers: Dossier[]
                       d.appeler_mutuelle ? "border-pink-300 bg-pink-50" : d.probleme ? "border-destructive/40 bg-destructive/5" : "bg-background"
                     } ${isPecFuture(d) ? "opacity-40" : ""}`}
                   >
-                    <div className="flex min-w-0 items-center gap-1.5 text-sm font-medium">
+                    <div className="flex min-w-0 flex-wrap items-center gap-1.5 text-sm font-medium">
                       {d.probleme && <AlertOctagon className="h-3.5 w-3.5 shrink-0 text-destructive" />}
                       {d.appeler_mutuelle && <CallMutuelleBadge />}
-                      <span className="truncate">{d.client_nom.toUpperCase()} {d.client_prenom}</span>
+                      <span className="min-w-0 max-w-full break-words">{d.client_nom.toUpperCase()} {d.client_prenom}</span>
                       {d.type_dossier === "lentilles" && <LensBadge />}
                     </div>
                     <div className="truncate text-xs text-muted-foreground">{d.mutuelle || "—"}</div>
