@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { MessageCircle, Send, FolderOpen, Trash2 } from "lucide-react";
+import { MessageCircle, Send, FolderOpen, Trash2, ChevronsUpDown, Check } from "lucide-react";
 import { toast } from "sonner";
 import { useQuery, useQueryClient, useMutation } from "@tanstack/react-query";
 
@@ -15,6 +15,15 @@ import {
   SheetTitle,
   SheetTrigger,
 } from "@/components/ui/sheet";
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import {
+  Command,
+  CommandEmpty,
+  CommandGroup,
+  CommandInput,
+  CommandItem,
+  CommandList,
+} from "@/components/ui/command";
 import {
   Select,
   SelectContent,
@@ -22,6 +31,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { cn } from "@/lib/utils";
 
 type MessageRow = {
   id: string;
@@ -91,8 +101,8 @@ export function MessagesPanel() {
       const { data, error } = await supabase
         .from("dossiers")
         .select("id, client_nom, client_prenom")
-        .order("created_at", { ascending: false })
-        .limit(100);
+        .order("client_nom", { ascending: true })
+        .order("client_prenom", { ascending: true });
       if (error) throw error;
       return (data ?? []) as DossierLite[];
     },
@@ -297,19 +307,11 @@ export function MessagesPanel() {
               </SelectContent>
             </Select>
           )}
-          <Select value={dossierId} onValueChange={setDossierId}>
-            <SelectTrigger className="h-8 text-xs">
-              <SelectValue placeholder="Dossier lié (optionnel)" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">Message général</SelectItem>
-              {dossiers.map((d) => (
-                <SelectItem key={d.id} value={d.id}>
-                  {d.client_nom} {d.client_prenom}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <DossierCombobox
+            dossiers={dossiers}
+            value={dossierId}
+            onChange={setDossierId}
+          />
           <div className="flex items-end gap-2">
             <Textarea
               value={body}
@@ -335,5 +337,77 @@ export function MessagesPanel() {
         </form>
       </SheetContent>
     </Sheet>
+  );
+}
+
+function DossierCombobox({
+  dossiers,
+  value,
+  onChange,
+}: {
+  dossiers: DossierLite[];
+  value: string;
+  onChange: (v: string) => void;
+}) {
+  const [open, setOpen] = useState(false);
+  const selected = value === "none" ? null : dossiers.find((d) => d.id === value) ?? null;
+  const label = selected ? `${selected.client_nom} ${selected.client_prenom}` : "Message général";
+
+  return (
+    <Popover open={open} onOpenChange={setOpen}>
+      <PopoverTrigger asChild>
+        <Button
+          type="button"
+          variant="outline"
+          role="combobox"
+          aria-expanded={open}
+          className="h-8 w-full justify-between text-xs font-normal"
+        >
+          <span className="flex min-w-0 items-center gap-1.5">
+            <FolderOpen className="h-3.5 w-3.5 shrink-0 text-muted-foreground" />
+            <span className={cn("truncate", !selected && "text-muted-foreground")}>
+              {selected ? label : "Dossier lié (optionnel) : Message général"}
+            </span>
+          </span>
+          <ChevronsUpDown className="h-3.5 w-3.5 shrink-0 opacity-50" />
+        </Button>
+      </PopoverTrigger>
+      <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+        <Command>
+          <CommandInput placeholder="Rechercher un dossier (nom, prénom)…" />
+          <CommandList>
+            <CommandEmpty>Aucun dossier trouvé.</CommandEmpty>
+            <CommandGroup>
+              <CommandItem
+                value="Message général"
+                onSelect={() => {
+                  onChange("none");
+                  setOpen(false);
+                }}
+              >
+                <Check className={cn("mr-1 h-3.5 w-3.5", value === "none" ? "opacity-100" : "opacity-0")} />
+                Message général
+              </CommandItem>
+              {dossiers.map((d) => {
+                const name = `${d.client_nom} ${d.client_prenom}`;
+                return (
+                  <CommandItem
+                    key={d.id}
+                    value={name}
+                    onSelect={() => {
+                      onChange(d.id);
+                      setOpen(false);
+                    }}
+                  >
+                    <Check className={cn("mr-1 h-3.5 w-3.5", value === d.id ? "opacity-100" : "opacity-0")} />
+                    {name}
+                  </CommandItem>
+                );
+              })}
+            </CommandGroup>
+          </CommandList>
+        </Command>
+      </PopoverContent>
+    </Popover>
   );
 }
