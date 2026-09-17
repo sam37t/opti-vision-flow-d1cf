@@ -3,7 +3,7 @@ import { rememberListLocation } from "@/lib/last-list-location";
 import { daysSinceDevisSansRetour, daysSinceTransmisNonRegle } from "@/lib/dossier-alerts";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
-import { AlertOctagon, AlertTriangle, Clock, LayoutGrid, List, Search, X } from "lucide-react";
+import { AlertOctagon, AlertTriangle, Clock, LayoutGrid, List, Phone, Search, X } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
