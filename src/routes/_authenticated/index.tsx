@@ -111,7 +111,10 @@ function Dashboard() {
 
   const totalDevisAll = dossiers.reduce((s, d) => s + (Number(d.montant_devis) || 0), 0);
   const totalAccorde = actifs.reduce((s, d) => s + (Number(d.montant_pec) || 0), 0);
-  const totalRAC = actifs.reduce((s, d) => s + (Number(d.reste_a_charge) || 0), 0);
+  const totalRAC = actifs.reduce(
+    (s, d) => s + Math.max(0, (Number(d.reste_a_charge) || 0) - (paidClientByDossier[d.id] ?? 0)),
+    0,
+  );
   const totalEncaisse = dossiers
     .filter((d) => d.status === "regle")
     .reduce((s, d) => s + (Number(d.montant_pec) || 0), 0);

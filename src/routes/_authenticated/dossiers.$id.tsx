@@ -399,7 +399,12 @@ function DossierDetail() {
         <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr)_minmax(220px,320px)] sm:items-end">
           <div className="space-y-1.5">
             <Label className="text-xs text-muted-foreground">Reste à charge</Label>
-            <div className="text-2xl font-semibold">{racLive.toFixed(2)} €</div>
+            <div className="text-2xl font-semibold">{racRestant.toFixed(2)} €</div>
+            {clientPaidTotal > 0 && (
+              <div className="text-xs text-muted-foreground">
+                {racLive.toFixed(2)} € − {clientPaidTotal.toFixed(2)} € déjà réglés par le client
+              </div>
+            )}
           </div>
           <div className="space-y-2">
             <Label>Mode de règlement principal</Label>
