@@ -160,12 +160,50 @@ function Dashboard() {
     setDateField("created_at"); setDateFrom(""); setDateTo("");
   };
 
+  const appelerMutuelle = useMemo(
+    () =>
+      dossiers
+        .filter((d: any) => d.appeler_mutuelle)
+        .sort((a: any, b: any) =>
+          `${a.client_nom} ${a.client_prenom}`.localeCompare(`${b.client_nom} ${b.client_prenom}`, "fr", { sensitivity: "base" }),
+        ),
+    [dossiers],
+  );
+
   return (
     <div className="space-y-6">
       <div>
         <h1 className="text-2xl font-semibold tracking-tight">Tableau de bord</h1>
         <p className="text-sm text-muted-foreground">Vue d'ensemble de l'activité du magasin (dossiers en cours)</p>
       </div>
+
+      {appelerMutuelle.length > 0 && (
+        <section className="rounded-xl border border-pink-300 bg-pink-50 p-4 sm:p-5">
+          <div className="mb-3 flex flex-wrap items-center gap-2 text-pink-800">
+            <Phone className="h-5 w-5" />
+            <h2 className="text-base font-semibold">Dossiers à appeler mutuelle</h2>
+            <span className="inline-flex min-w-6 items-center justify-center rounded-full border border-pink-300 bg-pink-100 px-2 py-0.5 text-xs font-bold tabular-nums text-pink-700">
+              {appelerMutuelle.length}
+            </span>
+          </div>
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
+            {appelerMutuelle.slice(0, 12).map((d: any) => (
+              <Link
+                key={d.id}
+                to="/dossiers/$id"
+                params={{ id: d.id }}
+                className="grid min-w-0 grid-cols-[1fr_auto] items-center gap-2 rounded-md border border-pink-200 bg-background/80 px-3 py-2 text-xs hover:bg-background"
+              >
+                <span className="min-w-0 truncate font-medium">{d.client_nom.toUpperCase()} {d.client_prenom}</span>
+                <span className="max-w-28 truncate text-pink-700 sm:max-w-36">{d.mutuelle || "—"}</span>
+              </Link>
+            ))}
+          </div>
+          {appelerMutuelle.length > 12 && (
+            <p className="mt-2 text-xs text-pink-700">+ {appelerMutuelle.length - 12} autre{appelerMutuelle.length - 12 > 1 ? "s" : ""}</p>
+          )}
+        </section>
+      )}
 
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard icon={<FolderKanban className="h-5 w-5" />} label="Dossiers actifs" valueText={String(totalActifs)} />
