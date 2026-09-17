@@ -351,7 +351,7 @@ function DossiersPage() {
       ) : view === "list" ? (
         <ListView dossiers={sortedDossiers} />
       ) : (
-        <KanbanView dossiers={dossiers} />
+        <KanbanView dossiers={sortedDossiers} />
       )}
 
     </div>
