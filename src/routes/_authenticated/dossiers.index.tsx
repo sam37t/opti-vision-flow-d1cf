@@ -383,7 +383,9 @@ function ListView({ dossiers }: { dossiers: Dossier[] }) {
                     {d.type_dossier === "lentilles" && <LensBadge />}
                   </Link>
                   <div className="mt-0.5 flex items-center gap-2">
-                    <span className="text-xs text-muted-foreground">{d.telephone}</span>
+                    <span className="inline-flex items-center text-muted-foreground" title={d.telephone}>
+                      <Phone className="h-3.5 w-3.5" />
+                    </span>
                     <StatusBadge status={d.status} className="text-[10px] px-1.5 py-0" />
                     <BillingBadges d={d} compact />
                     <AlertBadges d={d} compact />
