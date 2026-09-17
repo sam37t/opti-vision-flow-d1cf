@@ -220,12 +220,17 @@ function DossiersPage() {
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const qc = useQueryClient();
-  const [view, setView] = useState<"list" | "kanban">("list");
+  const appelerFilterActive = search.appeler?.replace(/["']/g, "") === "1";
+  const [view, setView] = useState<"list" | "kanban">(() => (appelerFilterActive ? "kanban" : "list"));
   const listHref = useRouterState({ select: (s) => s.location.href });
 
   useEffect(() => {
     rememberListLocation(listHref);
   }, [listHref]);
+
+  useEffect(() => {
+    if (appelerFilterActive) setView("kanban");
+  }, [appelerFilterActive]);
 
 
   useEffect(() => {
@@ -245,7 +250,7 @@ function DossiersPage() {
       if (search.status) q = q.eq("status", search.status as DossierStatus);
       if (search.mutuelle) q = q.eq("mutuelle", search.mutuelle);
       if (search.probleme === "1") q = q.eq("probleme", true);
-      if (search.appeler && search.appeler.replace(/["']/g, "") === "1") q = q.eq("appeler_mutuelle", true);
+      if (appelerFilterActive) q = q.eq("appeler_mutuelle", true);
       if (search.from) q = q.gte("created_at", parisDayBounds(search.from, false));
       if (search.to) q = q.lte("created_at", parisDayBounds(search.to, true));
       if (search.q) {
