@@ -75,7 +75,14 @@ type Dossier = {
   last_status_change_at: string;
   type_dossier: string | null;
   pec_a_demander_le: string | null;
+  paid_client?: number;
 };
+
+// Reste à charge restant = reste à charge − règlements déjà encaissés côté client
+function racRestant(d: Dossier): number | null {
+  if (d.reste_a_charge == null) return null;
+  return Math.max(0, Math.round((Number(d.reste_a_charge) - (Number(d.paid_client) || 0)) * 100) / 100);
+}
 
 // Dossier « À traiter » dont la demande de PEC est planifiée dans le futur → à ne pas traiter maintenant
 function isPecFuture(d: Dossier): boolean {
