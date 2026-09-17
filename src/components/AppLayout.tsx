@@ -61,7 +61,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
           <NavLink to="/dossiers/archives" icon={<Archive className="h-4 w-4" />}>Archives</NavLink>
           <NavLink to="/connexions" icon={<KeyRound className="h-4 w-4" />}>Connexion</NavLink>
           <NavLink to="/parametres" icon={<Settings className="h-4 w-4" />}>Paramètres</NavLink>
-          <NavLink to="/recap" icon={<CalendarClock className="h-4 w-4" />}>Récap.</NavLink>
         </nav>
       </header>
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6">{children}</main>
