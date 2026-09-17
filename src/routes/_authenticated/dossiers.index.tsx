@@ -75,11 +75,14 @@ function isPecFuture(d: Dossier): boolean {
   return new Date(d.pec_a_demander_le).getTime() > today.getTime();
 }
 
-function CallMutuelleBadge({ compact }: { compact?: boolean }) {
-  const cls = compact ? "text-[10px] px-1.5 py-0.5" : "text-xs px-2 py-0.5";
+function CallMutuelleBadge() {
   return (
-    <span className={`inline-flex items-center gap-1 rounded-full border border-pink-300 bg-pink-100 font-bold uppercase tracking-wide text-pink-700 ${cls}`}>
-      Appeler la mutuelle
+    <span
+      className="inline-flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-pink-300 bg-pink-100 text-pink-700"
+      title="Appeler la mutuelle"
+      aria-label="Appeler la mutuelle"
+    >
+      <Phone className="h-3.5 w-3.5" />
     </span>
   );
 }
@@ -254,6 +257,11 @@ function DossiersPage() {
     });
   }, [dossiers]);
 
+  const appelerMutuelleDossiers = useMemo(
+    () => sortedDossiers.filter((d) => d.appeler_mutuelle),
+    [sortedDossiers],
+  );
+
   const { data: mutuelles = [] } = useQuery({
     queryKey: ["mutuelles"],
     queryFn: async () => {
@@ -351,7 +359,7 @@ function DossiersPage() {
       ) : view === "list" ? (
         <ListView dossiers={sortedDossiers} />
       ) : (
-        <KanbanView dossiers={sortedDossiers} />
+        <KanbanView dossiers={sortedDossiers} appelerMutuelleDossiers={appelerMutuelleDossiers} />
       )}
 
     </div>
@@ -382,14 +390,11 @@ function ListView({ dossiers }: { dossiers: Dossier[] }) {
                     <span>{d.client_nom.toUpperCase()} {d.client_prenom}</span>
                     {d.type_dossier === "lentilles" && <LensBadge />}
                   </Link>
-                  <div className="mt-0.5 flex items-center gap-2">
-                    <span className="inline-flex items-center text-muted-foreground" title={d.telephone}>
-                      <Phone className="h-3.5 w-3.5" />
-                    </span>
+                  <div className="mt-1 flex flex-wrap items-center gap-1.5">
+                    {d.appeler_mutuelle && <CallMutuelleBadge />}
                     <StatusBadge status={d.status} className="text-[10px] px-1.5 py-0" />
                     <BillingBadges d={d} compact />
                     <AlertBadges d={d} compact />
-                    {d.appeler_mutuelle && <CallMutuelleBadge compact />}
                     <ReminderBadge d={d} compact />
                     <RecentBadge d={d} compact />
                     {gris && (
@@ -429,48 +434,78 @@ function ListView({ dossiers }: { dossiers: Dossier[] }) {
   );
 }
 
-function KanbanView({ dossiers }: { dossiers: Dossier[] }) {
+function KanbanView({ dossiers, appelerMutuelleDossiers }: { dossiers: Dossier[]; appelerMutuelleDossiers: Dossier[] }) {
   return (
-    <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
-      {SELECTABLE_STATUSES.map((s) => {
-        const items = dossiers.filter((d) => d.status === s);
-        return (
-          <div key={s} className="rounded-xl border bg-card p-3">
-            <div className="mb-3 flex items-center justify-between">
-              <StatusBadge status={s} />
-              <span className="text-xs font-medium text-muted-foreground">{items.length}</span>
-            </div>
-            <div className="space-y-2">
-              {items.map((d) => (
-                <Link
-                  key={d.id}
-                  to="/dossiers/$id"
-                  params={{ id: d.id }}
-                  className={`block rounded-md border p-3 transition-colors hover:bg-accent ${
-                    d.appeler_mutuelle ? "border-pink-300 bg-pink-50" : d.probleme ? "border-destructive/40 bg-destructive/5" : "bg-background"
-                  } ${isPecFuture(d) ? "opacity-40" : ""}`}
-                >
-                  <div className="flex items-center gap-1.5 text-sm font-medium">
-                    {d.probleme && <AlertOctagon className="h-3.5 w-3.5 text-destructive" />}
-                    {d.client_nom.toUpperCase()} {d.client_prenom}
-                    {d.type_dossier === "lentilles" && <LensBadge />}
-                  </div>
-                  <div className="text-xs text-muted-foreground">{d.mutuelle || "—"}</div>
-                  <div className="mt-1 flex flex-wrap items-center gap-1">{d.appeler_mutuelle && <CallMutuelleBadge compact />}<StatusBadge status={d.status} className="text-[10px] px-1.5 py-0" /><BillingBadges d={d} compact /><AlertBadges d={d} compact /><ReminderBadge d={d} compact /><RecentBadge d={d} compact /></div>
-                  <div className="mt-1 space-y-0.5 text-xs tabular-nums">
-                    <div>Devis : <span className="font-medium">{Number(d.montant_devis ?? 0).toFixed(2)} €</span></div>
-                    {d.montant_pec != null && <div>Accordé : <span className="font-medium">{Number(d.montant_pec).toFixed(2)} €</span></div>}
-                    {d.reste_a_charge != null && <div>Reste à charge : <span className="font-medium">{Number(d.reste_a_charge).toFixed(2)} €</span></div>}
-                  </div>
-                </Link>
-              ))}
-              {items.length === 0 && (
-                <p className="px-1 py-3 text-xs text-muted-foreground">Aucun dossier</p>
-              )}
-            </div>
+    <div className="space-y-4">
+      {appelerMutuelleDossiers.length > 0 && (
+        <section className="rounded-xl border border-pink-300 bg-pink-50 p-4">
+          <div className="mb-3 flex flex-wrap items-center gap-2 text-pink-800">
+            <Phone className="h-5 w-5" />
+            <h2 className="text-base font-semibold">Dossiers à appeler mutuelle</h2>
+            <span className="inline-flex min-w-6 items-center justify-center rounded-full border border-pink-300 bg-pink-100 px-2 py-0.5 text-xs font-bold tabular-nums text-pink-700">
+              {appelerMutuelleDossiers.length}
+            </span>
           </div>
-        );
-      })}
+          <div className="grid gap-2 sm:grid-cols-2 lg:grid-cols-3">
+            {appelerMutuelleDossiers.slice(0, 9).map((d) => (
+              <Link
+                key={d.id}
+                to="/dossiers/$id"
+                params={{ id: d.id }}
+                className="flex min-w-0 items-center justify-between gap-2 rounded-md border border-pink-200 bg-background/80 px-3 py-2 text-xs hover:bg-background"
+              >
+                <span className="min-w-0 truncate font-medium">{d.client_nom.toUpperCase()} {d.client_prenom}</span>
+                <span className="shrink-0 truncate text-pink-700">{d.mutuelle || "—"}</span>
+              </Link>
+            ))}
+          </div>
+          {appelerMutuelleDossiers.length > 9 && (
+            <p className="mt-2 text-xs text-pink-700">+ {appelerMutuelleDossiers.length - 9} autre{appelerMutuelleDossiers.length - 9 > 1 ? "s" : ""} dossier{appelerMutuelleDossiers.length - 9 > 1 ? "s" : ""}</p>
+          )}
+        </section>
+      )}
+      <div className="grid gap-4 md:grid-cols-2 xl:grid-cols-4">
+        {SELECTABLE_STATUSES.map((s) => {
+          const items = dossiers.filter((d) => d.status === s);
+          return (
+            <div key={s} className="rounded-xl border bg-card p-3">
+              <div className="mb-3 flex items-center justify-between gap-2">
+                <StatusBadge status={s} />
+                <span className="text-xs font-medium text-muted-foreground">{items.length}</span>
+              </div>
+              <div className="space-y-2">
+                {items.map((d) => (
+                  <Link
+                    key={d.id}
+                    to="/dossiers/$id"
+                    params={{ id: d.id }}
+                    className={`block rounded-md border p-3 transition-colors hover:bg-accent ${
+                      d.appeler_mutuelle ? "border-pink-300 bg-pink-50" : d.probleme ? "border-destructive/40 bg-destructive/5" : "bg-background"
+                    } ${isPecFuture(d) ? "opacity-40" : ""}`}
+                  >
+                    <div className="flex min-w-0 items-center gap-1.5 text-sm font-medium">
+                      {d.probleme && <AlertOctagon className="h-3.5 w-3.5 shrink-0 text-destructive" />}
+                      {d.appeler_mutuelle && <CallMutuelleBadge />}
+                      <span className="truncate">{d.client_nom.toUpperCase()} {d.client_prenom}</span>
+                      {d.type_dossier === "lentilles" && <LensBadge />}
+                    </div>
+                    <div className="truncate text-xs text-muted-foreground">{d.mutuelle || "—"}</div>
+                    <div className="mt-1 flex flex-wrap items-center gap-1"><StatusBadge status={d.status} className="text-[10px] px-1.5 py-0" /><BillingBadges d={d} compact /><AlertBadges d={d} compact /><ReminderBadge d={d} compact /><RecentBadge d={d} compact /></div>
+                    <div className="mt-1 space-y-0.5 text-xs tabular-nums">
+                      <div>Devis : <span className="font-medium">{Number(d.montant_devis ?? 0).toFixed(2)} €</span></div>
+                      {d.montant_pec != null && <div>Accordé : <span className="font-medium">{Number(d.montant_pec).toFixed(2)} €</span></div>}
+                      {d.reste_a_charge != null && <div>Reste à charge : <span className="font-medium">{Number(d.reste_a_charge).toFixed(2)} €</span></div>}
+                    </div>
+                  </Link>
+                ))}
+                {items.length === 0 && (
+                  <p className="px-1 py-3 text-xs text-muted-foreground">Aucun dossier</p>
+                )}
+              </div>
+            </div>
+          );
+        })}
+      </div>
     </div>
   );
 }
