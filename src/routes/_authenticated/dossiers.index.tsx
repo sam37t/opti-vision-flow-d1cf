@@ -53,6 +53,7 @@ type Dossier = {
   reste_a_charge: number | null;
   remboursement_attendu: number | null;
   probleme: boolean;
+  appeler_mutuelle: boolean;
   facture_cosium: boolean;
   transmis_mutuelle: boolean;
   paiement_recu: boolean;
