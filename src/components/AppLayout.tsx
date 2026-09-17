@@ -1,4 +1,4 @@
-import { Link, useRouter } from "@tanstack/react-router";
+import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
 import { LayoutDashboard, FolderKanban, LogOut, Plus, Settings, Receipt, Archive, KeyRound, PhoneCall } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { MessagesPanel } from "@/components/MessagesPanel";
 
 import { supabase } from "@/integrations/supabase/client";
 import { useAuth } from "@/hooks/use-auth";
+import { cn } from "@/lib/utils";
 
 export function AppLayout({ children }: { children: ReactNode }) {
   const router = useRouter();
@@ -57,12 +58,27 @@ export function AppLayout({ children }: { children: ReactNode }) {
 }
 
 function NavLink({ to, search, icon, children }: { to: string; search?: Record<string, string | undefined>; icon: ReactNode; children: ReactNode }) {
+  const location = useRouterState({ select: (s) => s.location });
+  const callerSearchValue = String(location.search.appeler ?? "").replace(/["']/g, "");
+  const isCallerLink = to === "/dossiers" && search?.appeler === "1";
+  const isPlainDossiersLink = to === "/dossiers" && !search?.appeler;
+  const isActive = to === "/"
+    ? location.pathname === "/"
+    : isCallerLink
+      ? location.pathname === "/dossiers" && callerSearchValue === "1"
+      : isPlainDossiersLink
+        ? location.pathname === "/dossiers" && callerSearchValue !== "1"
+        : location.pathname === to;
+
   return (
     <Link
       to={to}
       search={search}
-      activeOptions={{ exact: to === "/" }}
-      className="flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground sm:px-3 [&.active]:bg-accent [&.active]:text-accent-foreground"
+      activeOptions={{ exact: true }}
+      className={cn(
+        "flex shrink-0 items-center gap-1.5 rounded-md px-2.5 py-2 text-sm font-medium text-muted-foreground transition-colors hover:bg-accent hover:text-accent-foreground sm:px-3",
+        isActive && "bg-accent text-accent-foreground",
+      )}
     >
       <span className="shrink-0">{icon}</span>
       <span className="whitespace-nowrap">{children}</span>
