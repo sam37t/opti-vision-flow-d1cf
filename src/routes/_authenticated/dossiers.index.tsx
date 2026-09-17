@@ -392,11 +392,6 @@ function ListView({ dossiers }: { dossiers: Dossier[] }) {
                   </Link>
                   <div className="mt-1 flex flex-wrap items-center gap-1.5">
                     {d.appeler_mutuelle && <CallMutuelleBadge />}
-                    {d.telephone && (
-                    <span className="inline-flex items-center text-muted-foreground" title={d.telephone}>
-                      <Phone className="h-3.5 w-3.5" />
-                    </span>
-                    )}
                     <StatusBadge status={d.status} className="text-[10px] px-1.5 py-0" />
                     <BillingBadges d={d} compact />
                     <AlertBadges d={d} compact />

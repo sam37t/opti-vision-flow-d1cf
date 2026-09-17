@@ -28,7 +28,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
 
 
 
-          <nav className="hidden items-center gap-1 md:flex">
+          <nav className="hidden items-center gap-1 xl:flex">
             <NavLink to="/" icon={<LayoutDashboard className="h-4 w-4" />}>Tableau de bord</NavLink>
             <NavLink to="/recap" icon={<CalendarClock className="h-4 w-4" />}>Récapitulatif</NavLink>
             <NavLink to="/dossiers" icon={<FolderKanban className="h-4 w-4" />}>Dossiers</NavLink>
@@ -54,7 +54,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             </Button>
           </div>
         </div>
-        <nav className="flex gap-1 overflow-x-auto border-t px-4 py-2 md:hidden">
+        <nav className="flex gap-1 overflow-x-auto border-t px-4 py-2 xl:hidden">
           <NavLink to="/" icon={<LayoutDashboard className="h-4 w-4" />}>Accueil</NavLink>
           <NavLink to="/recap" icon={<CalendarClock className="h-4 w-4" />}>Récap.</NavLink>
           <NavLink to="/dossiers" icon={<FolderKanban className="h-4 w-4" />}>Dossiers</NavLink>
