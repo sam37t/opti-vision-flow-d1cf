@@ -217,6 +217,18 @@ function DossierDetail() {
     else toast.success("Statut mis à jour");
   };
 
+  const toggleAppelerMutuelle = async () => {
+    const { error } = await supabase
+      .from("dossiers")
+      .update({ appeler_mutuelle: !d.appeler_mutuelle } as any)
+      .eq("id", id);
+    if (error) toast.error(error.message);
+    else {
+      qc.invalidateQueries({ queryKey: ["dossiers"] });
+      toast.success(d.appeler_mutuelle ? "Rappel retiré" : "Dossier signalé : appeler la mutuelle");
+    }
+  };
+
   const toggleProbleme = async () => {
     const { error } = await supabase.from("dossiers").update({ probleme: !d.probleme }).eq("id", id);
     if (error) toast.error(error.message);
