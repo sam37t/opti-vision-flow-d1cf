@@ -1,4 +1,4 @@
 # Roadmap
 
-- [ ] Messagerie : sélectionner le dossier destinataire directement depuis le panneau (sans passer par la fiche client)
-- [ ] Publier (demande « publi » en attente, inclura les modifications ci-dessus)
+- [x] Messagerie : sélection du dossier via une liste recherchable (tous les dossiers, tri alphabétique)
+- [x] Publication demandée sur https://opti-vision-flow-d1cf.lovable.app
