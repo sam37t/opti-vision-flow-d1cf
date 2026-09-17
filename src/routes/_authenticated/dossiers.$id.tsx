@@ -20,7 +20,7 @@ import { getTpPlatform, isDifferentPlatform } from "@/lib/tp-platforms";
 import { daysSinceTransmisNonRegle } from "@/lib/dossier-alerts";
 import { PaymentMethodSelect } from "@/components/PaymentMethodSelect";
 import { PaymentMethodBadge } from "@/components/PaymentMethodBadge";
-import { DossierPaiements } from "@/components/DossierPaiements";
+import { DossierPaiements, useDossierPaiements } from "@/components/DossierPaiements";
 import type { PaymentMethod } from "@/lib/payment-methods";
 import { toast } from "sonner";
 
@@ -176,6 +176,11 @@ function DossierDetail() {
   const ssNum = parseAmount(ss) ?? 0;
   const avoirNum = parseAmount(avoir) ?? 0;
   const racLive = Math.max(0, devisNum - ssNum - pecNum - avoirNum);
+  const { data: paiementsDossier = [] } = useDossierPaiements(id, authReady);
+  const clientPaidTotal = paiementsDossier
+    .filter((p) => p.part === "client")
+    .reduce((s, p) => s + (Number(p.montant) || 0), 0);
+  const racRestant = Math.max(0, Math.round((racLive - clientPaidTotal) * 100) / 100);
 
 
   const saveInfos = async () => {
