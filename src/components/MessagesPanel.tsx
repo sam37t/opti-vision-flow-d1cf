@@ -307,19 +307,11 @@ export function MessagesPanel() {
               </SelectContent>
             </Select>
           )}
-          <Select value={dossierId} onValueChange={setDossierId}>
-            <SelectTrigger className="h-8 text-xs">
-              <SelectValue placeholder="Dossier lié (optionnel)" />
-            </SelectTrigger>
-            <SelectContent>
-              <SelectItem value="none">Message général</SelectItem>
-              {dossiers.map((d) => (
-                <SelectItem key={d.id} value={d.id}>
-                  {d.client_nom} {d.client_prenom}
-                </SelectItem>
-              ))}
-            </SelectContent>
-          </Select>
+          <DossierCombobox
+            dossiers={dossiers}
+            value={dossierId}
+            onChange={setDossierId}
+          />
           <div className="flex items-end gap-2">
             <Textarea
               value={body}
