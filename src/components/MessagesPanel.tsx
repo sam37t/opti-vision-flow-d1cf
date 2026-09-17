@@ -101,8 +101,8 @@ export function MessagesPanel() {
       const { data, error } = await supabase
         .from("dossiers")
         .select("id, client_nom, client_prenom")
-        .order("created_at", { ascending: false })
-        .limit(100);
+        .order("client_nom", { ascending: true })
+        .order("client_prenom", { ascending: true });
       if (error) throw error;
       return (data ?? []) as DossierLite[];
     },
