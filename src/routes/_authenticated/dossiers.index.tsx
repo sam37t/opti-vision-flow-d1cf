@@ -21,6 +21,7 @@ const searchSchema = z.object({
   to: z.string().optional(),
   q: z.string().optional(),
   probleme: z.string().optional(),
+  appeler: z.string().optional(),
 });
 
 export const Route = createFileRoute("/_authenticated/dossiers/")({
@@ -235,6 +236,7 @@ function DossiersPage() {
       if (search.status) q = q.eq("status", search.status as DossierStatus);
       if (search.mutuelle) q = q.eq("mutuelle", search.mutuelle);
       if (search.probleme === "1") q = q.eq("probleme", true);
+      if (search.appeler === "1") q = q.eq("appeler_mutuelle", true);
       if (search.from) q = q.gte("created_at", parisDayBounds(search.from, false));
       if (search.to) q = q.lte("created_at", parisDayBounds(search.to, true));
       if (search.q) {
@@ -276,7 +278,7 @@ function DossiersPage() {
 
   const clearFilters = () => navigate({ search: {} });
 
-  const hasFilters = !!(search.status || search.mutuelle || search.from || search.to || search.q || search.probleme);
+  const hasFilters = !!(search.status || search.mutuelle || search.from || search.to || search.q || search.probleme || search.appeler);
 
   return (
     <div className="space-y-5">
