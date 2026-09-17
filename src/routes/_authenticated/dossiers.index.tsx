@@ -75,6 +75,15 @@ function isPecFuture(d: Dossier): boolean {
   return new Date(d.pec_a_demander_le).getTime() > today.getTime();
 }
 
+function CallMutuelleBadge({ compact }: { compact?: boolean }) {
+  const cls = compact ? "text-[10px] px-1.5 py-0.5" : "text-xs px-2 py-0.5";
+  return (
+    <span className={`inline-flex items-center gap-1 rounded-full border border-pink-300 bg-pink-100 font-bold uppercase tracking-wide text-pink-700 ${cls}`}>
+      Appeler la mutuelle
+    </span>
+  );
+}
+
 function LensBadge() {
   return (
     <span
