@@ -28,6 +28,23 @@ function Dashboard() {
     },
   });
 
+  // Règlements déjà encaissés côté client (déduits du reste à charge)
+  const { data: paidClientByDossier = {} } = useQuery({
+    queryKey: ["paiements-clients-dashboard"],
+    queryFn: async () => {
+      const { data, error } = await (supabase as any)
+        .from("dossier_paiements")
+        .select("dossier_id, part, montant");
+      if (error) throw error;
+      const paid: Record<string, number> = {};
+      ((data ?? []) as any[]).forEach((p) => {
+        if (p.part === "mutuelle") return;
+        paid[p.dossier_id] = (paid[p.dossier_id] ?? 0) + (Number(p.montant) || 0);
+      });
+      return paid;
+    },
+  });
+
   useEffect(() => {
     const channel = supabase
       .channel("dossiers-dashboard-rt")
