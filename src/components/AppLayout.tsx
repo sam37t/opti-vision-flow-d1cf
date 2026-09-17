@@ -1,6 +1,6 @@
 import { Link, useRouter } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { LayoutDashboard, FolderKanban, LogOut, Plus, Settings, Receipt, Archive, Upload, KeyRound, CalendarClock, PhoneCall } from "lucide-react";
+import { LayoutDashboard, FolderKanban, LogOut, Plus, Settings, Receipt, Archive, KeyRound, PhoneCall } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logoAsset from "@/assets/optic-house-logo.jpg.asset.json";
 import { MessagesPanel } from "@/components/MessagesPanel";
@@ -20,28 +20,26 @@ export function AppLayout({ children }: { children: ReactNode }) {
   return (
     <div className="min-h-screen bg-background">
       <header className="sticky top-0 z-30 border-b bg-card/95 backdrop-blur">
-        <div className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6">
+        <div className="mx-auto flex max-w-7xl items-center justify-between gap-3 px-4 py-3 sm:px-6">
           <Link to="/" className="flex items-center gap-2.5 font-semibold text-foreground" aria-label="Optic House">
             <img src={logoAsset.url} alt="Optic House" className="h-11 w-11 rounded-md object-cover ring-1 ring-accent/50" />
-            <span className="text-lg tracking-[0.18em] font-semibold">OPTIC HOUSE</span>
+            <span className="hidden text-base font-semibold tracking-wide sm:inline">OPTIC HOUSE</span>
           </Link>
 
 
 
-          <nav className="hidden items-center gap-1 xl:flex">
-            <NavLink to="/" icon={<LayoutDashboard className="h-4 w-4" />}>Tableau de bord</NavLink>
+          <nav className="hidden min-w-0 items-center gap-1 2xl:flex">
+            <NavLink to="/" icon={<LayoutDashboard className="h-4 w-4" />}>Accueil</NavLink>
             <NavLink to="/dossiers" icon={<FolderKanban className="h-4 w-4" />}>Dossiers</NavLink>
             <NavLink to="/dossiers" search={{ appeler: "1" }} icon={<PhoneCall className="h-4 w-4" />}>Appeler Mutuelle</NavLink>
-            <NavLink to="/factures" icon={<Receipt className="h-4 w-4" />}>Factures en attente</NavLink>
+            <NavLink to="/factures" icon={<Receipt className="h-4 w-4" />}>Factures</NavLink>
             <NavLink to="/dossiers/archives" icon={<Archive className="h-4 w-4" />}>Archives</NavLink>
             <NavLink to="/connexions" icon={<KeyRound className="h-4 w-4" />}>Connexion</NavLink>
             <NavLink to="/parametres" icon={<Settings className="h-4 w-4" />}>Paramètres</NavLink>
-            <NavLink to="/recap" icon={<CalendarClock className="h-4 w-4" />}>Récapitulatif</NavLink>
-            <NavLink to="/import" icon={<Upload className="h-4 w-4" />}>Import Excel</NavLink>
           </nav>
-          <div className="flex items-center gap-3">
+          <div className="flex min-w-0 items-center gap-2 sm:gap-3">
             <Link to="/dossiers/new">
-              <Button size="sm" className="gap-1.5">
+              <Button size="sm" className="gap-1.5 whitespace-nowrap">
                 <Plus className="h-4 w-4" /> Nouveau dossier
               </Button>
             </Link>
@@ -55,7 +53,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
             </Button>
           </div>
         </div>
-        <nav className="flex gap-1 overflow-x-auto border-t px-4 py-2 xl:hidden">
+        <nav className="flex gap-1 overflow-x-auto border-t px-4 py-2 2xl:hidden">
           <NavLink to="/" icon={<LayoutDashboard className="h-4 w-4" />}>Accueil</NavLink>
           <NavLink to="/dossiers" icon={<FolderKanban className="h-4 w-4" />}>Dossiers</NavLink>
           <NavLink to="/dossiers" search={{ appeler: "1" }} icon={<PhoneCall className="h-4 w-4" />}>Appeler Mutuelle</NavLink>
@@ -63,7 +61,6 @@ export function AppLayout({ children }: { children: ReactNode }) {
           <NavLink to="/dossiers/archives" icon={<Archive className="h-4 w-4" />}>Archives</NavLink>
           <NavLink to="/connexions" icon={<KeyRound className="h-4 w-4" />}>Connexion</NavLink>
           <NavLink to="/parametres" icon={<Settings className="h-4 w-4" />}>Paramètres</NavLink>
-          <NavLink to="/recap" icon={<CalendarClock className="h-4 w-4" />}>Récap.</NavLink>
         </nav>
       </header>
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6">{children}</main>
