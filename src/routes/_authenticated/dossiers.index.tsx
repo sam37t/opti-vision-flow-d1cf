@@ -221,7 +221,7 @@ function DossiersPage() {
   const navigate = Route.useNavigate();
   const qc = useQueryClient();
   const appelerFilterActive = search.appeler?.replace(/["']/g, "") === "1";
-  const [view, setView] = useState<"list" | "kanban">(() => (appelerFilterActive ? "kanban" : "list"));
+  const [view, setView] = useState<"list" | "kanban">("kanban");
   const listHref = useRouterState({ select: (s) => s.location.href });
 
   useEffect(() => {
@@ -296,20 +296,22 @@ function DossiersPage() {
 
   return (
     <div className="space-y-5">
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-        <div>
+      <div className="space-y-3">
+        <div className="text-center">
           <h1 className="text-2xl font-semibold tracking-tight">Dossiers</h1>
           <p className="text-sm text-muted-foreground">
             {dossiers.length} dossier{dossiers.length > 1 ? "s" : ""}
           </p>
         </div>
-        <div className="grid w-full grid-cols-2 gap-1 rounded-md border bg-card p-1 sm:w-auto">
-          <Button variant={view === "list" ? "secondary" : "ghost"} size="sm" onClick={() => setView("list")} className="gap-1.5">
-            <List className="h-4 w-4" /> Liste
-          </Button>
-          <Button variant={view === "kanban" ? "secondary" : "ghost"} size="sm" onClick={() => setView("kanban")} className="gap-1.5">
-            <LayoutGrid className="h-4 w-4" /> Kanban
-          </Button>
+        <div className="flex justify-center">
+          <div className="grid grid-cols-2 gap-1 rounded-lg border bg-card p-1 shadow-sm">
+            <Button variant={view === "list" ? "secondary" : "ghost"} size="sm" onClick={() => setView("list")} className="gap-1.5 px-6">
+              <List className="h-4 w-4" /> Liste
+            </Button>
+            <Button variant={view === "kanban" ? "secondary" : "ghost"} size="sm" onClick={() => setView("kanban")} className="gap-1.5 px-6">
+              <LayoutGrid className="h-4 w-4" /> Kanban
+            </Button>
+          </div>
         </div>
       </div>
 
