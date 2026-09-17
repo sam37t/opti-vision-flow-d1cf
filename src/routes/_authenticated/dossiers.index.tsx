@@ -236,7 +236,7 @@ function DossiersPage() {
       if (search.status) q = q.eq("status", search.status as DossierStatus);
       if (search.mutuelle) q = q.eq("mutuelle", search.mutuelle);
       if (search.probleme === "1") q = q.eq("probleme", true);
-      if (search.appeler === "1") q = q.eq("appeler_mutuelle", true);
+      if (search.appeler && search.appeler.replace(/["']/g, "") === "1") q = q.eq("appeler_mutuelle", true);
       if (search.from) q = q.gte("created_at", parisDayBounds(search.from, false));
       if (search.to) q = q.lte("created_at", parisDayBounds(search.to, true));
       if (search.q) {
