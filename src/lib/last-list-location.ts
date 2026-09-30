@@ -7,6 +7,7 @@ export type DossierListSearch = {
   to?: string;
   q?: string;
   probleme?: string;
+  appeler?: string;
 };
 
 function isDossierListHref(href: string): boolean {
@@ -49,6 +50,7 @@ export function getListSearch(): DossierListSearch {
       to: value("to"),
       q: value("q"),
       probleme: value("probleme"),
+      appeler: value("appeler")?.replace(/["']/g, ""),
     };
   } catch {
     return {};
