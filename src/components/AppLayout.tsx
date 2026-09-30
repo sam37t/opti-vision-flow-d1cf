@@ -1,6 +1,6 @@
 import { Link, useRouter, useRouterState } from "@tanstack/react-router";
 import type { ReactNode } from "react";
-import { LayoutDashboard, FolderKanban, LogOut, Plus, Settings, Receipt, Archive, KeyRound, PhoneCall } from "lucide-react";
+import { LayoutDashboard, FolderKanban, LogOut, Plus, Settings, Receipt, Archive, KeyRound, PhoneCall, CalendarClock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import logoAsset from "@/assets/optic-house-logo.jpg.asset.json";
 import { MessagesPanel } from "@/components/MessagesPanel";
@@ -50,6 +50,7 @@ export function AppLayout({ children }: { children: ReactNode }) {
           <NavLink to="/dossiers/archives" icon={<Archive className="h-4 w-4" />}>Archives</NavLink>
           <NavLink to="/connexions" icon={<KeyRound className="h-4 w-4" />}>Connexion</NavLink>
           <NavLink to="/parametres" icon={<Settings className="h-4 w-4" />}>Paramètres</NavLink>
+          <NavLink to="/recap" icon={<CalendarClock className="h-4 w-4" />}>Récapitulatif</NavLink>
         </nav>
       </header>
       <main className="mx-auto max-w-7xl px-4 py-6 sm:px-6">{children}</main>
