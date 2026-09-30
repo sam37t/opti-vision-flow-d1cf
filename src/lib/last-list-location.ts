@@ -10,19 +10,31 @@ export type DossierListSearch = {
   appeler?: string;
 };
 
-function isDossierListHref(href: string): boolean {
+function pathOf(href: string): string | null {
   try {
-    const url = new URL(href, window.location.origin);
-    return url.pathname === "/dossiers" || url.pathname === "/dossiers/";
+    return new URL(href, window.location.origin).pathname;
   } catch {
-    return false;
+    return null;
   }
 }
 
+function isListHref(href: string): boolean {
+  const p = pathOf(href);
+  return p === "/dossiers" || p === "/dossiers/" || p === "/";
+}
+
 export function rememberListLocation(href: string) {
-  if (!isDossierListHref(href)) return;
+  if (!isListHref(href)) return;
   try {
     sessionStorage.setItem(KEY, href);
+  } catch {
+    /* ignore */
+  }
+}
+
+export function forgetListLocation() {
+  try {
+    sessionStorage.removeItem(KEY);
   } catch {
     /* ignore */
   }
@@ -31,11 +43,16 @@ export function rememberListLocation(href: string) {
 export function getListLocation(): string {
   try {
     const v = sessionStorage.getItem(KEY);
-    if (v && isDossierListHref(v)) return v;
+    if (v && isListHref(v)) return v;
   } catch {
     /* ignore */
   }
   return "/dossiers";
+}
+
+/** true si la dernière liste consultée est la recherche de l'Accueil */
+export function isHomeListLocation(): boolean {
+  return pathOf(getListLocation()) === "/";
 }
 
 export function getListSearch(): DossierListSearch {

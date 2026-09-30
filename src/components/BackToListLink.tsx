@@ -1,7 +1,7 @@
 import { useNavigate } from "@tanstack/react-router";
 import { ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { getListSearch } from "@/lib/last-list-location";
+import { getListSearch, isHomeListLocation } from "@/lib/last-list-location";
 
 type Props = {
   label?: string;
@@ -23,7 +23,11 @@ export function BackToListLink({
       type="button"
       variant={variant}
       size={size}
-      onClick={() => navigate({ to: "/dossiers", search: getListSearch() })}
+      onClick={() =>
+        isHomeListLocation()
+          ? navigate({ to: "/" })
+          : navigate({ to: "/dossiers", search: getListSearch() })
+      }
       className={
         variant === "link"
           ? "h-auto gap-1 p-0 text-sm font-normal text-muted-foreground hover:text-foreground"

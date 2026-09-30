@@ -1,6 +1,9 @@
 import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
+import { rememberListLocation, getListLocation, forgetListLocation } from "@/lib/last-list-location";
+
+const HOME_SEARCH_KEY = "optic-house:home-search";
 import { AlertOctagon, AlertTriangle, FolderKanban, TrendingUp, Wallet, Receipt, BadgeEuro, Search, X, Files, FileText, Phone } from "lucide-react";
 import { supabase } from "@/integrations/supabase/client";
 import { DOSSIER_STATUSES, STATUS_LABELS, type DossierStatus } from "@/lib/dossier-status";
@@ -144,6 +147,38 @@ function Dashboard() {
   const [dateField, setDateField] = useState<DateField>("created_at");
   const [dateFrom, setDateFrom] = useState("");
   const [dateTo, setDateTo] = useState("");
+  const [restored, setRestored] = useState(false);
+
+  // Restaure la recherche de l'accueil (retour depuis une fiche dossier)
+  useEffect(() => {
+    try {
+      const raw = sessionStorage.getItem(HOME_SEARCH_KEY);
+      if (raw) {
+        const s = JSON.parse(raw);
+        setQuery(s.query ?? "");
+        setFilterStatus(s.filterStatus ?? "");
+        setFilterMutuelle(s.filterMutuelle ?? "");
+        setDateField(s.dateField ?? "created_at");
+        setDateFrom(s.dateFrom ?? "");
+        setDateTo(s.dateTo ?? "");
+      }
+    } catch { /* ignore */ }
+    setRestored(true);
+  }, []);
+
+  useEffect(() => {
+    if (!restored) return;
+    const active = Boolean(query || filterStatus || filterMutuelle || dateFrom || dateTo);
+    try {
+      if (active) {
+        sessionStorage.setItem(HOME_SEARCH_KEY, JSON.stringify({ query, filterStatus, filterMutuelle, dateField, dateFrom, dateTo }));
+        rememberListLocation("/");
+      } else {
+        sessionStorage.removeItem(HOME_SEARCH_KEY);
+        if (getListLocation() === "/") forgetListLocation();
+      }
+    } catch { /* ignore */ }
+  }, [restored, query, filterStatus, filterMutuelle, dateField, dateFrom, dateTo]);
 
   const mutuelles = useMemo(() => {
     const set = new Set<string>();
