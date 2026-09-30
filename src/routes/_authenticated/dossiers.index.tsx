@@ -86,7 +86,7 @@ function racRestant(d: Dossier): number | null {
 
 // Dossier « À traiter » dont la demande de PEC est planifiée dans le futur → à ne pas traiter maintenant
 function isPecFuture(d: Dossier): boolean {
-  if (!d.pec_a_demander_le) return false;
+  if (!d.pec_a_demander_le || d.status !== "a_traiter") return false;
   const today = new Date();
   today.setHours(0, 0, 0, 0);
   return new Date(d.pec_a_demander_le).getTime() > today.getTime();

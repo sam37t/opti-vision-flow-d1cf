@@ -320,7 +320,7 @@ function DossierDetail() {
           <span className="font-medium">{daysNonRegle} jours non réglé — dossier transmis à la mutuelle en attente de règlement</span>
         </div>
       )}
-      {d.pec_a_demander_le && (
+      {d.pec_a_demander_le && d.status === "a_traiter" && (
         (() => {
           const target = new Date(d.pec_a_demander_le).getTime();
           const todayTs = Date.now();
