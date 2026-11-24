@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import {
   Select, SelectContent, SelectItem, SelectTrigger, SelectValue,
 } from "@/components/ui/select";
+import { amountOrClauses, AMOUNT_SEARCH_HINT } from "@/lib/dossier-search";
 import { StatusBadge } from "@/components/StatusBadge";
 import { SELECTABLE_STATUSES, STATUS_LABELS, TERMINAL_STATUSES, type DossierStatus } from "@/lib/dossier-status";
 
@@ -262,7 +263,12 @@ function DossiersPage() {
       if (search.to) q = q.lte("created_at", parisDayBounds(search.to, true));
       if (search.q) {
         q = q.or(
-          `client_nom.ilike.%${search.q}%,client_prenom.ilike.%${search.q}%,telephone.ilike.%${search.q}%`,
+          [
+            `client_nom.ilike.%${search.q}%`,
+            `client_prenom.ilike.%${search.q}%`,
+            `telephone.ilike.%${search.q}%`,
+            ...amountOrClauses(search.q),
+          ].join(","),
         );
       }
       const { data, error } = await q;
@@ -337,7 +343,7 @@ function DossiersPage() {
           <div className="relative lg:col-span-2">
             <Search className="pointer-events-none absolute left-2.5 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
-              placeholder="Nom, prénom, téléphone..."
+              placeholder={`Nom, prénom, téléphone ou montant (${AMOUNT_SEARCH_HINT})`}
               className="pl-8"
               value={search.q ?? ""}
               onChange={(e) => update("q", e.target.value)}

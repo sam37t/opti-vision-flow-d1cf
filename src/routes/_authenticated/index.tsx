@@ -2,6 +2,7 @@ import { createFileRoute, Link } from "@tanstack/react-router";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { useEffect, useMemo, useState } from "react";
 import { rememberListLocation, getListLocation, forgetListLocation } from "@/lib/last-list-location";
+import { matchesAmountQuery, AMOUNT_SEARCH_HINT } from "@/lib/dossier-search";
 
 const HOME_SEARCH_KEY = "optic-house:home-search";
 import { AlertOctagon, AlertTriangle, FolderKanban, TrendingUp, Wallet, Receipt, BadgeEuro, Search, X, Files, FileText, Phone } from "lucide-react";
@@ -197,7 +198,7 @@ function Dashboard() {
       if (filterMutuelle && d.mutuelle !== filterMutuelle) return false;
       if (q) {
         const name = `${d.client_nom ?? ""} ${d.client_prenom ?? ""}`.toLowerCase();
-        if (!name.includes(q)) return false;
+        if (!name.includes(q) && !matchesAmountQuery(d, query)) return false;
       }
       if (from !== null || to !== null) {
         const raw = (d as Record<string, unknown>)[dateField] as string | null | undefined;
@@ -289,12 +290,12 @@ function Dashboard() {
 
         <div className="grid gap-3 md:grid-cols-2 lg:grid-cols-3">
           <label className="flex flex-col gap-1 text-xs">
-            <span className="text-muted-foreground">Nom du client</span>
+            <span className="text-muted-foreground">Client ou montant</span>
             <input
               type="text"
               value={query}
               onChange={(e) => setQuery(e.target.value)}
-              placeholder="Nom ou prénom"
+              placeholder={`Nom, prénom ou montant (${AMOUNT_SEARCH_HINT})`}
               className="h-9 rounded-md border bg-background px-2 text-sm"
             />
           </label>
