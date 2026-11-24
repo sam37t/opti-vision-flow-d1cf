@@ -15,6 +15,13 @@
       "when": 1790761365567,
       "tag": "0001_restrict_profiles_select",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "7",
+      "when": 1795525614269,
+      "tag": "0002_restrict_types_verres_to_staff",
+      "breakpoints": true
     }
   ]
 }
