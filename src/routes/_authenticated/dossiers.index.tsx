@@ -262,14 +262,18 @@ function DossiersPage() {
       if (search.from) q = q.gte("created_at", parisDayBounds(search.from, false));
       if (search.to) q = q.lte("created_at", parisDayBounds(search.to, true));
       if (search.q) {
-        q = q.or(
-          [
-            `client_nom.ilike.%${search.q}%`,
-            `client_prenom.ilike.%${search.q}%`,
-            `telephone.ilike.%${search.q}%`,
-            ...amountOrClauses(search.q),
-          ].join(","),
-        );
+        const amountClauses = amountOrClauses(search.q);
+        // Si la saisie est un montant, on ne filtre que sur les montants
+        // (la virgule de « 843,37 » casserait la clause or() de PostgREST).
+        const clauses =
+          amountClauses.length > 0
+            ? amountClauses
+            : [
+                `client_nom.ilike.%${search.q}%`,
+                `client_prenom.ilike.%${search.q}%`,
+                `telephone.ilike.%${search.q}%`,
+              ];
+        q = q.or(clauses.join(","));
       }
       const { data, error } = await q;
       if (error) throw error;
