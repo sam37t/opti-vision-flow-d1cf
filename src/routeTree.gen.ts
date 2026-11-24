@@ -9,23 +9,22 @@
 // Additionally, you should also exclude this file from your linter and/or formatter to prevent it from being checked or modified.
 
 import { Route as rootRouteImport } from './routes/__root'
-import { Route as ResetPasswordRouteImport } from './routes/reset-password'
-import { Route as AuthRouteImport } from './routes/auth'
 import { Route as AuthenticatedRouteRouteImport } from './routes/_authenticated/route'
+import { Route as AuthRouteImport } from './routes/auth'
+import { Route as ResetPasswordRouteImport } from './routes/reset-password'
 import { Route as AuthenticatedIndexRouteImport } from './routes/_authenticated/index'
-import { Route as AuthenticatedRecapRouteImport } from './routes/_authenticated/recap'
-import { Route as AuthenticatedParametresRouteImport } from './routes/_authenticated/parametres'
-import { Route as AuthenticatedImportRouteImport } from './routes/_authenticated/import'
-import { Route as AuthenticatedFacturesRouteImport } from './routes/_authenticated/factures'
 import { Route as AuthenticatedConnexionsRouteImport } from './routes/_authenticated/connexions'
+import { Route as AuthenticatedFacturesRouteImport } from './routes/_authenticated/factures'
+import { Route as AuthenticatedImportRouteImport } from './routes/_authenticated/import'
+import { Route as AuthenticatedParametresRouteImport } from './routes/_authenticated/parametres'
+import { Route as AuthenticatedRecapRouteImport } from './routes/_authenticated/recap'
 import { Route as AuthenticatedDossiersIndexRouteImport } from './routes/_authenticated/dossiers.index'
-import { Route as AuthenticatedDossiersNewRouteImport } from './routes/_authenticated/dossiers.new'
-import { Route as AuthenticatedDossiersArchivesRouteImport } from './routes/_authenticated/dossiers.archives'
 import { Route as AuthenticatedDossiersIdRouteImport } from './routes/_authenticated/dossiers.$id'
+import { Route as AuthenticatedDossiersArchivesRouteImport } from './routes/_authenticated/dossiers.archives'
+import { Route as AuthenticatedDossiersNewRouteImport } from './routes/_authenticated/dossiers.new'
 
-const ResetPasswordRoute = ResetPasswordRouteImport.update({
-  id: '/reset-password',
-  path: '/reset-password',
+const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
+  id: '/_authenticated',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthRoute = AuthRouteImport.update({
@@ -33,8 +32,9 @@ const AuthRoute = AuthRouteImport.update({
   path: '/auth',
   getParentRoute: () => rootRouteImport,
 } as any)
-const AuthenticatedRouteRoute = AuthenticatedRouteRouteImport.update({
-  id: '/_authenticated',
+const ResetPasswordRoute = ResetPasswordRouteImport.update({
+  id: '/reset-password',
+  path: '/reset-password',
   getParentRoute: () => rootRouteImport,
 } as any)
 const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
@@ -42,19 +42,9 @@ const AuthenticatedIndexRoute = AuthenticatedIndexRouteImport.update({
   path: '/',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedRecapRoute = AuthenticatedRecapRouteImport.update({
-  id: '/recap',
-  path: '/recap',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedParametresRoute = AuthenticatedParametresRouteImport.update({
-  id: '/parametres',
-  path: '/parametres',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
-const AuthenticatedImportRoute = AuthenticatedImportRouteImport.update({
-  id: '/import',
-  path: '/import',
+const AuthenticatedConnexionsRoute = AuthenticatedConnexionsRouteImport.update({
+  id: '/connexions',
+  path: '/connexions',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedFacturesRoute = AuthenticatedFacturesRouteImport.update({
@@ -62,9 +52,19 @@ const AuthenticatedFacturesRoute = AuthenticatedFacturesRouteImport.update({
   path: '/factures',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
-const AuthenticatedConnexionsRoute = AuthenticatedConnexionsRouteImport.update({
-  id: '/connexions',
-  path: '/connexions',
+const AuthenticatedImportRoute = AuthenticatedImportRouteImport.update({
+  id: '/import',
+  path: '/import',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedParametresRoute = AuthenticatedParametresRouteImport.update({
+  id: '/parametres',
+  path: '/parametres',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
+const AuthenticatedRecapRoute = AuthenticatedRecapRouteImport.update({
+  id: '/recap',
+  path: '/recap',
   getParentRoute: () => AuthenticatedRouteRoute,
 } as any)
 const AuthenticatedDossiersIndexRoute =
@@ -73,23 +73,23 @@ const AuthenticatedDossiersIndexRoute =
     path: '/dossiers/',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedDossiersNewRoute =
-  AuthenticatedDossiersNewRouteImport.update({
-    id: '/dossiers/new',
-    path: '/dossiers/new',
-    getParentRoute: () => AuthenticatedRouteRoute,
-  } as any)
+const AuthenticatedDossiersIdRoute = AuthenticatedDossiersIdRouteImport.update({
+  id: '/dossiers/$id',
+  path: '/dossiers/$id',
+  getParentRoute: () => AuthenticatedRouteRoute,
+} as any)
 const AuthenticatedDossiersArchivesRoute =
   AuthenticatedDossiersArchivesRouteImport.update({
     id: '/dossiers/archives',
     path: '/dossiers/archives',
     getParentRoute: () => AuthenticatedRouteRoute,
   } as any)
-const AuthenticatedDossiersIdRoute = AuthenticatedDossiersIdRouteImport.update({
-  id: '/dossiers/$id',
-  path: '/dossiers/$id',
-  getParentRoute: () => AuthenticatedRouteRoute,
-} as any)
+const AuthenticatedDossiersNewRoute =
+  AuthenticatedDossiersNewRouteImport.update({
+    id: '/dossiers/new',
+    path: '/dossiers/new',
+    getParentRoute: () => AuthenticatedRouteRoute,
+  } as any)
 
 export interface FileRoutesByFullPath {
   '/': typeof AuthenticatedIndexRoute
@@ -189,11 +189,11 @@ export interface RootRouteChildren {
 
 declare module '@tanstack/react-router' {
   interface FileRoutesByPath {
-    '/reset-password': {
-      id: '/reset-password'
-      path: '/reset-password'
-      fullPath: '/reset-password'
-      preLoaderRoute: typeof ResetPasswordRouteImport
+    '/_authenticated': {
+      id: '/_authenticated'
+      path: ''
+      fullPath: '/'
+      preLoaderRoute: typeof AuthenticatedRouteRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/auth': {
@@ -203,11 +203,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthRouteImport
       parentRoute: typeof rootRouteImport
     }
-    '/_authenticated': {
-      id: '/_authenticated'
-      path: ''
-      fullPath: '/'
-      preLoaderRoute: typeof AuthenticatedRouteRouteImport
+    '/reset-password': {
+      id: '/reset-password'
+      path: '/reset-password'
+      fullPath: '/reset-password'
+      preLoaderRoute: typeof ResetPasswordRouteImport
       parentRoute: typeof rootRouteImport
     }
     '/_authenticated/': {
@@ -217,25 +217,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/recap': {
-      id: '/_authenticated/recap'
-      path: '/recap'
-      fullPath: '/recap'
-      preLoaderRoute: typeof AuthenticatedRecapRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/parametres': {
-      id: '/_authenticated/parametres'
-      path: '/parametres'
-      fullPath: '/parametres'
-      preLoaderRoute: typeof AuthenticatedParametresRouteImport
-      parentRoute: typeof AuthenticatedRouteRoute
-    }
-    '/_authenticated/import': {
-      id: '/_authenticated/import'
-      path: '/import'
-      fullPath: '/import'
-      preLoaderRoute: typeof AuthenticatedImportRouteImport
+    '/_authenticated/connexions': {
+      id: '/_authenticated/connexions'
+      path: '/connexions'
+      fullPath: '/connexions'
+      preLoaderRoute: typeof AuthenticatedConnexionsRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/factures': {
@@ -245,11 +231,25 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedFacturesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/connexions': {
-      id: '/_authenticated/connexions'
-      path: '/connexions'
-      fullPath: '/connexions'
-      preLoaderRoute: typeof AuthenticatedConnexionsRouteImport
+    '/_authenticated/import': {
+      id: '/_authenticated/import'
+      path: '/import'
+      fullPath: '/import'
+      preLoaderRoute: typeof AuthenticatedImportRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/parametres': {
+      id: '/_authenticated/parametres'
+      path: '/parametres'
+      fullPath: '/parametres'
+      preLoaderRoute: typeof AuthenticatedParametresRouteImport
+      parentRoute: typeof AuthenticatedRouteRoute
+    }
+    '/_authenticated/recap': {
+      id: '/_authenticated/recap'
+      path: '/recap'
+      fullPath: '/recap'
+      preLoaderRoute: typeof AuthenticatedRecapRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dossiers/': {
@@ -259,11 +259,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDossiersIndexRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/dossiers/new': {
-      id: '/_authenticated/dossiers/new'
-      path: '/dossiers/new'
-      fullPath: '/dossiers/new'
-      preLoaderRoute: typeof AuthenticatedDossiersNewRouteImport
+    '/_authenticated/dossiers/$id': {
+      id: '/_authenticated/dossiers/$id'
+      path: '/dossiers/$id'
+      fullPath: '/dossiers/$id'
+      preLoaderRoute: typeof AuthenticatedDossiersIdRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
     '/_authenticated/dossiers/archives': {
@@ -273,11 +273,11 @@ declare module '@tanstack/react-router' {
       preLoaderRoute: typeof AuthenticatedDossiersArchivesRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
-    '/_authenticated/dossiers/$id': {
-      id: '/_authenticated/dossiers/$id'
-      path: '/dossiers/$id'
-      fullPath: '/dossiers/$id'
-      preLoaderRoute: typeof AuthenticatedDossiersIdRouteImport
+    '/_authenticated/dossiers/new': {
+      id: '/_authenticated/dossiers/new'
+      path: '/dossiers/new'
+      fullPath: '/dossiers/new'
+      preLoaderRoute: typeof AuthenticatedDossiersNewRouteImport
       parentRoute: typeof AuthenticatedRouteRoute
     }
   }
