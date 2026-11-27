@@ -7,4 +7,4 @@
 - [x] Ajouter dans l’aperçu l’essai d’analyse IA des retards, réservé à la gérante.
 - [x] Tester un résumé réel, les statistiques anonymisées et les protections.
 - [x] Retirer l’essai d’analyse IA des retards à la demande de Samira.
-- [ ] Publier les changements acceptés (retrait de l’analyse IA).
+- [x] Publier les changements acceptés (retrait de l’analyse IA).
