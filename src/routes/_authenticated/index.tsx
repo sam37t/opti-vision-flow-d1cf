@@ -210,9 +210,21 @@ function Dashboard() {
         }
         return true;
       })
-      .sort(
-        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
-      );
+      .sort((a, b) => {
+        // Filtre par statut : les dossiers les plus anciens sans traitement d'abord
+        if (filterStatus) {
+          const refA = a.last_status_change_at || a.created_at;
+          const refB = b.last_status_change_at || b.created_at;
+          const dA = refA ? Math.floor((Date.now() - new Date(refA).getTime()) / 86400000) : 0;
+          const dB = refB ? Math.floor((Date.now() - new Date(refB).getTime()) / 86400000) : 0;
+          if (dA !== dB) return dB - dA;
+          const nomA = `${a.client_nom} ${a.client_prenom}`.toLocaleLowerCase("fr-FR");
+          const nomB = `${b.client_nom} ${b.client_prenom}`.toLocaleLowerCase("fr-FR");
+          const cmp = nomA.localeCompare(nomB, "fr-FR");
+          if (cmp !== 0) return cmp;
+        }
+        return new Date(a.created_at).getTime() - new Date(b.created_at).getTime();
+      });
   }, [dossiers, query, filterStatus, filterMutuelle, dateField, dateFrom, dateTo, hasFilters]);
 
   const resetFilters = () => {
