@@ -139,6 +139,15 @@ function RecentBadge({ d, compact }: { d: Dossier; compact?: boolean }) {
   );
 }
 
+// Jours écoulés depuis le dernier traitement du dossier (plus c'est haut, plus c'est urgent)
+function daysUnprocessed(d: Dossier): number {
+  const ref = d.last_status_change_at || d.updated_at || d.created_at;
+  if (!ref) return 0;
+  const t = new Date(ref).getTime();
+  if (Number.isNaN(t)) return 0;
+  return Math.floor((Date.now() - t) / (24 * 3600 * 1000));
+}
+
 function alertFactureNonTransmise(d: Dossier): boolean {
   // Facturé mais pas encore transmis à la mutuelle
   return d.status === "facture";
@@ -293,8 +302,15 @@ function DossiersPage() {
 
   const sortedDossiers = useMemo(() => {
     const searching = Boolean(search.q?.trim());
+    const byStatus = Boolean(search.status);
     return [...dossiers].sort((a, b) => {
       if (!!a.appeler_mutuelle !== !!b.appeler_mutuelle) return a.appeler_mutuelle ? -1 : 1;
+      // Filtre par statut : les dossiers les plus anciens sans traitement d'abord
+      if (byStatus) {
+        const dA = daysUnprocessed(a);
+        const dB = daysUnprocessed(b);
+        if (dA !== dB) return dB - dA;
+      }
       // En recherche : les dossiers les plus anciens d'abord
       if (searching) {
         const tA = new Date(a.created_at).getTime();
@@ -305,7 +321,7 @@ function DossiersPage() {
       const nomB = `${b.client_nom} ${b.client_prenom}`.toLocaleLowerCase("fr-FR");
       return nomA.localeCompare(nomB, "fr-FR");
     });
-  }, [dossiers, search.q]);
+  }, [dossiers, search.q, search.status]);
 
   const appelerMutuelleDossiers = useMemo(
     () => sortedDossiers.filter((d) => d.appeler_mutuelle),
