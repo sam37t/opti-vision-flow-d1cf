@@ -3,7 +3,7 @@ import { rememberListLocation } from "@/lib/last-list-location";
 import { daysSinceDevisSansRetour, daysSinceTransmisNonRegle } from "@/lib/dossier-alerts";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
-import { AlertOctagon, AlertTriangle, Clock, LayoutGrid, List, Phone, PieChart, Search, X } from "lucide-react";
+import { AlertOctagon, AlertTriangle, Clock, LayoutGrid, List, Phone, PieChart, Search, Sparkles, X } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -16,6 +16,8 @@ import { StatusBadge } from "@/components/StatusBadge";
 import { SELECTABLE_STATUSES, STATUS_LABELS, TERMINAL_STATUSES, type DossierStatus } from "@/lib/dossier-status";
 
 const DossierDistribution = lazy(() => import("@/components/DossierDistribution"));
+const DossierAnalysis = lazy(() => import("@/components/DossierAnalysis"));
+import { useAuth } from "@/hooks/use-auth";
 
 const searchSchema = z.object({
   status: z.coerce.string().optional(),
@@ -236,6 +238,8 @@ function BillingBadges(_props: { d: Dossier; compact?: boolean }) {
 
 
 function DossiersPage() {
+  const { role } = useAuth();
+  const [analysisOpen, setAnalysisOpen] = useState(false);
   const search = Route.useSearch();
   const navigate = Route.useNavigate();
   const qc = useQueryClient();
@@ -426,6 +430,13 @@ function DossiersPage() {
           </div>
         </div>
       </div>
+
+      {role === "gerante" && <div className="flex justify-end">
+        <Button variant="outline" onClick={() => setAnalysisOpen(true)} className="gap-2"><Sparkles className="h-4 w-4" /> Analyser les retards</Button>
+      </div>}
+      {analysisOpen && role === "gerante" && <Suspense fallback={<p className="text-sm text-muted-foreground">Chargement de l’analyse…</p>}>
+        <DossierAnalysis mutuelles={mutuelles} initialStatus={search.status} initialMutuelle={search.mutuelle} onClose={() => setAnalysisOpen(false)} />
+      </Suspense>}
 
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Chargement...</p>
