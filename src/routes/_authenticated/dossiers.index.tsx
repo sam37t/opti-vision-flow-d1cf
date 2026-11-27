@@ -1,5 +1,6 @@
 import { createFileRoute, Link, useRouterState } from "@tanstack/react-router";
 import { rememberListLocation } from "@/lib/last-list-location";
+import { compareDossierPriority, daysUnprocessed } from "@/lib/dossier-priority";
 import { daysSinceDevisSansRetour, daysSinceTransmisNonRegle } from "@/lib/dossier-alerts";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
 import { lazy, Suspense, useEffect, useMemo, useState } from "react";
@@ -141,13 +142,12 @@ function RecentBadge({ d, compact }: { d: Dossier; compact?: boolean }) {
   );
 }
 
-// Jours écoulés depuis le dernier traitement du dossier (plus c'est haut, plus c'est urgent)
-function daysUnprocessed(d: Dossier): number {
-  const ref = d.last_status_change_at || d.updated_at || d.created_at;
-  if (!ref) return 0;
-  const t = new Date(ref).getTime();
-  if (Number.isNaN(t)) return 0;
-  return Math.floor((Date.now() - t) / (24 * 3600 * 1000));
+function UnprocessedBadge({ d }: { d: Dossier }) {
+  return (
+    <span className="inline-flex items-center gap-1 rounded-full border bg-muted px-1.5 py-0.5 text-xs font-medium text-foreground tabular-nums" title="Jours écoulés dans le statut actuel">
+      <Clock className="h-3 w-3" /> {daysUnprocessed(d)} j dans ce statut
+    </span>
+  );
 }
 
 function alertFactureNonTransmise(d: Dossier): boolean {
@@ -303,27 +303,16 @@ function DossiersPage() {
   });
 
   const sortedDossiers = useMemo(() => {
-    const searching = Boolean(search.q?.trim());
-    const byStatus = Boolean(search.status);
+    const byPriority = Boolean(search.status || search.q?.trim() || search.mutuelle || search.from || search.to || search.probleme || search.appeler);
+    const now = Date.now();
     return [...dossiers].sort((a, b) => {
+      if (byPriority) return compareDossierPriority(a, b, now);
       if (!!a.appeler_mutuelle !== !!b.appeler_mutuelle) return a.appeler_mutuelle ? -1 : 1;
-      // Filtre par statut : les dossiers les plus anciens sans traitement d'abord
-      if (byStatus) {
-        const dA = daysUnprocessed(a);
-        const dB = daysUnprocessed(b);
-        if (dA !== dB) return dB - dA;
-      }
-      // En recherche : les dossiers les plus anciens d'abord
-      if (searching) {
-        const tA = new Date(a.created_at).getTime();
-        const tB = new Date(b.created_at).getTime();
-        if (tA !== tB) return tA - tB;
-      }
       const nomA = `${a.client_nom} ${a.client_prenom}`.toLocaleLowerCase("fr-FR");
       const nomB = `${b.client_nom} ${b.client_prenom}`.toLocaleLowerCase("fr-FR");
       return nomA.localeCompare(nomB, "fr-FR");
     });
-  }, [dossiers, search.q, search.status]);
+  }, [dossiers, search.q, search.status, search.mutuelle, search.from, search.to, search.probleme, search.appeler]);
 
   const appelerMutuelleDossiers = useMemo(
     () => sortedDossiers.filter((d) => d.appeler_mutuelle),
@@ -434,16 +423,16 @@ function DossiersPage() {
           <DossierDistribution dossiers={dossiers} selectedStatus={search.status} />
         </Suspense>
       ) : view === "list" ? (
-        <ListView dossiers={sortedDossiers} />
+        <ListView dossiers={sortedDossiers} showDays={hasFilters} />
       ) : (
-        <KanbanView dossiers={sortedDossiers} />
+        <KanbanView dossiers={sortedDossiers} selectedStatus={search.status} showDays={hasFilters} />
       )}
 
     </div>
   );
 }
 
-function ListView({ dossiers }: { dossiers: Dossier[] }) {
+function ListView({ dossiers, showDays }: { dossiers: Dossier[]; showDays: boolean }) {
   if (dossiers.length === 0) return <EmptyState />;
   return (
     <div className="overflow-x-auto rounded-lg border bg-card">
@@ -472,7 +461,7 @@ function ListView({ dossiers }: { dossiers: Dossier[] }) {
                     <StatusBadge status={d.status} className="text-[10px] px-1.5 py-0" />
                     <BillingBadges d={d} compact />
                     <AlertBadges d={d} compact />
-                    <ReminderBadge d={d} compact />
+                    {showDays ? <UnprocessedBadge d={d} /> : <ReminderBadge d={d} compact />}
                     <RecentBadge d={d} compact />
                     {gris && (
                       <span className="inline-flex items-center gap-1 rounded-full bg-slate-100 px-1.5 py-0.5 text-[10px] font-medium text-slate-500" title={`Demande de PEC à partir du ${new Date(d.pec_a_demander_le!).toLocaleDateString("fr-FR")}`}>
@@ -511,11 +500,12 @@ function ListView({ dossiers }: { dossiers: Dossier[] }) {
   );
 }
 
-function KanbanView({ dossiers }: { dossiers: Dossier[] }) {
+function KanbanView({ dossiers, selectedStatus, showDays }: { dossiers: Dossier[]; selectedStatus: string | undefined; showDays: boolean }) {
+  const statuses = selectedStatus ? [selectedStatus as DossierStatus] : SELECTABLE_STATUSES;
   return (
     <div className="space-y-4">
-      <div className="grid gap-3 md:grid-cols-2 xl:grid-cols-4">
-        {SELECTABLE_STATUSES.map((s) => {
+      <div className={selectedStatus ? "grid gap-3" : "grid gap-3 md:grid-cols-2 xl:grid-cols-4"}>
+        {statuses.map((s) => {
           const items = dossiers.filter((d) => d.status === s);
           return (
             <div key={s} className="min-w-0 rounded-lg border bg-card p-3">
@@ -523,7 +513,7 @@ function KanbanView({ dossiers }: { dossiers: Dossier[] }) {
                 <StatusBadge status={s} />
                 <span className="text-xs font-medium text-muted-foreground">{items.length}</span>
               </div>
-              <div className="space-y-2">
+              <div className={selectedStatus ? "grid items-start gap-2 sm:grid-cols-2 xl:grid-cols-3" : "space-y-2"}>
                 {items.map((d) => (
                   <Link
                     key={d.id}
@@ -540,7 +530,7 @@ function KanbanView({ dossiers }: { dossiers: Dossier[] }) {
                       {d.type_dossier === "lentilles" && <LensBadge />}
                     </div>
                     <div className="truncate text-xs text-muted-foreground">{d.mutuelle || "—"}</div>
-                    <div className="mt-1 flex flex-wrap items-center gap-1"><StatusBadge status={d.status} className="text-[10px] px-1.5 py-0" /><BillingBadges d={d} compact /><AlertBadges d={d} compact /><ReminderBadge d={d} compact /><RecentBadge d={d} compact /></div>
+                    <div className="mt-1 flex flex-wrap items-center gap-1"><StatusBadge status={d.status} className="text-[10px] px-1.5 py-0" /><BillingBadges d={d} compact /><AlertBadges d={d} compact />{showDays ? <UnprocessedBadge d={d} /> : <ReminderBadge d={d} compact />}<RecentBadge d={d} compact /></div>
                     <div className="mt-1 space-y-0.5 text-xs tabular-nums">
                       <div>Devis : <span className="font-medium">{Number(d.montant_devis ?? 0).toFixed(2)} €</span></div>
                       {d.montant_pec != null && <div>Accordé : <span className="font-medium">{Number(d.montant_pec).toFixed(2)} €</span></div>}
