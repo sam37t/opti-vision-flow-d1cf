@@ -24,3 +24,15 @@ test("un appel mutuelle ne passe pas devant un dossier non traité depuis plus l
 test("l'ancienneté de création ne remplace pas les jours dans le statut courant", () => {
   assert.equal(daysUnprocessed(dossier(4), now), 4);
 });
+test("les dossiers transmis suivent le retard de règlement affiché, 286 puis 163 puis 137 jours", () => {
+  const rows = [
+    { ...dossier(173), status: "transmis_mutuelle", transmis_mutuelle_at: dossier(137).last_status_change_at },
+    { ...dossier(173), status: "transmis_mutuelle", transmis_mutuelle_at: dossier(163).last_status_change_at },
+    { ...dossier(170), status: "transmis_mutuelle", transmis_mutuelle_at: dossier(286).last_status_change_at },
+  ];
+  rows.sort((a, b) => compareDossierPriority(a, b, now));
+  assert.deepEqual(rows.map((row) => daysUnprocessed(row, now)), [286, 163, 137]);
+});
+test("les devis sont classés selon la date de demande sans retour", () => {
+  assert.equal(daysUnprocessed({ ...dossier(173), status: "devis_envoye", pec_demande_at: dossier(30).last_status_change_at }, now), 30);
+});

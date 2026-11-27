@@ -1,5 +1,7 @@
 # Roadmap
 
+- [x] Aligner le tri sur le retard visible des alertes et éviter les compteurs contradictoires ; vérifier Liste et Kanban.
+
 - [x] Corriger et vérifier les résultats filtrés par jours non traités, avec compteur visible et statut sélectionné immédiatement accessible.
 
 - [x] Corriger l’affichage publié de la page Dossiers/Appeler Mutuelle et publier

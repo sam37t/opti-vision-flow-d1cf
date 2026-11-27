@@ -143,9 +143,10 @@ function RecentBadge({ d, compact }: { d: Dossier; compact?: boolean }) {
 }
 
 function UnprocessedBadge({ d }: { d: Dossier }) {
+  if (daysSinceDevisSansRetour(d) != null || daysSinceTransmisNonRegle(d) != null) return null;
   return (
-    <span className="inline-flex items-center gap-1 rounded-full border bg-muted px-1.5 py-0.5 text-xs font-medium text-foreground tabular-nums" title="Jours écoulés dans le statut actuel">
-      <Clock className="h-3 w-3" /> {daysUnprocessed(d)} j dans ce statut
+    <span className="inline-flex items-center gap-1 rounded-full border bg-muted px-1.5 py-0.5 text-xs font-medium text-foreground tabular-nums" title="Délai d’attente de l’étape actuelle">
+      <Clock className="h-3 w-3" /> {daysUnprocessed(d)} j d’attente
     </span>
   );
 }
