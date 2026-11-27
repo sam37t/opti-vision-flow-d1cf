@@ -193,22 +193,26 @@ function Dashboard() {
     const q = query.trim().toLowerCase();
     const from = dateFrom ? new Date(dateFrom).getTime() : null;
     const to = dateTo ? new Date(dateTo).getTime() + 24 * 3600 * 1000 - 1 : null;
-    return dossiers.filter((d) => {
-      if (filterStatus && d.status !== filterStatus) return false;
-      if (filterMutuelle && d.mutuelle !== filterMutuelle) return false;
-      if (q) {
-        const name = `${d.client_nom ?? ""} ${d.client_prenom ?? ""}`.toLowerCase();
-        if (!name.includes(q) && !matchesAmountQuery(d, query)) return false;
-      }
-      if (from !== null || to !== null) {
-        const raw = (d as Record<string, unknown>)[dateField] as string | null | undefined;
-        if (!raw) return false;
-        const t = new Date(raw).getTime();
-        if (from !== null && t < from) return false;
-        if (to !== null && t > to) return false;
-      }
-      return true;
-    });
+    return dossiers
+      .filter((d) => {
+        if (filterStatus && d.status !== filterStatus) return false;
+        if (filterMutuelle && d.mutuelle !== filterMutuelle) return false;
+        if (q) {
+          const name = `${d.client_nom ?? ""} ${d.client_prenom ?? ""}`.toLowerCase();
+          if (!name.includes(q) && !matchesAmountQuery(d, query)) return false;
+        }
+        if (from !== null || to !== null) {
+          const raw = (d as Record<string, unknown>)[dateField] as string | null | undefined;
+          if (!raw) return false;
+          const t = new Date(raw).getTime();
+          if (from !== null && t < from) return false;
+          if (to !== null && t > to) return false;
+        }
+        return true;
+      })
+      .sort(
+        (a, b) => new Date(a.created_at).getTime() - new Date(b.created_at).getTime(),
+      );
   }, [dossiers, query, filterStatus, filterMutuelle, dateField, dateFrom, dateTo, hasFilters]);
 
   const resetFilters = () => {

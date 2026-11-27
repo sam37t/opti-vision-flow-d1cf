@@ -292,13 +292,20 @@ function DossiersPage() {
   });
 
   const sortedDossiers = useMemo(() => {
+    const searching = Boolean(search.q?.trim());
     return [...dossiers].sort((a, b) => {
       if (!!a.appeler_mutuelle !== !!b.appeler_mutuelle) return a.appeler_mutuelle ? -1 : 1;
+      // En recherche : les dossiers les plus anciens d'abord
+      if (searching) {
+        const tA = new Date(a.created_at).getTime();
+        const tB = new Date(b.created_at).getTime();
+        if (tA !== tB) return tA - tB;
+      }
       const nomA = `${a.client_nom} ${a.client_prenom}`.toLocaleLowerCase("fr-FR");
       const nomB = `${b.client_nom} ${b.client_prenom}`.toLocaleLowerCase("fr-FR");
       return nomA.localeCompare(nomB, "fr-FR");
     });
-  }, [dossiers]);
+  }, [dossiers, search.q]);
 
   const appelerMutuelleDossiers = useMemo(
     () => sortedDossiers.filter((d) => d.appeler_mutuelle),
