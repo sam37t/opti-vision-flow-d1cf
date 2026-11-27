@@ -2,8 +2,8 @@ import { createFileRoute, Link, useRouterState } from "@tanstack/react-router";
 import { rememberListLocation } from "@/lib/last-list-location";
 import { daysSinceDevisSansRetour, daysSinceTransmisNonRegle } from "@/lib/dossier-alerts";
 import { useQuery, useQueryClient } from "@tanstack/react-query";
-import { useEffect, useMemo, useState } from "react";
-import { AlertOctagon, AlertTriangle, Clock, LayoutGrid, List, Phone, Search, X } from "lucide-react";
+import { lazy, Suspense, useEffect, useMemo, useState } from "react";
+import { AlertOctagon, AlertTriangle, Clock, LayoutGrid, List, Phone, PieChart, Search, X } from "lucide-react";
 import { z } from "zod";
 import { supabase } from "@/integrations/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -14,6 +14,8 @@ import {
 import { amountOrClauses, AMOUNT_SEARCH_HINT } from "@/lib/dossier-search";
 import { StatusBadge } from "@/components/StatusBadge";
 import { SELECTABLE_STATUSES, STATUS_LABELS, TERMINAL_STATUSES, type DossierStatus } from "@/lib/dossier-status";
+
+const DossierDistribution = lazy(() => import("@/components/DossierDistribution"));
 
 const searchSchema = z.object({
   status: z.coerce.string().optional(),
@@ -238,7 +240,7 @@ function DossiersPage() {
   const navigate = Route.useNavigate();
   const qc = useQueryClient();
   const appelerFilterActive = search.appeler?.replace(/["']/g, "") === "1";
-  const [view, setView] = useState<"list" | "kanban">("kanban");
+  const [view, setView] = useState<"list" | "kanban" | "distribution">("kanban");
   const listHref = useRouterState({ select: (s) => s.location.href });
 
   useEffect(() => {
@@ -354,12 +356,15 @@ function DossiersPage() {
           </p>
         </div>
         <div className="flex justify-center">
-          <div className="grid grid-cols-2 gap-1 rounded-lg border bg-card p-1 shadow-sm">
+          <div className="grid grid-cols-3 gap-1 rounded-lg border bg-card p-1 shadow-sm">
             <Button variant={view === "list" ? "secondary" : "ghost"} size="sm" onClick={() => setView("list")} className="gap-1.5 px-6">
               <List className="h-4 w-4" /> Liste
             </Button>
             <Button variant={view === "kanban" ? "secondary" : "ghost"} size="sm" onClick={() => setView("kanban")} className="gap-1.5 px-6">
               <LayoutGrid className="h-4 w-4" /> Kanban
+            </Button>
+            <Button variant={view === "distribution" ? "secondary" : "ghost"} size="sm" onClick={() => setView("distribution")} className="gap-1.5 px-2 sm:px-6">
+              <PieChart className="h-4 w-4" /> Mutuelles
             </Button>
           </div>
         </div>
@@ -424,6 +429,10 @@ function DossiersPage() {
 
       {isLoading ? (
         <p className="text-sm text-muted-foreground">Chargement...</p>
+      ) : view === "distribution" ? (
+        <Suspense fallback={<p className="text-sm text-muted-foreground">Chargement des graphiques…</p>}>
+          <DossierDistribution dossiers={dossiers} selectedStatus={search.status} />
+        </Suspense>
       ) : view === "list" ? (
         <ListView dossiers={sortedDossiers} />
       ) : (

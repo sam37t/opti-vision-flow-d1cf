@@ -59,6 +59,16 @@
   --border: #cfe0e3;
   --input: #cfe0e3;
   --ring: #1a4a5c;
+  --distribution-1: #287e95;
+  --distribution-2: #d38537;
+  --distribution-3: #419a76;
+  --distribution-4: #c85879;
+  --distribution-5: #8174ae;
+  --distribution-6: #a3912f;
+  --distribution-7: #428dc4;
+  --distribution-8: #bd6250;
+  --distribution-9: #6b9d37;
+  --distribution-10: #62727e;
 }
 
 
@@ -86,6 +96,16 @@
   --border: oklch(1 0 0 / 12%);
   --input: oklch(1 0 0 / 15%);
   --ring: oklch(0.65 0.09 195);
+  --distribution-1: #5cbbce;
+  --distribution-2: #efb366;
+  --distribution-3: #71c7a1;
+  --distribution-4: #eb8ca6;
+  --distribution-5: #b0a0dc;
+  --distribution-6: #d2c461;
+  --distribution-7: #80bde9;
+  --distribution-8: #e89888;
+  --distribution-9: #a0c96f;
+  --distribution-10: #a0b3bf;
 }
 
 
